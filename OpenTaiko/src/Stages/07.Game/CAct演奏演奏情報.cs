@@ -27,6 +27,7 @@ internal class CAct演奏演奏情報 : CActivity {
 		}
 		this.dbSCROLL = 1.0;
 
+		NoteDeltas.Clear();
 		_chipCounts[0] = OpenTaiko.TJA.listChip.Where(num => NotesManager.IsMissableNote(num)).Count();
 		_chipCounts[1] = OpenTaiko.TJA.listChip_Branch[2].Where(num => NotesManager.IsMissableNote(num)).Count();
 
