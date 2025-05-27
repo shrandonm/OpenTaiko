@@ -674,6 +674,12 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 		return nFly;
 	}
 
+	/* HandleDrumHit
+	 * This function determines how a hit input on the drum (e.g., red or blue zone)
+	 * maps to the current note (chip) and whether it's valid, processes judgment
+	 * (like "Great", "Good", "Miss"), and triggers the appropriate visual/audio/gameplay
+	 * feedback for that player.
+	 */
 	private bool tドラムヒット処理(long nHitTime, EPad type, CChip pChip, bool b両手入力, int nPlayer) {
 		int nInput = 0;
 
@@ -743,6 +749,9 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 
 			this.actTaikoLaneFlash.PlayerLane[nPlayer].Start(PlayerLane.FlashType.Hit);
 			this.FlyingNotes.Start(nFly, nPlayer);
+
+			// Register note timing delta here:
+			this.actPlayInfo.NoteDeltas.Add(pChip.nLag);
 		}
 
 		return true;

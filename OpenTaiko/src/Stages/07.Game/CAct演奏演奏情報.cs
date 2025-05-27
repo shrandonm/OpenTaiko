@@ -9,6 +9,7 @@ internal class CAct演奏演奏情報 : CActivity {
 	public readonly int[] NowMeasure = new int[5];
 	public double dbSCROLL;
 	public int[] _chipCounts = new int[2];
+	public List<int> NoteDeltas = new();
 
 	// コンストラクタ
 
@@ -74,6 +75,8 @@ internal class CAct演奏演奏情報 : CActivity {
 			y -= dy;
 			OpenTaiko.actTextConsole.Print(x, y, CTextConsole.EFontType.White, ListChipMText);
 
+			y = PrintNoteDeltas(x, y);
+
 			//CDTXMania.act文字コンソール.tPrint( x, y, C文字コンソール.Eフォント種別.白, string.Format( "Sound CPU :    {0:####0.00}%", CDTXMania.Sound管理.GetCPUusage() ) );
 			//y -= dy;
 			//CDTXMania.act文字コンソール.tPrint( x, y, C文字コンソール.Eフォント種別.白, string.Format( "Sound Mixing:  {0:####0}", CDTXMania.Sound管理.GetMixingStreams() ) );
@@ -82,6 +85,36 @@ internal class CAct演奏演奏情報 : CActivity {
 			//y -= dy;
 		}
 		return 0;
+	}
+
+	int PrintText(int x, int y, string text)
+	{
+		y -= OpenTaiko.actTextConsole.fontHeight;
+		OpenTaiko.actTextConsole.Print(x, y, CTextConsole.EFontType.White, text);
+		return y;
+	}
+
+	int GetAverageExcludingOutliers(float percentageToRemove)
+	{
+		List<int> sortedDeltas = new(NoteDeltas);
+		sortedDeltas.Sort();
+		int numToRemove = (int)MathF.Round(sortedDeltas.Count * percentageToRemove);
+		sortedDeltas.RemoveRange(0, numToRemove);
+		sortedDeltas.RemoveRange(sortedDeltas.Count - numToRemove, numToRemove);
+		return (int)Math.Round(sortedDeltas.Average());
+	}
+
+	int PrintNoteDeltas(int x, int y)
+	{
+		y = PrintText(x, y, $"NoteDelta Count: {NoteDeltas.Count}");
+		if (NoteDeltas.Count > 0)
+		{
+			y = PrintText(x, y, $"NoteDelta Average: {NoteDeltas.Average()}");
+			y = PrintText(x, y, $"NoteDelta Average (excl. 5%): {GetAverageExcludingOutliers(0.05f)}");
+			y = PrintText(x, y, $"NoteDelta Average (excl. 10%): {GetAverageExcludingOutliers(0.1f)}");
+			y = PrintText(x, y, $"NoteDelta Average (excl. 20%): {GetAverageExcludingOutliers(0.2f)}");
+		}
+		return y;
 	}
 
 	private string NotesTextN;
