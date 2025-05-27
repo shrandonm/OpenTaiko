@@ -95,14 +95,14 @@ internal class CAct演奏演奏情報 : CActivity {
 		return y;
 	}
 
-	int GetAverageExcludingOutliers(float percentageToRemove)
+	double GetAverageExcludingOutliers(float percentageToRemove)
 	{
 		List<int> sortedDeltas = new(NoteDeltas);
 		sortedDeltas.Sort();
 		int numToRemove = (int)MathF.Round(sortedDeltas.Count * percentageToRemove);
 		sortedDeltas.RemoveRange(0, numToRemove);
 		sortedDeltas.RemoveRange(sortedDeltas.Count - numToRemove, numToRemove);
-		return (int)Math.Round(sortedDeltas.Average());
+		return sortedDeltas.Average();
 	}
 
 	int PrintNoteDeltas(int x, int y)
