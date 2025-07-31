@@ -750,11 +750,26 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 			this.actTaikoLaneFlash.PlayerLane[nPlayer].Start(PlayerLane.FlashType.Hit);
 			this.FlyingNotes.Start(nFly, nPlayer);
 
-			// Register note timing delta here:
-			this.actPlayInfo.NoteDeltas.Add(pChip.nLag);
+			// [[Divergence]
+			AddNoteDelta(pChip);
 		}
 
 		return true;
+	}
+
+	// [[Divergence]
+	private void AddNoteDelta(CChip pChip)
+	{
+		const int maxHitDeltaMs = 75;
+		const int maxGoodNoteDeltaMs = 25;
+		if (Math.Abs(pChip.nLag) <= maxHitDeltaMs)
+		{
+			actPlayInfo.HitNoteDeltas.Add(pChip.nLag);
+			if (Math.Abs(pChip.nLag) <= maxGoodNoteDeltaMs)
+			{
+				actPlayInfo.GoodNoteDeltas.Add(pChip.nLag);
+			}
+		}
 	}
 
 	protected override void ドラムスクロール速度アップ() {

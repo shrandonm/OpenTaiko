@@ -9,7 +9,10 @@ internal class CAct演奏演奏情報 : CActivity {
 	public readonly int[] NowMeasure = new int[5];
 	public double dbSCROLL;
 	public int[] _chipCounts = new int[2];
-	public List<int> NoteDeltas = new();
+
+	// [Divergence]
+	public List<int> HitNoteDeltas = new();
+	public List<int> GoodNoteDeltas = new();
 
 	// コンストラクタ
 
@@ -27,7 +30,8 @@ internal class CAct演奏演奏情報 : CActivity {
 		}
 		this.dbSCROLL = 1.0;
 
-		NoteDeltas.Clear();
+		HitNoteDeltas.Clear();
+		GoodNoteDeltas.Clear();
 		_chipCounts[0] = OpenTaiko.TJA.listChip.Where(num => NotesManager.IsMissableNote(num)).Count();
 		_chipCounts[1] = OpenTaiko.TJA.listChip_Branch[2].Where(num => NotesManager.IsMissableNote(num)).Count();
 
@@ -95,26 +99,35 @@ internal class CAct演奏演奏情報 : CActivity {
 		return y;
 	}
 
-	double GetAverageExcludingOutliers(float percentageToRemove)
+	static double GetAbsAverage(List<int> values)
 	{
-		List<int> sortedDeltas = new(NoteDeltas);
-		sortedDeltas.Sort();
-		int numToRemove = (int)MathF.Round(sortedDeltas.Count * percentageToRemove);
-		sortedDeltas.RemoveRange(0, numToRemove);
-		sortedDeltas.RemoveRange(sortedDeltas.Count - numToRemove, numToRemove);
-		return sortedDeltas.Average();
+		int average = 0;
+		foreach (int i in values)
+		{
+			average += Math.Abs(i);
+		}
+		return values.Count > 0 ? average / values.Count : 0.0;
 	}
 
+	// [Divergence]
 	int PrintNoteDeltas(int x, int y)
 	{
-		y = PrintText(x, y, $"NoteDelta Count: {NoteDeltas.Count}");
-		if (NoteDeltas.Count > 0)
+		y = PrintText(x, y, $"Hit Count: {HitNoteDeltas.Count}");
+		y = PrintText(x, y, $"Early hits: {HitNoteDeltas.Count(x => x < -25)}");
+		y = PrintText(x, y, $"Late hits: {HitNoteDeltas.Count(x => x > +25)}");
+
+		if (HitNoteDeltas.Count > 0)
 		{
-			y = PrintText(x, y, $"NoteDelta Average: {NoteDeltas.Average()}");
-			y = PrintText(x, y, $"NoteDelta Average (excl. 5%): {GetAverageExcludingOutliers(0.05f)}");
-			y = PrintText(x, y, $"NoteDelta Average (excl. 10%): {GetAverageExcludingOutliers(0.1f)}");
-			y = PrintText(x, y, $"NoteDelta Average (excl. 20%): {GetAverageExcludingOutliers(0.2f)}");
+			y = PrintText(x, y, $"Hit Average Delta: {HitNoteDeltas.Average()}");
+			y = PrintText(x, y, $"Hit Average Error: {GetAbsAverage(HitNoteDeltas)}");
 		}
+
+		if (HitNoteDeltas.Count > 0)
+		{
+			y = PrintText(x, y, $"Good Average Delta: {GoodNoteDeltas.Average()}");
+			y = PrintText(x, y, $"Good Average Error: {GetAbsAverage(GoodNoteDeltas)}");
+		}
+
 		return y;
 	}
 
