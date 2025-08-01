@@ -8,10 +8,12 @@ namespace OpenTaiko {
 				Values = rawJson.Values.Copy();
 				Type = rawJson.Type;
 				Reference = rawJson.Reference.Copy();
+				CoinStack = 0;
 			} else {
 				Values = [];
 				Type = "me";
 				Reference = [];
+				CoinStack = 0;
 			}
 		}
 
@@ -23,6 +25,9 @@ namespace OpenTaiko {
 
 		// Referenced charts
 		public string[] Reference;
+
+		// Used to get recursively coin counts on OR/AND comb conditions
+		public int CoinStack;
 
 		protected int RequiredArgCount = -1;
 		protected string ConditionId = "";
@@ -41,6 +46,25 @@ namespace OpenTaiko {
 		 * d : "Different"
 		 */
 		public bool tValueRequirementMet(int val1, int val2) {
+			switch (this.Type) {
+				case "l":
+					return (val1 < val2);
+				case "le":
+					return (val1 <= val2);
+				case "e":
+					return (val1 == val2);
+				case "me":
+					return (val1 >= val2);
+				case "m":
+					return (val1 > val2);
+				case "d":
+					return (val1 != val2);
+				default:
+					return (val1 >= val2);
+			}
+		}
+
+		public bool tValueRequirementMet(double val1, double val2) {
 			switch (this.Type) {
 				case "l":
 					return (val1 < val2);

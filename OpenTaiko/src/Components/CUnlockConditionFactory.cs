@@ -49,6 +49,8 @@ namespace OpenTaiko {
 		 * ap : "AI battle plays", 1 value : [AI battle playcount]
 		 * aw : "AI battle wins", 1 value : [AI battle wins count]
 		 * ig : "Impossible to Get", (not recommanded) used to be able to have content in database that is impossible to unlock, no values
+		 * gt : "Global trigger", 1 value : [0: OFF, 1: ON], 1 reference : [Global trigger name]
+		 * gc : "Global counter", 1 value : [Value to compare], 1 reference : [Global counter name]
 		 *
 		 *
 		 * == Combined conditions (coming soon)
@@ -56,7 +58,7 @@ namespace OpenTaiko {
 		 * orcomb : "OR combination", fullfil at least one of the included conditions to unlock the asset, n references for each condition in the reference array as a stringified JSON
 		 */
 
-		public CUnlockCondition? GenerateUnlockObjectFromJsonRaw(UnlockConditionJsonRaw? rawJson) {
+		public CUnlockCondition GenerateUnlockObjectFromJsonRaw(UnlockConditionJsonRaw? rawJson) {
 			if (rawJson == null) {
 				return new CUnlockError(null);
 			}
@@ -104,11 +106,16 @@ namespace OpenTaiko {
 				case "ig": {
 						return new CUnlockIG(rawJson);
 					}
+				case "gt": {
+						return new CUnlockGT(rawJson);
+					}
+				case "gc": {
+						return new CUnlockGC(rawJson);
+					}
 				case "andcomb": {
 						return new CUnlockAndComb(rawJson);
 					}
 				case "orcomb": {
-						// To do: parse references as json strings recursively and add them for both andcomb and orcomb
 						return new CUnlockOrComb(rawJson);
 					}
 			}
@@ -116,7 +123,7 @@ namespace OpenTaiko {
 			return new CUnlockError(null);
 		}
 
-		public CUnlockCondition? GenerateUnlockObjectFromJsonPath(string jsonPath) {
+		public CUnlockCondition GenerateUnlockObjectFromJsonPath(string jsonPath) {
 			UnlockConditionJsonRaw? rawJson = ConfigManager.GetConfig<UnlockConditionJsonRaw>(jsonPath);
 
 			return this.GenerateUnlockObjectFromJsonRaw(rawJson);
