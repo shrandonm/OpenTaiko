@@ -106,7 +106,7 @@ internal class CAct演奏演奏情報 : CActivity {
 		{
 			average += Math.Abs(i);
 		}
-		return values.Count > 0 ? average / values.Count : 0.0;
+		return values.Count > 0 ? (double)average / values.Count : 0.0;
 	}
 
 	// [Divergence]
