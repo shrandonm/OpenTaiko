@@ -122,7 +122,7 @@ internal class CAct演奏演奏情報 : CActivity {
 			y = PrintText(x, y, $"Hit Average Error: {GetAbsAverage(HitNoteDeltas)}");
 		}
 
-		if (HitNoteDeltas.Count > 0)
+		if (GoodNoteDeltas.Count > 0)
 		{
 			y = PrintText(x, y, $"Good Average Delta: {GoodNoteDeltas.Average()}");
 			y = PrintText(x, y, $"Good Average Error: {GetAbsAverage(GoodNoteDeltas)}");
