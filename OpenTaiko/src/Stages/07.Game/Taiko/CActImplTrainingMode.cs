@@ -275,7 +275,7 @@ class CActImplTrainingMode : CActivity {
 			tPausePlay();
 		}
 
-		int bookmarkMeasure = GetBookmarkMeasureBefore(this.nCurrentMeasure);
+		int bookmarkMeasure = GetBookmarkMeasureBefore(this.nCurrentMeasure + 1);
 		if (bookmarkMeasure != -1) {
 			SkipBackMeasures(this.nCurrentMeasure - bookmarkMeasure);
 		} else {
