@@ -279,7 +279,8 @@ class CActImplTrainingMode : CActivity {
 		if (bookmarkMeasure != -1) {
 			SkipBackMeasures(this.nCurrentMeasure - bookmarkMeasure);
 		} else {
-			SkipBackMeasures(OpenTaiko.ConfigIni.TokkunSkipMeasures);
+			const int autoSkipMeasureCount = 2;
+			SkipBackMeasures(autoSkipMeasureCount);
 		}
 		tResumePlay();
 		bAutoSkipBackQueued = false;
