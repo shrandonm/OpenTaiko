@@ -1745,6 +1745,11 @@ internal abstract class CStage演奏画面共通 : CStage {
 			this.CSectionScore[nPlayer].nScore = __score;
 		}
 
+		// [Divergence]
+		if (NotesManager.IsMissableNote(pChip) && !NotesManager.IsGenericRoll(pChip))
+		{
+			OpenTaiko.stageGameScreen.AddNoteDelta(pChip, eJudgeResult);
+		}
 
 		return ENoteJudge.Auto;
 	}

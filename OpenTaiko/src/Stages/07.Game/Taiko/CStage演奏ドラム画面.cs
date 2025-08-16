@@ -768,25 +768,34 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 
 			this.actTaikoLaneFlash.PlayerLane[nPlayer].Start(PlayerLane.FlashType.Hit);
 			this.FlyingNotes.Start(nFly, nPlayer);
-
-			// [[Divergence]
-			AddNoteDelta(pChip);
 		}
 
+		// [[Divergence] Track/Add note delta
+		//AddNoteDelta(pChip);
 		return true;
 	}
 
-	// [[Divergence]
-	private void AddNoteDelta(CChip pChip)
+	// [[Divergence] AddNoteDelta
+	public void AddNoteDelta(CChip pChip, ENoteJudge judgeResult)
 	{
 		const int maxHitDeltaMs = 75;
 		const int maxGoodNoteDeltaMs = 25;
-		if (Math.Abs(pChip.nLag) <= maxHitDeltaMs)
+
+		int absDelta = Math.Abs(pChip.nLag);
+		if (absDelta <= maxHitDeltaMs)
 		{
 			actPlayInfo.HitNoteDeltas.Add(pChip.nLag);
 			if (Math.Abs(pChip.nLag) <= maxGoodNoteDeltaMs)
 			{
 				actPlayInfo.GoodNoteDeltas.Add(pChip.nLag);
+			}
+		}
+
+		if (OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold > 0)
+		{
+			if (absDelta > OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold || judgeResult == ENoteJudge.Miss)
+			{
+				actTokkun.QueueAutoSkipBack();
 			}
 		}
 	}

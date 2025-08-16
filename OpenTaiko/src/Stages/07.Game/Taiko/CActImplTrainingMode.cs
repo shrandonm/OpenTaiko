@@ -113,14 +113,8 @@ class CActImplTrainingMode : CActivity {
 				}
 			}
 			if (OpenTaiko.ConfigIni.KeyAssign.KeyIsPressed(OpenTaiko.ConfigIni.KeyAssign.Drums.TrainingSkipBackMeasure)) {
-				if (this.bTrainingPAUSE) {
-					this.nCurrentMeasure -= OpenTaiko.ConfigIni.TokkunSkipMeasures;
-					if (this.nCurrentMeasure <= 0)
-						this.nCurrentMeasure = 1;
-
-					this.tMatchWithTheChartDisplayPosition(true);
-					OpenTaiko.Skin.soundTrainingModeScrollSFX.tPlay();
-				}
+				// [Divergence] Skip back measure hotkey
+				SkipBackMeasures(1);
 			}
 			if (OpenTaiko.ConfigIni.KeyAssign.KeyIsPressed(OpenTaiko.ConfigIni.KeyAssign.Drums.TrainingMoveForwardMeasure)) {
 				if (this.bTrainingPAUSE) {
@@ -203,6 +197,10 @@ class CActImplTrainingMode : CActivity {
 			if (OpenTaiko.ConfigIni.KeyAssign.KeyIsPressed(OpenTaiko.ConfigIni.KeyAssign.Drums.TrainingBookmark))
 				this.tToggleBookmarkAtTheCurrentPosition();
 
+			if (bAutoSkipBackQueued) {
+				AutoSkipBack();
+			}
+
 			if (this.bCurrentlyScrolling) {
 				int msTargetTime = easing.EaseOut(this.ctScrollCounter, (int)this.nスクロール前ms, (int)this.nスクロール後ms, Easing.CalcType.Circular);
 
@@ -252,6 +250,39 @@ class CActImplTrainingMode : CActivity {
 		}
 
 		return base.Draw();
+	}
+
+	// [Divergence] SkipBackMeasures
+	public void SkipBackMeasures(int measureCount)
+	{
+		if (this.bTrainingPAUSE)
+		{
+			this.nCurrentMeasure -= OpenTaiko.ConfigIni.TokkunSkipMeasures * measureCount;
+			if (this.nCurrentMeasure <= 0)
+				this.nCurrentMeasure = 1;
+
+			this.tMatchWithTheChartDisplayPosition(true);
+			OpenTaiko.Skin.soundTrainingModeScrollSFX.tPlay();
+		}
+	}
+
+	public void QueueAutoSkipBack() {
+		bAutoSkipBackQueued = true;
+	}
+
+	private void AutoSkipBack() {
+		if (!bTrainingPAUSE) {
+			tPausePlay();
+		}
+
+		int bookmarkMeasure = GetBookmarkMeasureBefore(this.nCurrentMeasure);
+		if (bookmarkMeasure != -1) {
+			SkipBackMeasures(this.nCurrentMeasure - bookmarkMeasure);
+		} else {
+			SkipBackMeasures(OpenTaiko.ConfigIni.TokkunSkipMeasures);
+		}
+		tResumePlay();
+		bAutoSkipBackQueued = false;
 	}
 
 	public int On進行描画_背景() {
@@ -415,6 +446,19 @@ class CActImplTrainingMode : CActivity {
 		}
 	}
 
+	// [Divergence]
+	private int GetBookmarkMeasureBefore(int measure)
+	{
+		for (int i = JumpPointList.Count - 1; i >= 0; --i)
+		{
+			if (JumpPointList[i].Measure < measure)
+			{
+				return JumpPointList[i].Measure;
+			}
+		}
+		return -1;
+	}
+
 	private bool t配列の値interval以下か(ref long[] array, long num, int interval) {
 		long[] arraytmp = array;
 		for (int index = 0; index < (array.Length - 1); index++) {
@@ -433,6 +477,7 @@ class CActImplTrainingMode : CActivity {
 	private long n最終演奏位置ms;
 
 	public bool bTrainingPAUSE { get; private set; }
+	private bool bAutoSkipBackQueued = false;
 	private bool bCurrentlyScrolling;
 
 	private CCounter ctScrollCounter;

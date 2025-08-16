@@ -10,7 +10,7 @@ internal class CAct演奏演奏情報 : CActivity {
 	public double dbSCROLL;
 	public int[] _chipCounts = new int[2];
 
-	// [Divergence]
+	// [Divergence] Note delta definitions
 	public List<int> HitNoteDeltas = new();
 	public List<int> GoodNoteDeltas = new();
 
@@ -109,7 +109,7 @@ internal class CAct演奏演奏情報 : CActivity {
 		return values.Count > 0 ? (double)average / values.Count : 0.0;
 	}
 
-	// [Divergence]
+	// [Divergence] PrintNoteDeltas
 	int PrintNoteDeltas(int x, int y)
 	{
 		y = PrintText(x, y, $"Hit Count: {HitNoteDeltas.Count}");
