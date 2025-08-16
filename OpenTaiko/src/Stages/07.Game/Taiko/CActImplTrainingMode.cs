@@ -114,7 +114,7 @@ class CActImplTrainingMode : CActivity {
 			}
 			if (OpenTaiko.ConfigIni.KeyAssign.KeyIsPressed(OpenTaiko.ConfigIni.KeyAssign.Drums.TrainingSkipBackMeasure)) {
 				// [Divergence] Skip back measure hotkey
-				SkipBackMeasures(1);
+				SkipBackMeasures(OpenTaiko.ConfigIni.TokkunSkipMeasures);
 			}
 			if (OpenTaiko.ConfigIni.KeyAssign.KeyIsPressed(OpenTaiko.ConfigIni.KeyAssign.Drums.TrainingMoveForwardMeasure)) {
 				if (this.bTrainingPAUSE) {
@@ -257,7 +257,7 @@ class CActImplTrainingMode : CActivity {
 	{
 		if (this.bTrainingPAUSE)
 		{
-			this.nCurrentMeasure -= OpenTaiko.ConfigIni.TokkunSkipMeasures * measureCount;
+			this.nCurrentMeasure -= measureCount;
 			if (this.nCurrentMeasure <= 0)
 				this.nCurrentMeasure = 1;
 
