@@ -462,7 +462,7 @@ class CActImplTrainingMode : CActivity {
 	{
 		for (int i = JumpPointList.Count - 1; i >= 0; --i)
 		{
-			if (JumpPointList[i].Measure < measure)
+			if (JumpPointList[i].Measure <= measure)
 			{
 				return JumpPointList[i].Measure;
 			}
