@@ -13,12 +13,12 @@ internal class CTextConsole : CActivity {
 		GraySlim
 	}
 
-	public (int x, int y) Print(int x, int y, EFontType font, string alphanumericString)
-		=> this.Print(x, y, x, font, alphanumericString);
+	public (int x, int y) Print(int x, int y, EFontType font, string alphanumericString, float scale = 1.0f, Color4? color = null)
+		=> this.Print(x, y, x, font, alphanumericString, scale, color);
 
 	/// Print text with initial cursor position at (x, y) and set cursor to xLineBegin on line wraps
 	/// Returns (x, y) of final cursor position
-	public (int x, int y) Print(int x, int y, int xLineBegin, EFontType font, string alphanumericString) {
+	public (int x, int y) Print(int x, int y, int xLineBegin, EFontType font, string alphanumericString, float scale = 1.0f, Color4? color = null) {
 		if (base.IsDeActivated || string.IsNullOrEmpty(alphanumericString)) {
 			return (x, y);
 		}
@@ -26,16 +26,24 @@ internal class CTextConsole : CActivity {
 		foreach (var ch in alphanumericString) {
 			if (ch == '\n') {
 				x = xLineBegin;
-				y += this.fontHeight;
+				y += (int)(this.fontHeight * scale);
 			} else {
 				int index = printableCharacters.IndexOf(ch);
 				if (index >= 0) {
-					if (this.fontTextures[(int)((int)font / (int)EFontType.WhiteSlim)] != null) {
-						this.fontTextures[(int)((int)font / (int)EFontType.WhiteSlim)].t2D描画(x, y, this.characterRectangles[(int)((int)font % (int)EFontType.WhiteSlim), index]);
-					}
+					var texture = this.fontTextures[(int)((int)font / (int)EFontType.WhiteSlim)];
+
+                    if (texture != null) {
+						texture.tSetScale(scale, scale);
+						if (color != null)
+						{
+							texture.color4 = color;
+                        }
+                        texture.t2D描画(x, y, this.characterRectangles[(int)((int)font % (int)EFontType.WhiteSlim), index]);
+						texture.color4 = new Color4(1f, 1f, 1f, 1f);
+                    }
 				}
 
-				x += this.fontWidth;
+				x += (int)(this.fontWidth * scale);
 			}
 		}
 		return (x, y);
