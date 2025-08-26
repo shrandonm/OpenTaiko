@@ -11,7 +11,10 @@ namespace OpenTaiko;
 internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 	// コンストラクタ
 
+	public Shrandy.GameOverlay m_ShrandyGameOverlay;
+
 	public CStage演奏ドラム画面() {
+		m_ShrandyGameOverlay = new(this);
 		base.eStageID = CStage.EStage.Game;
 		base.ePhaseID = CStage.EPhase.Common_NORMAL;
 		base.IsDeActivated = true;
@@ -521,6 +524,8 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 			// handle retry states here
 			this.actPauseMenu.Draw();
 
+			m_ShrandyGameOverlay.Draw();
+
 			// Layer: Gameplay complete animation and fading out
 
 			bIsFinishedEndAnime = this.actEnd.Draw() == 1 ? true : false;
@@ -770,34 +775,7 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 			this.FlyingNotes.Start(nFly, nPlayer);
 		}
 
-		// [[Divergence] Track/Add note delta
-		//AddNoteDelta(pChip);
 		return true;
-	}
-
-	// [[Divergence] AddNoteDelta
-	public void AddNoteDelta(CChip pChip, ENoteJudge judgeResult)
-	{
-		const int maxHitDeltaMs = 75;
-		const int maxGoodNoteDeltaMs = 25;
-
-		int absDelta = Math.Abs(pChip.nLag);
-		if (absDelta <= maxHitDeltaMs)
-		{
-			actPlayInfo.HitNoteDeltas.Add(pChip.nLag);
-			if (Math.Abs(pChip.nLag) <= maxGoodNoteDeltaMs)
-			{
-				actPlayInfo.GoodNoteDeltas.Add(pChip.nLag);
-			}
-		}
-
-		if (OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold > 0)
-		{
-			if (absDelta > OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold || judgeResult == ENoteJudge.Miss)
-			{
-				actTokkun.QueueAutoSkipBack();
-			}
-		}
 	}
 
 	protected override void ドラムスクロール速度アップ() {

@@ -1748,7 +1748,7 @@ internal abstract class CStage演奏画面共通 : CStage {
 		// [Divergence]
 		if (NotesManager.IsMissableNote(pChip) && !NotesManager.IsGenericRoll(pChip))
 		{
-			OpenTaiko.stageGameScreen.AddNoteDelta(pChip, eJudgeResult);
+			Shrandy.ShrandyExtension.OnNoteHit(pChip, eJudgeResult);
 		}
 
 		return ENoteJudge.Auto;

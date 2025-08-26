@@ -10,10 +10,6 @@ internal class CAct演奏演奏情報 : CActivity {
 	public double dbSCROLL;
 	public int[] _chipCounts = new int[2];
 
-	// [Divergence] Note delta definitions
-	public List<int> HitNoteDeltas = new();
-	public List<int> GoodNoteDeltas = new();
-
 	// コンストラクタ
 
 	public CAct演奏演奏情報() {
@@ -30,8 +26,7 @@ internal class CAct演奏演奏情報 : CActivity {
 		}
 		this.dbSCROLL = 1.0;
 
-		HitNoteDeltas.Clear();
-		GoodNoteDeltas.Clear();
+		Shrandy.ShrandyExtension.OnPerformanceInfoActivate();
 		_chipCounts[0] = OpenTaiko.TJA.listChip.Where(num => NotesManager.IsMissableNote(num)).Count();
 		_chipCounts[1] = OpenTaiko.TJA.listChip_Branch[2].Where(num => NotesManager.IsMissableNote(num)).Count();
 
@@ -80,8 +75,6 @@ internal class CAct演奏演奏情報 : CActivity {
 			y -= dy;
 			OpenTaiko.actTextConsole.Print(x, y, CTextConsole.EFontType.White, ListChipMText);
 
-			y = PrintNoteDeltas(x, y);
-
 			//CDTXMania.act文字コンソール.tPrint( x, y, C文字コンソール.Eフォント種別.白, string.Format( "Sound CPU :    {0:####0.00}%", CDTXMania.Sound管理.GetCPUusage() ) );
 			//y -= dy;
 			//CDTXMania.act文字コンソール.tPrint( x, y, C文字コンソール.Eフォント種別.白, string.Format( "Sound Mixing:  {0:####0}", CDTXMania.Sound管理.GetMixingStreams() ) );
@@ -90,45 +83,6 @@ internal class CAct演奏演奏情報 : CActivity {
 			//y -= dy;
 		}
 		return 0;
-	}
-
-	int PrintText(int x, int y, string text)
-	{
-		y -= OpenTaiko.actTextConsole.fontHeight;
-		OpenTaiko.actTextConsole.Print(x, y, CTextConsole.EFontType.White, text);
-		return y;
-	}
-
-	static double GetAbsAverage(List<int> values)
-	{
-		int average = 0;
-		foreach (int i in values)
-		{
-			average += Math.Abs(i);
-		}
-		return values.Count > 0 ? (double)average / values.Count : 0.0;
-	}
-
-	// [Divergence] PrintNoteDeltas
-	int PrintNoteDeltas(int x, int y)
-	{
-		y = PrintText(x, y, $"Hit Count: {HitNoteDeltas.Count}");
-		y = PrintText(x, y, $"Early hits: {HitNoteDeltas.Count(x => x < -25)}");
-		y = PrintText(x, y, $"Late hits: {HitNoteDeltas.Count(x => x > +25)}");
-
-		if (HitNoteDeltas.Count > 0)
-		{
-			y = PrintText(x, y, $"Hit Average Delta: {HitNoteDeltas.Average()}");
-			y = PrintText(x, y, $"Hit Average Error: {GetAbsAverage(HitNoteDeltas)}");
-		}
-
-		if (GoodNoteDeltas.Count > 0)
-		{
-			y = PrintText(x, y, $"Good Average Delta: {GoodNoteDeltas.Average()}");
-			y = PrintText(x, y, $"Good Average Error: {GetAbsAverage(GoodNoteDeltas)}");
-		}
-
-		return y;
 	}
 
 	private string NotesTextN;
