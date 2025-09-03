@@ -15,7 +15,7 @@ namespace OpenTaiko.Shrandy
 
         public static void OnPerformanceInfoActivate()
         {
-            OpenTaiko.stageGameScreen.m_ShrandyGameOverlay.OnPerformanceInfoActivate();
+            OpenTaiko.stageGameScreen.m_ShrandyGameOverlay.Reset();
         }
     }
 }
