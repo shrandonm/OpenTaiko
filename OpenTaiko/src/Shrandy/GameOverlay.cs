@@ -27,9 +27,12 @@ namespace OpenTaiko.Shrandy
 			m_OverlayWidgets.ForEach(x => x.Draw());
 		}
 
-		public void OnNoteHit(CChip pChip, ENoteJudge judgeResult)
+		public void OnNoteHit(in HitParams hitParams)
 		{
-			m_OverlayWidgets.ForEach(x => x.OnNoteHit(pChip, judgeResult));
+			foreach (OverlayWidget widget in m_OverlayWidgets)
+			{
+				widget.OnNoteHit(hitParams);
+			}
 		}
 	}
 }

@@ -15,7 +15,7 @@ namespace OpenTaiko.Shrandy
 			m_DrumDisplayStage = drumDisplayStage;
 		}
 
-		public virtual void OnNoteHit(CChip chip, ENoteJudge judgeResult)
+		public virtual void OnNoteHit(in HitParams hitParams)
 		{
 		}
 

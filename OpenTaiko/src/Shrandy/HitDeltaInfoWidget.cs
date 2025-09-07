@@ -13,41 +13,103 @@ namespace OpenTaiko.Shrandy
 		{
 		}
 
-		private List<int> m_HitNoteDeltas = new();
-		private List<int> m_GoodNoteDeltas = new();
+		private struct HitInfo
+		{
+			public int Delta;
+			public Hand Hand;
+			public ENoteJudge JudgeResult;
+		}
+
+		private struct Summary
+		{
+			public float AverageGoodError;
+			public float AverageLeftHandGoodError;
+			public float AverageRightHandGoodError;
+			public float AverageHitDelta;
+			public int EarlyHits;
+			public int LateHits;
+		}
+
+		private List<HitInfo> m_NoteHistory = new();
 
 		public override void Reset()
 		{
 			base.Reset();
-			m_HitNoteDeltas.Clear();
-			m_GoodNoteDeltas.Clear();
+			m_NoteHistory.Clear();
 		}
 
-		public override void OnNoteHit(CChip chip, ENoteJudge judgeResult)
+		public override void OnNoteHit(in HitParams hitParams)
 		{
-			base.OnNoteHit(chip, judgeResult);
+			base.OnNoteHit(hitParams);
 			const int maxHitDeltaMs = 75;
-			const int maxGoodNoteDeltaMs = 25;
 
-			int absDelta = Math.Abs(chip.nLag);
+			int absDelta = Math.Abs(hitParams.Chip.nLag);
 			if (absDelta <= maxHitDeltaMs)
 			{
-				m_HitNoteDeltas.Add(chip.nLag);
-				if (Math.Abs(chip.nLag) <= maxGoodNoteDeltaMs)
+				m_NoteHistory.Add(new HitInfo()
 				{
-					m_GoodNoteDeltas.Add(chip.nLag);
-				}
+					Delta = hitParams.Chip.nLag,
+					Hand = hitParams.Hand,
+					JudgeResult = hitParams.JudgeResult
+				});
 			}
 		}
 
-		private double GetAbsAverage(List<int> values)
+		private Summary CalculateSummary(List<HitInfo> hits)
 		{
-			int average = 0;
-			foreach (int i in values)
+			Summary summary = new();
+			int goodCount = 0;
+			int leftGoods = 0;
+			int rightGoods = 0;
+
+			foreach (HitInfo hit in hits)
 			{
-				average += Math.Abs(i);
+				int error = Math.Abs(hit.Delta);
+				if (ShrandyExtension.IsGood(hit.JudgeResult))
+				{
+					goodCount++;
+					summary.AverageGoodError += error;
+					if (hit.Hand == Hand.Left)
+					{
+						leftGoods++;
+						summary.AverageLeftHandGoodError += error;
+					}
+					else
+					{
+						rightGoods++;
+						summary.AverageRightHandGoodError += error;
+					}
+				}
+				summary.AverageHitDelta += hit.Delta;
+
+				if (hit.Delta > 25)
+				{
+					summary.LateHits++;
+				}
+				else if (hit.Delta < -25)
+				{
+					summary.EarlyHits++;
+				}
 			}
-			return values.Count > 0 ? (double)average / values.Count : 0.0;
+
+			if (goodCount > 0)
+			{
+				summary.AverageGoodError /= goodCount;
+			}
+			if (leftGoods > 0)
+			{
+				summary.AverageLeftHandGoodError /= leftGoods;
+			}
+			if (rightGoods > 0)
+			{
+				summary.AverageRightHandGoodError /= rightGoods;
+			}
+			if (hits.Count > 0)
+			{
+				summary.AverageHitDelta /= hits.Count;
+			}
+
+			return summary;
 		}
 
 		private int PrintText(int x, int y, string text)
@@ -67,24 +129,16 @@ namespace OpenTaiko.Shrandy
 			int x = (int)(screenWidth * 0.4f);
 			int y = screenHeight - (screenHeight / 8);
 
-			y = PrintText(x, y, $"Hit Count: {m_HitNoteDeltas.Count}");
-			y = PrintText(x, y, $"Early hits: {m_HitNoteDeltas.Count(v => v < -25)}");
-			y = PrintText(x, y, $"Late hits: {m_HitNoteDeltas.Count(v => v > 25)}");
-
-			if (m_HitNoteDeltas.Count > 0)
+			if (m_NoteHistory.Count > 0)
 			{
-				y = PrintText(x, y,
-					$"Hit Average Delta: {m_HitNoteDeltas.Average():F2} ms");
-				y = PrintText(x, y,
-					$"Hit Average Error: {GetAbsAverage(m_HitNoteDeltas):F2} ms");
-			}
-
-			if (m_GoodNoteDeltas.Count > 0)
-			{
-				y = PrintText(x, y,
-					$"Good Average Delta: {m_GoodNoteDeltas.Average():F2} ms");
-				y = PrintText(x, y,
-					$"Good Average Error: {GetAbsAverage(m_GoodNoteDeltas):F2} ms");
+				Summary summary = CalculateSummary(m_NoteHistory);
+				y = PrintText(x, y, $"Hit Count: {m_NoteHistory.Count}");
+				y = PrintText(x, y, $"Early hits: {summary.EarlyHits}");
+				y = PrintText(x, y, $"Late hits: {summary.LateHits}");
+				y = PrintText(x, y, $"Sync: {summary.AverageHitDelta:F2} ms");
+				y = PrintText(x, y, $"Average Left Error: {summary.AverageLeftHandGoodError:F2} ms");
+				y = PrintText(x, y, $"Average Right Error: {summary.AverageRightHandGoodError:F2} ms");
+				y = PrintText(x, y, $"Average Error: {summary.AverageGoodError:F2} ms");
 			}
 		}
 	}

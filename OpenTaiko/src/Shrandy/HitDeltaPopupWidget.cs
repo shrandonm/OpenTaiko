@@ -23,11 +23,10 @@ namespace OpenTaiko.Shrandy
 			m_Bar?.Draw();
 		}
 
-		public override void OnNoteHit(CChip chip, ENoteJudge judgeResult)
+		public override void OnNoteHit(in HitParams hitParams)
 		{
-			base.OnNoteHit(chip, judgeResult);
-
-			if (judgeResult != ENoteJudge.Miss)
+			base.OnNoteHit(hitParams);
+			if (hitParams.JudgeResult != ENoteJudge.Miss)
 			{
 				int screenWidth = OpenTaiko.Skin.Resolution[0];
 				int screenHeight = OpenTaiko.Skin.Resolution[1];
@@ -39,10 +38,10 @@ namespace OpenTaiko.Shrandy
 				const int durationMs = 500;
 				const float textScale = 3.0f;
 				const float barScale = 2.0f;
-				int error = chip.nLag;
+				int error = hitParams.Chip.nLag;
 
 				FDK.Color4 color = error == 0 ? new(0.0f, 1.0f, 0.0f, 1.0f) // green
-					: judgeResult <= ENoteJudge.Perfect ? new(1.0f, 0.6f, 0.2f, 1.0f) // orange
+					: ShrandyExtension.IsGood(hitParams.JudgeResult) ? new(1.0f, 0.6f, 0.2f, 1.0f) // orange
 					: new FDK.Color4(1.0f, 1.0f, 1.0f, 1.0f); // white
 
 				string prefix = error == 0 ? "Perfect!"

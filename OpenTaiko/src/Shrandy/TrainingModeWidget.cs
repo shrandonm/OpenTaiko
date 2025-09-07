@@ -13,14 +13,14 @@ namespace OpenTaiko.Shrandy
 		{
 		}
 
-		public override void OnNoteHit(CChip chip, ENoteJudge judgeResult)
+		public override void OnNoteHit(in HitParams hitParams)
 		{
-			base.OnNoteHit(chip, judgeResult);
+			base.OnNoteHit(hitParams);
 
-			int absDelta = Math.Abs(chip.nLag);
+			int absDelta = Math.Abs(hitParams.Chip.nLag);
 			if (OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold > 0)
 			{
-				if (absDelta > OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold || judgeResult == ENoteJudge.Miss)
+				if (absDelta > OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold || hitParams.JudgeResult == ENoteJudge.Miss)
 				{
 					m_DrumDisplayStage.actTokkun.QueueAutoSkipBack();
 				}
