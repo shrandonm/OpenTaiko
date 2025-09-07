@@ -23,6 +23,31 @@ namespace OpenTaiko.Shrandy
 			m_Bar?.Draw();
 		}
 
+		private FDK.Color4 CalculateColor(int error)
+		{
+			if (error == 0)
+			{
+				return new FDK.Color4(0.0f, 1.0f, 1.0f, 1.0f);
+			}
+
+			const float maxErrorColor = 15.0f;
+			float colorInterpValue = Math.Clamp(error / maxErrorColor, 0.0f, 1.0f);
+
+			float r, g;
+			if (colorInterpValue < 0.5f)
+			{
+				r = colorInterpValue / 0.5f;
+				g = 1.0f;
+			}
+			else
+			{
+				r = 1.0f;
+				g = 1.0f - ((colorInterpValue - 0.5f) / 0.5f);
+			}
+
+			return new FDK.Color4(r, g, 0.0f, 1.0f);
+		}
+
 		public override void OnNoteHit(in HitParams hitParams)
 		{
 			base.OnNoteHit(hitParams);
@@ -31,33 +56,30 @@ namespace OpenTaiko.Shrandy
 				int screenWidth = OpenTaiko.Skin.Resolution[0];
 				int screenHeight = OpenTaiko.Skin.Resolution[1];
 				int textX = (int)(screenWidth * 0.275f);
-				int barX = (int)(screenWidth * 0.225f);
 				int textY = (int)(screenHeight * 0.175f);
+				int barX = (int)(screenWidth * 0.06f);
 				int barY = textY + 64;
 
 				const int durationMs = 500;
 				const float textScale = 3.0f;
-				const float barScale = 2.0f;
-				int error = hitParams.Chip.nLag;
+				const float barScale = 2.5f;
+				int delta = hitParams.Chip.nLag;
 
-				FDK.Color4 color = error == 0 ? new(0.0f, 1.0f, 0.0f, 1.0f) // green
-					: ShrandyExtension.IsGood(hitParams.JudgeResult) ? new(1.0f, 0.6f, 0.2f, 1.0f) // orange
-					: new FDK.Color4(1.0f, 1.0f, 1.0f, 1.0f); // white
-
-				string prefix = error == 0 ? "Perfect!"
-							  : error > 0  ? "Late "
+				string prefix = delta == 0 ? "Perfect!"
+							  : delta > 0  ? "Late "
 										   : "Early";
 
-				const int maxErrorBars = 10;
+				const int maxErrorBars = 25;
 				StringBuilder errorBars = new(maxErrorBars);
 				for (int i = maxErrorBars; i >= -maxErrorBars; --i)
 				{
-					bool addBar = (error < 0 && i < 0 && i >= error) || (error > 0 && i > 0 && i <= error);
+					bool addBar = (delta < 0 && i < 0 && i >= delta) || (delta > 0 && i > 0 && i <= delta);
 					errorBars.Append(addBar ? '|' : ' ');
 				}
 
+				FDK.Color4 color = CalculateColor(Math.Abs(delta));
 				m_Message = new(textX, textY,
-					CTextConsole.EFontType.White, $"{prefix} {error:+#;-#;0}",
+					CTextConsole.EFontType.White, $"{prefix} {delta:+#;-#;0}",
 					durationMs,
 					textScale,
 					color);
