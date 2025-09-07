@@ -84,11 +84,11 @@ namespace OpenTaiko.Shrandy
 					textScale,
 					color);
 
-				m_Bar = new(barX, barY,
-					CTextConsole.EFontType.White, $"{errorBars.ToString()}",
-					durationMs,
-					barScale,
-					color);
+				// m_Bar = new(barX, barY,
+					// CTextConsole.EFontType.White, $"{errorBars.ToString()}",
+					// durationMs,
+					// barScale,
+					// color);
 			}
 		}
 	}
