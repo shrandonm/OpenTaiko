@@ -57,7 +57,7 @@ namespace OpenTaiko.Shrandy
 				int screenHeight = OpenTaiko.Skin.Resolution[1];
 				int textX = (int)(screenWidth * 0.275f);
 				int textY = (int)(screenHeight * 0.175f);
-				int barX = (int)(screenWidth * 0.06f);
+				int barX = (int)(screenWidth * 0.0575f);
 				int barY = textY + 64;
 
 				const int durationMs = 500;
