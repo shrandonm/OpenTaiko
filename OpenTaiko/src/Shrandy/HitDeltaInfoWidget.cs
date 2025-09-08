@@ -65,7 +65,8 @@ namespace OpenTaiko.Shrandy
 			foreach (HitInfo hit in hits)
 			{
 				int error = Math.Abs(hit.Delta);
-				if (ShrandyExtension.IsGood(hit.JudgeResult))
+				const int includeHitThreshold = 75;
+				if (error <= includeHitThreshold)
 				{
 					goodCount++;
 					summary.AverageGoodError += error;
@@ -82,11 +83,11 @@ namespace OpenTaiko.Shrandy
 				}
 				summary.AverageHitDelta += hit.Delta;
 
-				if (hit.Delta > 25)
+				if (hit.Delta > 10)
 				{
 					summary.LateHits++;
 				}
-				else if (hit.Delta < -25)
+				else if (hit.Delta < -10)
 				{
 					summary.EarlyHits++;
 				}
