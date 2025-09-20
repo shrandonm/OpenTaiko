@@ -24,7 +24,10 @@ namespace OpenTaiko.Shrandy
 
 		public void Draw()
 		{
-			m_OverlayWidgets.ForEach(x => x.Draw());
+			if (OpenTaiko.ConfigIni.nPlayerCount == 1)
+			{
+				m_OverlayWidgets.ForEach(x => x.Draw());
+			}
 		}
 
 		public void OnNoteHit(in HitParams hitParams)
