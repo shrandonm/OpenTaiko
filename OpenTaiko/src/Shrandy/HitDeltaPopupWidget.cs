@@ -56,13 +56,13 @@ namespace OpenTaiko.Shrandy
 				int screenWidth = OpenTaiko.Skin.Resolution[0];
 				int screenHeight = OpenTaiko.Skin.Resolution[1];
 				int textX = (int)(screenWidth * 0.275f);
-				int textY = (int)(screenHeight * 0.175f);
+				int textY = (int)(screenHeight * 0.17f);
 				int barX = (int)(screenWidth * 0.0575f);
 				int barY = textY + 64;
 
 				const int durationMs = 500;
-				const float textScale = 3.0f;
-				const float barScale = 2.5f;
+				const float textScale = 1.0f;
+				const float barScale = 1.5f;
 				int delta = hitParams.Chip.nLag;
 
 				string prefix = delta == 0 ? "Perfect!"
