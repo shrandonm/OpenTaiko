@@ -30,6 +30,8 @@ internal class CStage結果 : CStage {
 	public int[] ClearStatusesSaved = [0, 0, 0, 0, 0];
 	public int[] ScoreRanksSaved = [0, 0, 0, 0, 0];
 
+	public int ResultsSkipButtonPressCount = 0;
+
 	public CChip[] r空うちドラムチップ;
 	public STDGBVALUE<CScoreIni.C演奏記録> st演奏記録;
 
@@ -1391,6 +1393,7 @@ internal class CStage結果 : CStage {
 						 || (OpenTaiko.Pad.bPressedDGB(EPad.Decide)
 							 || OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.Return))))) {
 
+					ResultsSkipButtonPressCount++;
 
 					#region [ Skip animations ]
 
@@ -1410,7 +1413,7 @@ internal class CStage結果 : CStage {
 
 						bool _modalsProcessed = OpenTaiko.ModalManager.InputManagement();
 
-						if (_modalsProcessed == true) {
+						if (_modalsProcessed == true || ResultsSkipButtonPressCount > 1) {
 							#region [ Return to song select screen ]
 
 							actFO.tフェードアウト開始();
