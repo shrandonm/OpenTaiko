@@ -660,6 +660,8 @@ internal class CStage結果 : CStage {
 
 		if (OpenTaiko.stageSongSelect.nChoosenSongDifficulty[0] != (int)Difficulty.Dan && OpenTaiko.stageSongSelect.nChoosenSongDifficulty[0] != (int)Difficulty.Tower)
 			bgmResultIn.tPlay();
+
+		OpenTaiko.ShrandyExtension.OnResultsActivate(this);
 	}
 	public override void DeActivate() {
 		OpenTaiko.tDisposeSafely(ref Background);

@@ -26,9 +26,25 @@ namespace OpenTaiko.Shrandy
 		public Note Note;
 	}
 
-	static class ShrandyExtension
+	class ShrandyExtension
 	{
-		public static void OnNoteHit(CChip chip, ENoteJudge judgeResult, EPad pad)
+		private List<Tool> m_Tools = new();
+
+		public ShrandyExtension()
+		{
+			m_Tools.Add(new ShrandyTool());
+		}
+
+		public void OnPerformanceInfoActivate()
+		{
+			OpenTaiko.stageGameScreen.m_ShrandyGameOverlay.Reset();
+		}
+
+		public void OnResultsActivate(CStage結果 resultsScreen)
+		{
+		}
+
+		public void OnNoteHit(CChip chip, ENoteJudge judgeResult, EPad pad)
 		{
 			HitParams hitParams = new()
 			{
@@ -38,6 +54,14 @@ namespace OpenTaiko.Shrandy
 				Note = GetNoteFromPad(pad),
 			};
 			OpenTaiko.stageGameScreen.m_ShrandyGameOverlay.OnNoteHit(hitParams);
+		}
+
+		public void Draw()
+		{
+			foreach (Tool tool in m_Tools)
+			{
+				//tool.Draw();
+			}
 		}
 
 		private static Hand GetHandFromPad(EPad pad)
@@ -74,11 +98,6 @@ namespace OpenTaiko.Shrandy
 					return Note.Ka;
 			}
 			return Note.Don;
-		}
-
-		public static void OnPerformanceInfoActivate()
-		{
-			OpenTaiko.stageGameScreen.m_ShrandyGameOverlay.Reset();
 		}
 
 		public static bool IsGood(ENoteJudge judgement)

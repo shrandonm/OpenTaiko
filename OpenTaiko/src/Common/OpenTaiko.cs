@@ -282,6 +282,7 @@ internal class OpenTaiko : Game {
 		private set;
 	}
 
+	public static Shrandy.ShrandyExtension ShrandyExtension { get; private set; } = new();
 
 	public static int GetActualPlayer(int player) {
 		if (SaveFile == 0 || player > 1)
