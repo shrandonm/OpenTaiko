@@ -17,10 +17,11 @@ internal class CActImplClearAnimation : CActivity {
 
 		bSongsPlayed = false;
 
-		this.ct進行メイン = new CCounter(0, 300, 22, OpenTaiko.Timer);
+		this.ct進行メイン = new CCounter(0, 150, 22, OpenTaiko.Timer);
 
 		/*
-        this.ctEnd_ClearFailed = new CCounter(0, 69, 30, TJAPlayer3.Timer);
+        this.ctEnd_ClearFailed = new CCou
+		nter(0, 69, 30, TJAPlayer3.Timer);
         this.ctEnd_FullCombo = new CCounter(0, 66, 33, TJAPlayer3.Timer);
         this.ctEnd_FullComboLoop = new CCounter(0, 2, 30, TJAPlayer3.Timer);
         this.ctEnd_DondaFullCombo = new CCounter(0, 61, 33, TJAPlayer3.Timer);

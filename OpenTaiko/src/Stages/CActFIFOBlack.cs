@@ -6,10 +6,12 @@ internal class CActFIFOBlack : CActivity {
 	// メソッド
 
 	public void tフェードアウト開始(int start = 0, int end = 100, int interval = 5) {
+		end = 50;
 		this.mode = EFIFOMode.FadeOut;
 		this.counter = new CCounter(start, end, interval, OpenTaiko.Timer);
 	}
 	public void tフェードイン開始(int start = 0, int end = 100, int interval = 5) {
+		end = 50;
 		this.mode = EFIFOMode.FadeIn;
 		this.counter = new CCounter(start, end, interval, OpenTaiko.Timer);
 	}

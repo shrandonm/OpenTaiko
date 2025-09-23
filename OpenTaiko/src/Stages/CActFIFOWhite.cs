@@ -7,11 +7,11 @@ internal class CActFIFOWhite : CActivity {
 
 	public void tフェードアウト開始() {
 		this.mode = EFIFOMode.FadeOut;
-		this.counter = new CCounter(0, 100, 3, OpenTaiko.Timer);
+		this.counter = new CCounter(0, 50, 3, OpenTaiko.Timer);
 	}
 	public void tフェードイン開始() {
 		this.mode = EFIFOMode.FadeIn;
-		this.counter = new CCounter(0, 100, 3, OpenTaiko.Timer);
+		this.counter = new CCounter(0, 50, 3, OpenTaiko.Timer);
 	}
 	public void tフェードイン完了()     // #25406 2011.6.9 yyagi
 	{
