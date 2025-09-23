@@ -11,7 +11,7 @@ internal class CActFIFOResult : CActivity {
 	}
 	public void tフェードイン開始() {
 		this.mode = EFIFOMode.FadeIn;
-		this.counter = new CCounter(0, 150, 2, OpenTaiko.Timer);
+		this.counter = new CCounter(0, 300, 2, OpenTaiko.Timer);
 	}
 	public void tフェードイン完了() {
 		this.counter.CurrentValue = (int)counter.BeginValue;
