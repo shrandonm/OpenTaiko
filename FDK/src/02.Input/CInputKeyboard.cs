@@ -16,9 +16,7 @@ public class CInputKeyboard : CInputButtonsBase, IInputDevice, IDisposable {
 	}
 
 	private void KeyDown(IKeyboard keyboard, Key key, int keyCode) {
-#if DEBUG
 		if (IMGUI_WindowIsFocused) return;
-#endif
 
 		var keyNum = DeviceConstantConverter.DIKtoKey(key);
 		if ((int)keyNum >= this.ButtonStates.Length || keyNum == SlimDXKeys.Key.Unknown) return;
@@ -27,9 +25,7 @@ public class CInputKeyboard : CInputButtonsBase, IInputDevice, IDisposable {
 	}
 
 	private void KeyUp(IKeyboard keyboard, Key key, int keyCode) {
-#if DEBUG
 		if (IMGUI_WindowIsFocused) return;
-#endif
 		var keyNum = DeviceConstantConverter.DIKtoKey(key);
 		if ((int)keyNum >= this.ButtonStates.Length || keyNum == SlimDXKeys.Key.Unknown) return;
 

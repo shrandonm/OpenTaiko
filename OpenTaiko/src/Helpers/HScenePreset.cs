@@ -32,10 +32,8 @@ class HScenePreset {
 
 		bool sectionIsValid = _ps.Count > 0;
 
-#if DEBUG
 		if (!string.IsNullOrWhiteSpace(ImGuiDebugWindow.OverrideBGPreset))
 			return _ps.TryGetValue(ImGuiDebugWindow.OverrideBGPreset, out var value) ? value : null;
-#endif
 		if (sectionIsValid && _ps.TryGetValue(OpenTaiko.TJA?.scenePreset ?? OpenTaiko.stageSongSelect.rChoosenSong.strScenePreset ?? "", out var result_song)) {
 			return result_song;
 		}

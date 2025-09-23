@@ -1294,12 +1294,10 @@ internal class OpenTaiko : Game {
 			}
 			#endregion
 
-#if DEBUG
 			if (OpenTaiko.InputManager != null && OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.F11))
 				OpenTaiko.ConfigIni.DEBUG_bShowImgui = !OpenTaiko.ConfigIni.DEBUG_bShowImgui;
 			if (OpenTaiko.ConfigIni.DEBUG_bShowImgui)
 				ImGuiDebugWindow.Draw();
-#endif
 		}
 #if !DEBUG
 		catch (Exception e) {

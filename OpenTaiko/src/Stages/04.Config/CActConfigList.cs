@@ -296,10 +296,8 @@ internal class CActConfigList : CActivity {
 			CLangManager.LangInstance.GetString("SETTINGS_KEYASSIGN_SYSTEM_DESC"));
 		this.list項目リスト.Add(this.iSystemGoToKeyAssign);
 
-#if DEBUG
 		this.debugImGui = new CItemToggle("[DEBUG ONLY] Show ImGui Debug Window", OpenTaiko.ConfigIni.DEBUG_bShowImgui);
 		this.list項目リスト.Add(this.debugImGui);
-#endif
 
 		OnListMenuの初期化();
 		if (refresh) {
@@ -1639,9 +1637,7 @@ internal class CActConfigList : CActivity {
 	private CItemBase iSystemHardReloadDTX;
 	private CItemBase isSystemImportingScore;
 
-	#region DBEUG
 	private CItemToggle debugImGui;
-	#endregion
 
 	public Thread ScoreIniImportThread { get; private set; }
 	public bool ScoreIniImportThreadIsActive {
@@ -1736,9 +1732,7 @@ internal class CActConfigList : CActivity {
 		OpenTaiko.ConfigIni.ASyncTextureLoad = this.ASyncTextureLoad.bON;
 		OpenTaiko.ConfigIni.SimpleMode = this.SimpleMode.bON;
 
-#if DEBUG
 		OpenTaiko.ConfigIni.DEBUG_bShowImgui = this.debugImGui.bON;
-#endif
 	}
 	private void tConfigIniへ記録する_Drums() {
 		OpenTaiko.ConfigIni.nRollsPerSec = this.iRollsPerSec.n現在の値;

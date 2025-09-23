@@ -52,7 +52,6 @@ public abstract class Game : IDisposable {
 		ImGuiController = new ImGuiController(Gl, window, context);
 		ImGuiIO = ImGui.GetIO();
 		ImGui.StyleColorsDark();
-#if DEBUG
 		try {
 			ImGuiIO.Fonts.Clear();
 			unsafe {
@@ -82,7 +81,6 @@ public abstract class Game : IDisposable {
 			ImGuiIO.Fonts.Clear();
 			ImGuiIO.Fonts.AddFontDefault();
 		}
-#endif
 	}
 
 	public static List<Action> AsyncActions { get; private set; } = new();
@@ -469,9 +467,7 @@ public abstract class Game : IDisposable {
 
 		double fps = 1.0f / deltaTime;
 
-#if DEBUG
 		ImGuiController?.Render();
-#endif
 
 		if (!OperatingSystem.IsMacOS()) Context.SwapBuffers();
 	}
