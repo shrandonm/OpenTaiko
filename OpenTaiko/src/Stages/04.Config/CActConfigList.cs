@@ -410,7 +410,7 @@ internal class CActConfigList : CActivity {
 		this.list項目リスト.Add(TokkunSkipCount);
 
 		// [Divergence] TokkunAutoSkipBackErrorThreshold
-		this.TokkunAutoSkipBackErrorThreshold = new CItemInteger(CLangManager.LangInstance.GetString("SETTINGS_TRAINING_AUTO_SKIP_BACK_THRESHOLD"), 1, 250, OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold,
+		this.TokkunAutoSkipBackErrorThreshold = new CItemInteger(CLangManager.LangInstance.GetString("SETTINGS_TRAINING_AUTO_SKIP_BACK_THRESHOLD"), 0, 250, OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold,
 			CLangManager.LangInstance.GetString("SETTINGS_TRAINING_AUTO_SKIP_BACK_THRESHOLD_DESC"));
 		this.list項目リスト.Add(TokkunAutoSkipBackErrorThreshold);
 
