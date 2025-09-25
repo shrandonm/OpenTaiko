@@ -4,6 +4,9 @@ using FDK;
 namespace OpenTaiko;
 
 class CActImplTrainingMode : CActivity {
+
+	public CTja.ECourse? ForcedCourse { get; set; } = null;
+
 	public CActImplTrainingMode() {
 		base.IsDeActivated = true;
 	}
@@ -401,6 +404,11 @@ class CActImplTrainingMode : CActivity {
 		int n演奏開始Chip = OpenTaiko.stageGameScreen.t演奏位置の変更(finalStartBar);
 
 		OpenTaiko.stageGameScreen.t数値の初期化(true, true);
+
+		if (ForcedCourse != null)
+		{
+			OpenTaiko.stageGameScreen.ForceSwitchBranch(dTX, ForcedCourse.Value);
+		}
 
 		for (int i = 0; i < n演奏開始Chip; i++) {
 			//2020.07.08 ノーツだけ消す。

@@ -2172,6 +2172,38 @@ internal abstract class CStage演奏画面共通 : CStage {
 	protected abstract void t入力処理_ドラム();
 	protected abstract void ドラムスクロール速度アップ();
 	protected abstract void ドラムスクロール速度ダウン();
+
+	public void ForceSwitchBranch(CTja tja, CTja.ECourse course)
+	{
+		if (!OpenTaiko.TJA.bHasBranch[OpenTaiko.stageSongSelect.nChoosenSongDifficulty[0]]) return;
+
+		//listBRANCHを廃止したため強制分岐の開始値を
+		//rc演奏用タイマ.n現在時刻msから引っ張ることに
+
+		//判定枠に一番近いチップの情報を元に一小節分の値を計算する. 2020.04.21 akasoko26
+		var p判定枠に最も近いチップ = r指定時刻に一番近い未ヒットChipを過去方向優先で検索する((long)tja.GameTimeToTjaTime(SoundManager.PlayTimer.NowTimeMs), 0);
+
+		double db一小節後 = 0.0;
+		if (p判定枠に最も近いチップ != null)
+			db一小節後 = ((15000.0 / p判定枠に最も近いチップ.dbBPM * (p判定枠に最も近いチップ.fNow_Measure_s / p判定枠に最も近いチップ.fNow_Measure_m)) * 16.0);
+
+		this.t分岐処理(course, 0, tja.GameTimeToTjaTime(SoundManager.PlayTimer.NowTimeMs) + db一小節後);
+
+		OpenTaiko.stageGameScreen.actLaneTaiko.t分岐レイヤー_コース変化(OpenTaiko.stageGameScreen.actLaneTaiko.stBranch[0].nAfter, course, 0);
+		OpenTaiko.stageGameScreen.actMtaiko.tBranchEvent(OpenTaiko.stageGameScreen.actMtaiko.After[0], course, 0);
+
+		this.nCurrentBranch[0] = course;
+		this.nNextBranch[0] = course;
+		this.nDisplayedBranchLane[0] = course;
+
+		this.b強制的に分岐させた[0] = true;
+
+		if (OpenTaiko.ConfigIni.bTokkunMode && OpenTaiko.stageGameScreen.actTokkun != null)
+		{
+			OpenTaiko.stageGameScreen.actTokkun.ForcedCourse = CTja.ECourse.eMaster;
+		}
+	}
+
 	protected void tキー入力() {
 		// Inputs
 
@@ -2282,28 +2314,7 @@ internal abstract class CStage演奏画面共通 : CStage {
 			} else if (OpenTaiko.ConfigIni.KeyAssign.KeyIsPressed(OpenTaiko.ConfigIni.KeyAssign.Drums.TrainingBranchMaster) &&
 					   (OpenTaiko.ConfigIni.bTokkunMode || OpenTaiko.ConfigIni.bAutoPlay[0]))      // #24243 2011.1.16 yyagi UI for InputAdjustTime in playing screen.
 			{
-				if (!OpenTaiko.TJA.bHasBranch[OpenTaiko.stageSongSelect.nChoosenSongDifficulty[0]]) return;
-
-				//listBRANCHを廃止したため強制分岐の開始値を
-				//rc演奏用タイマ.n現在時刻msから引っ張ることに
-
-				//判定枠に一番近いチップの情報を元に一小節分の値を計算する. 2020.04.21 akasoko26
-				var p判定枠に最も近いチップ = r指定時刻に一番近い未ヒットChipを過去方向優先で検索する((long)tja.GameTimeToTjaTime(SoundManager.PlayTimer.NowTimeMs), 0);
-
-				double db一小節後 = 0.0;
-				if (p判定枠に最も近いチップ != null)
-					db一小節後 = ((15000.0 / p判定枠に最も近いチップ.dbBPM * (p判定枠に最も近いチップ.fNow_Measure_s / p判定枠に最も近いチップ.fNow_Measure_m)) * 16.0);
-
-				this.t分岐処理(CTja.ECourse.eMaster, 0, tja.GameTimeToTjaTime(SoundManager.PlayTimer.NowTimeMs) + db一小節後);
-
-				OpenTaiko.stageGameScreen.actLaneTaiko.t分岐レイヤー_コース変化(OpenTaiko.stageGameScreen.actLaneTaiko.stBranch[0].nAfter, CTja.ECourse.eMaster, 0);
-				OpenTaiko.stageGameScreen.actMtaiko.tBranchEvent(OpenTaiko.stageGameScreen.actMtaiko.After[0], CTja.ECourse.eMaster, 0);
-
-				this.nCurrentBranch[0] = CTja.ECourse.eMaster;
-				this.nNextBranch[0] = CTja.ECourse.eMaster;
-				this.nDisplayedBranchLane[0] = CTja.ECourse.eMaster;
-
-				this.b強制的に分岐させた[0] = true;
+				ForceSwitchBranch(tja, CTja.ECourse.eMaster);
 			}
 
 			if (OpenTaiko.ConfigIni.KeyAssign.KeyIsPressed(OpenTaiko.ConfigIni.KeyAssign.System.DisplayHits)) {
