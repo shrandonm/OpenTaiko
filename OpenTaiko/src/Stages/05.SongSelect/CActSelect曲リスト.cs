@@ -2120,7 +2120,7 @@ internal class CActSelect曲リスト : CActivity {
 
 		#region [Decide]
 
-		if ((OpenTaiko.Pad.bPressedDGB(EPad.Decide)) ||
+		if (OpenTaiko.Pad.IsPressingDecide() ||
 			((OpenTaiko.ConfigIni.bEnterIsNotUsedInKeyAssignments && OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.Return)))) {
 			if (emc == eMenuContext.SearchByDifficulty) {
 				OpenTaiko.Skin.soundDecideSFX.tPlay();
@@ -2179,8 +2179,7 @@ internal class CActSelect曲リスト : CActivity {
 
 		#region [Left]
 
-		else if (OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LeftChange)
-				 || OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.LeftArrow)) {
+		else if (OpenTaiko.Pad.IsPressingLeftChange()) {
 			if (emc == eMenuContext.SearchByDifficulty) {
 				OpenTaiko.Skin.soundChangeSFX.tPlay();
 

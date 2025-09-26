@@ -239,12 +239,11 @@ internal class CActSelectPopupMenu : CActivity {
 					// E楽器パート eInst = E楽器パート.UNKNOWN;
 					ESortAction eAction = ESortAction.END;
 					if (
-						OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.Decide)
+						OpenTaiko.Pad.IsPressingDecide()
 						|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RD)
 						|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LC)
 						|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LRed)
-						|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RRed)
-						|| (OpenTaiko.ConfigIni.bEnterIsNotUsedInKeyAssignments && OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.Return))) {
+						|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RRed)) {
 						eAction = ESortAction.Decide;
 					}
 					if (eAction == ESortAction.Decide)  // 決定
