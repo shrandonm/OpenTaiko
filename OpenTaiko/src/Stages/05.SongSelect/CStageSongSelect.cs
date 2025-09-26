@@ -863,7 +863,7 @@ internal class CStageSongSelect : CStage {
 						if (this.actSongList.ctBoxOpen.IsEnded || this.actSongList.ctBoxOpen.CurrentValue == 0) {
 							if (!this.bCurrentlyScrolling) {
 								#region [ Decide ]
-								if ((OpenTaiko.Pad.bPressedDGB(EPad.Decide) ||
+								if ((OpenTaiko.Pad.IsPressingDecide() ||
 									 ((OpenTaiko.ConfigIni.bEnterIsNotUsedInKeyAssignments && OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.Return))))) {
 
 									if (this.actSongList.rCurrentlySelectedSong != null) {
@@ -1031,11 +1031,11 @@ internal class CStageSongSelect : CStage {
 							if (!this.bCurrentlyScrolling) {
 								this.ctキー反復用.Up.KeyIntervalFunc(OpenTaiko.InputManager.Keyboard.KeyPressing((int)SlimDXKeys.Key.LeftArrow), new CCounter.KeyProcess(this.tカーソルを上へ移動する));
 								//this.ctキー反復用.Up.tキー反復( CDTXMania.Input管理.Keyboard.bキーが押されている( (int) SlimDXKeys.Key.UpArrow ) || CDTXMania.Input管理.Keyboard.bキーが押されている( (int) SlimDXKeys.Key.LeftArrow ), new CCounter.DGキー処理( this.tカーソルを上へ移動する ) );
-								if (OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LeftChange)) {
+								if (OpenTaiko.Pad.IsPressingLeftChange()) {
 									this.tカーソルを上へ移動する();
 								}
 							} else {
-								if (OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LeftChange)) {
+								if (OpenTaiko.Pad.IsPressingLeftChange()) {
 									//this.ctChara_Jump[0].t開始(0, TJAPlayer3.Tx.SongSelect_Chara_Jump.Length + 8, 1000 / 45, TJAPlayer3.Timer);
 									//this.ctChara_Jump[1].t開始(0, TJAPlayer3.Tx.SongSelect_Chara_Jump.Length + 8, 1000 / 45, TJAPlayer3.Timer);
 									CMenuCharacter.tMenuResetTimer(CMenuCharacter.ECharacterAnimation.SELECT);
@@ -1050,11 +1050,11 @@ internal class CStageSongSelect : CStage {
 								this.ctキー反復用.Down.KeyIntervalFunc(OpenTaiko.InputManager.Keyboard.KeyPressing((int)SlimDXKeys.Key.RightArrow), new CCounter.KeyProcess(this.tカーソルを下へ移動する));
 								//this.ctキー反復用.Down.tキー反復( CDTXMania.Input管理.Keyboard.bキーが押されている( (int) SlimDXKeys.Key.DownArrow ) || CDTXMania.Input管理.Keyboard.bキーが押されている( (int) SlimDXKeys.Key.RightArrow ), new CCounter.DGキー処理( this.tカーソルを下へ移動する ) );
 
-								if (OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RightChange)) {
+								if (OpenTaiko.Pad.IsPressingRightChange()) {
 									this.tカーソルを下へ移動する();
 								}
 							} else {
-								if (OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RightChange)) {
+								if (OpenTaiko.Pad.IsPressingRightChange()) {
 									//this.ctChara_Jump[0].t開始(0, TJAPlayer3.Tx.SongSelect_Chara_Jump.Length + 8, 1000 / 45, TJAPlayer3.Timer);
 									//this.ctChara_Jump[1].t開始(0, TJAPlayer3.Tx.SongSelect_Chara_Jump.Length + 8, 1000 / 45, TJAPlayer3.Timer);
 									CMenuCharacter.tMenuResetTimer(CMenuCharacter.ECharacterAnimation.SELECT);

@@ -84,6 +84,31 @@ public class CPad {
 		return list;
 	}
 
+	public bool IsPressingLeftChange()
+	{
+		return OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.LeftArrow)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LeftChange)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LBlue)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LBlue2P);
+	}
+
+	public bool IsPressingRightChange()
+	{
+		return OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.RightArrow)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RightChange)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RBlue)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RBlue2P);
+	}
+
+	public bool IsPressingDecide()
+	{
+		return OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.Decide)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LRed)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RRed)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LRed2P)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RRed2P);
+	}
+
 	public bool bPressed(EInstrumentPad part, EPad pad) {
 		if (part == EInstrumentPad.Unknown) {
 			return false;

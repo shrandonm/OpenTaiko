@@ -2206,8 +2206,7 @@ internal class CActSelect曲リスト : CActivity {
 
 		#region [Right]
 
-		else if (OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RightChange)
-				 || OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.RightArrow)) {
+		else if (OpenTaiko.Pad.IsPressingRightChange()) {
 			if (emc == eMenuContext.SearchByDifficulty) {
 				OpenTaiko.Skin.soundChangeSFX.tPlay();
 

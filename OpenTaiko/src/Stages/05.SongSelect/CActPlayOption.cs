@@ -162,8 +162,8 @@ internal class CActPlayOption : CActivity {
 		};
 
 		// menu key input, for the lowest-index player who is modifying play options
-		bool leftMenu = (OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LeftChange) || OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.LeftArrow));
-		bool rightMenu = (OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RightChange) || OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.RightArrow));
+		bool leftMenu = OpenTaiko.Pad.IsPressingLeftChange();
+		bool rightMenu = OpenTaiko.Pad.IsPressingRightChange();
 		bool centerMenu = (OpenTaiko.Pad.bPressedDGB(EPad.Decide) ||
 			(OpenTaiko.ConfigIni.bEnterIsNotUsedInKeyAssignments && OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.Return)));
 		bool upMenu = (OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.UpArrow));

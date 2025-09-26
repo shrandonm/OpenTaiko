@@ -1434,10 +1434,7 @@ internal class CStage結果 : CStage {
 				}
 
 
-				if (OpenTaiko.InputManager.Keyboard.KeyPressing((int)SlimDXKeys.Key.LeftArrow) ||
-					OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LeftChange) ||
-					OpenTaiko.InputManager.Keyboard.KeyPressing((int)SlimDXKeys.Key.RightArrow) ||
-					OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RightChange)) {
+				if (OpenTaiko.Pad.IsPressingLeftChange() || OpenTaiko.Pad.IsPressingRightChange()) {
 					if (OpenTaiko.stageSongSelect.nChoosenSongDifficulty[0] == (int)Difficulty.Dan) {
 						#region [ Phase 2 (Swap freely between Exams and Songs) ]
 
