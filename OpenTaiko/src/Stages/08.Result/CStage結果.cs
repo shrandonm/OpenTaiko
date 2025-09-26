@@ -1390,10 +1390,9 @@ internal class CStage結果 : CStage {
 					#endregion
 				}
 				if (((OpenTaiko.Pad.bPressedDGB(EPad.CY)
-					  || OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RD))
-					 || (OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LC)
-						 || (OpenTaiko.Pad.bPressedDGB(EPad.Decide)
-							 || OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.Return))))) {
+					|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RD))
+					|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LC)
+					|| OpenTaiko.Pad.IsPressingDecide())) {
 
 					ResultsSkipButtonPressCount++;
 

@@ -106,7 +106,8 @@ public class CPad {
 			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LRed)
 			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RRed)
 			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LRed2P)
-			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RRed2P);
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RRed2P)
+			|| OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.Return);
 	}
 
 	public bool bPressed(EInstrumentPad part, EPad pad) {
