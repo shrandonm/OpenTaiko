@@ -1199,6 +1199,8 @@ internal class CConfigIni : INotifyPropertyChanged {
 	public STDGBVALUE<EJudgeTextDisplayPosition> JudgeTextDisplayPosition;
 	public int nInputAdjustTimeMs;
 	public int nGlobalOffsetMs;
+	// [Divergence] Add visual offset
+	public int nVisualOffsetMs;
 	public bool bIsAutoResultCapture; // #25399 2011.6.9 yyagi リザルト画像自動保存機能のON/OFF制御
 	public int nPoliphonicSounds; // #28228 2012.5.1 yyagi レーン毎の最大同時発音数
 	public bool bBufferedInputs;
@@ -1586,6 +1588,8 @@ internal class CConfigIni : INotifyPropertyChanged {
 			new EFunMods[5] { EFunMods.None, EFunMods.None, EFunMods.None, EFunMods.None, EFunMods.None };
 		this.nInputAdjustTimeMs = 0;
 		this.nGlobalOffsetMs = 0;
+		// [Divergence] Add visual offset
+		this.nVisualOffsetMs = 0;
 		for (int i = 0; i < 3; i++) {
 			this.bReverse[i] = false;
 			this.JudgeTextDisplayPosition[i] = EJudgeTextDisplayPosition.AboveLane;
@@ -2161,7 +2165,9 @@ internal class CConfigIni : INotifyPropertyChanged {
 		//sw.WriteLine("InputAdjustTime={0}", this.nInputAdjustTimeMs);       //
 		sw.WriteLine("GlobalOffset={0}", this.nGlobalOffsetMs);
 		sw.WriteLine();
-
+		// [Divergence] Add visual offset
+		sw.WriteLine("VisualOffset={0}", this.nVisualOffsetMs);
+		sw.WriteLine();
 		#endregion
 
 		sw.WriteLine("; TJAPlayer3のboxの表示をするかどうか (0:OFF, 1:ON)");
@@ -2903,6 +2909,10 @@ internal class CConfigIni : INotifyPropertyChanged {
 				break;
 			case "GlobalOffset":
 				this.nGlobalOffsetMs = CConversion.ParseIntInRange(value, -9999, 9999, this.nGlobalOffsetMs);
+				break;
+			// [Divergence] Add visual offset
+			case "VisualOffset":
+				this.nVisualOffsetMs = CConversion.ParseIntInRange(value, -9999, 9999, this.nGlobalOffsetMs);
 				break;
 			case "BufferedInput":
 				this.bBufferedInputs = CConversion.bONorOFF(value[0]);

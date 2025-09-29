@@ -157,6 +157,10 @@
 		"SETTINGS_GAME_GLOBALOFFSET": "Global Offset",
 		"SETTINGS_GAME_GLOBALOFFSET_DESC": "Change the interpreted OFFSET\nvalue for all charts.\nCan be set between -999 and 999ms.\nTo decrease input lag, set minus value.",
 
+		// [Divergence] Add visual offset
+		"SETTINGS_GAME_VISUALOFFSET": "Visual Offset (ms)",
+		"SETTINGS_GAME_VISUALOFFSET_DESC": "Change the visual offset of the notes in milliseconds.\nCan be set between -999 and 999ms.",
+
 		"SETTINGS_GAME_CALIBRATION": "Calibrate Offset",
 		"SETTINGS_GAME_CALIBRATION_DESC": "Calibrate your offset.\nGlobal Offset will be overwritten if saved.",
 		"SETTINGS_GAME_CALIBRATION_OFFSET": "OFFSET: {0}",

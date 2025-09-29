@@ -2444,6 +2444,9 @@ internal abstract class CStage演奏画面共通 : CStage {
 
 		float play_bpm_time = this.GetNowPBMTime(dTX, 0);
 
+		// [Divergence] Add visual offset
+		int visualOffset = OpenTaiko.ConfigIni.nVisualOffsetMs;
+
 		#region [update phase (bar lines' position)]
 		foreach (var pChip in dTX.listBarLineChip) {
 			long time = pChip.n発声時刻ms - n現在時刻ms;
@@ -2453,8 +2456,8 @@ internal abstract class CStage演奏画面共通 : CStage {
 
 			double _scrollSpeed = pChip.dbSCROLL * _scroll_rate;
 			double _scrollSpeed_Y = pChip.dbSCROLL_Y * _scroll_rate;
-			pChip.nHorizontalChipDistance = NotesManager.GetNoteX(time, th16DBeat, pChip.dbBPM, _scrollSpeed, pChip.eScrollMode);
-			pChip.nVerticalChipDistance = NotesManager.GetNoteY(time, th16DBeat, pChip.dbBPM, _scrollSpeed_Y, pChip.eScrollMode);
+			pChip.nHorizontalChipDistance = NotesManager.GetNoteX(time + visualOffset, th16DBeat, pChip.dbBPM, _scrollSpeed, pChip.eScrollMode);
+			pChip.nVerticalChipDistance = NotesManager.GetNoteY(time + visualOffset, th16DBeat, pChip.dbBPM, _scrollSpeed_Y, pChip.eScrollMode);
 		}
 		#endregion
 
@@ -2467,8 +2470,8 @@ internal abstract class CStage演奏画面共通 : CStage {
 			CChip velocityRefChip = (NotesManager.IsRollEnd(pChip)) ? pChip.start : pChip; // && !StretchRoll
 			double _scrollSpeed = velocityRefChip.dbSCROLL * _scroll_rate;
 			double _scrollSpeed_Y = velocityRefChip.dbSCROLL_Y * _scroll_rate;
-			pChip.nHorizontalChipDistance = NotesManager.GetNoteX(time, th16DBeat, velocityRefChip.dbBPM, _scrollSpeed, velocityRefChip.eScrollMode);
-			pChip.nVerticalChipDistance = NotesManager.GetNoteY(time, th16DBeat, velocityRefChip.dbBPM, _scrollSpeed_Y, velocityRefChip.eScrollMode);
+			pChip.nHorizontalChipDistance = NotesManager.GetNoteX(time + visualOffset, th16DBeat, velocityRefChip.dbBPM, _scrollSpeed, velocityRefChip.eScrollMode);
+			pChip.nVerticalChipDistance = NotesManager.GetNoteY(time + visualOffset, th16DBeat, velocityRefChip.dbBPM, _scrollSpeed_Y, velocityRefChip.eScrollMode);
 
 			if (!this.bPAUSE && !this.isRewinding) {
 				if (!pChip.IsMissed && !pChip.bHit) {
