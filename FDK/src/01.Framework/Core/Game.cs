@@ -45,7 +45,7 @@ public abstract class Game : IDisposable {
 	public static ImGuiIOPtr ImGuiIO { get; private set; }
 	private static CTexture ImGuiFontAtlas;
 
-	private RenderTexture[] m_RenderTextures;
+	private List<RenderTexture> m_RenderTextures;
 	private FullscreenQuad m_FullscreenQuad;
 	private int m_RenderTextureDrawIndex = 0;
 
@@ -437,6 +437,7 @@ public abstract class Game : IDisposable {
 		Context.SwapInterval(VSync ? 1 : 0);
 
 		InitRenderTextures();
+		m_FullscreenQuad = new();
 
 		Initialize();
 		LoadContent();
@@ -451,12 +452,16 @@ public abstract class Game : IDisposable {
 		// todo: add to config
 		// todo: make it recreates these textures on window resize / setting change
 		const int textureCount = 6;
-		m_RenderTextures = new RenderTexture[textureCount];
+		m_RenderTextures = new(textureCount);
 		for (int i = 0; i < textureCount; ++i)
 		{
-			m_RenderTextures[i] = new RenderTexture((uint)Window_.Size.X, (uint)Window_.Size.Y);
+			m_RenderTextures.Add(new RenderTexture((uint)Window_.Size.X, (uint)Window_.Size.Y));
 		}
-		m_FullscreenQuad = new();
+	}
+
+	private void DestroyRenderTextures()
+	{
+		m_RenderTextures.Clear();
 	}
 
 	public void Window_Closing() {
@@ -485,7 +490,7 @@ public abstract class Game : IDisposable {
 			AsyncActions.Remove(AsyncActions[0]);
 		}
 
-		int oldestIndex = (m_RenderTextureDrawIndex + 1) % m_RenderTextures.Length;
+		int oldestIndex = (m_RenderTextureDrawIndex + 1) % m_RenderTextures.Count;
 		DrawToBackBuffer(m_RenderTextures[oldestIndex].Texture);
 
 		RenderTexture renderTexture = m_RenderTextures[m_RenderTextureDrawIndex];
@@ -532,11 +537,14 @@ public abstract class Game : IDisposable {
 		ViewPortOffset.X = (size.X - ViewPortSize.X) / 2;
 		ViewPortOffset.Y = (size.Y - ViewPortSize.Y) / 2;
 
-
 		Gl.Viewport(ViewPortOffset.X, ViewPortOffset.Y, (uint)ViewPortSize.X, (uint)ViewPortSize.Y);
 	}
 
 	public void Window_Move(Vector2D<int> size) { }
 
-	public void Window_FramebufferResize(Vector2D<int> size) { }
+	public void Window_FramebufferResize(Vector2D<int> size)
+	{
+		DestroyRenderTextures();
+		InitRenderTextures();
+	}
 }

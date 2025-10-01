@@ -9,7 +9,7 @@ using Silk.NET.OpenGLES;
 
 namespace FDK;
 
-internal class RenderTexture
+internal class RenderTexture : IDisposable
 {
 	public uint FrameBufferObject { get; private set; }
 	public uint Texture { get; private set; }
@@ -32,6 +32,27 @@ internal class RenderTexture
 		gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 	}
 
+	~RenderTexture()
+	{
+		Dispose();
+	}
+
+	public void Dispose()
+	{
+		GL gl = Game.Gl;
+		if (FrameBufferObject != 0)
+			gl.DeleteFramebuffer(FrameBufferObject);
+
+		if (Texture != 0)
+			gl.DeleteTexture(Texture);
+
+		if (VertexBufferObject != 0)
+			gl.DeleteBuffer(VertexBufferObject);
+
+		if (VertexArrayObject != 0)
+			gl.DeleteVertexArray(VertexArrayObject);
+	}
+
 	private static uint CreateFrameBufferObject(uint texture, uint width, uint height)
 	{
 		GL gl = Game.Gl;
@@ -42,15 +63,6 @@ internal class RenderTexture
 			FramebufferAttachment.ColorAttachment0,
 			TextureTarget.Texture2D,
 			texture, level: 0);
-
-		uint rbo = gl.GenRenderbuffer();
-		gl.BindRenderbuffer(RenderbufferTarget.Renderbuffer, rbo);
-		gl.RenderbufferStorage(RenderbufferTarget.Renderbuffer, InternalFormat.Depth24Stencil8, width, height);
-		gl.FramebufferRenderbuffer(
-			FramebufferTarget.Framebuffer,
-			FramebufferAttachment.DepthStencilAttachment,
-			RenderbufferTarget.Renderbuffer,
-			rbo);
 
 		var status = gl.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
 		if (status != GLEnum.FramebufferComplete)
