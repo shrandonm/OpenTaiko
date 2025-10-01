@@ -423,7 +423,7 @@ public class CTexture : IDisposable {
 		MakeTexture(bitmap, b黒を透過する);
 	}
 
-	private unsafe uint GenTexture(void* data, uint width, uint height, PixelFormat pixelFormat) {
+	public unsafe static uint GenTexture(void* data, uint width, uint height, PixelFormat pixelFormat) {
 		//テクスチャハンドルの作成-----
 		uint handle = Game.Gl.GenTexture();
 		Game.Gl.BindTexture(TextureTarget.Texture2D, handle);

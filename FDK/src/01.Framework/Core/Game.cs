@@ -45,6 +45,10 @@ public abstract class Game : IDisposable {
 	public static ImGuiIOPtr ImGuiIO { get; private set; }
 	private static CTexture ImGuiFontAtlas;
 
+	private RenderTexture[] m_RenderTextures;
+	private FullscreenQuad m_FullscreenQuad;
+	private int m_RenderTextureDrawIndex = 0;
+
 	static string _test = "";
 	public static void InitImGuiController(IView window, IInputContext context) {
 		if (ImGuiController != null) return;
@@ -432,8 +436,27 @@ public abstract class Game : IDisposable {
 		
 		Context.SwapInterval(VSync ? 1 : 0);
 
+		InitRenderTextures();
+
 		Initialize();
 		LoadContent();
+	}
+
+	private void InitRenderTextures()
+	{
+		// 10 gives 15 frames of lag
+		// 7 gave 12-14
+		// 6 gives 11
+		// 5 gives 9
+		// todo: add to config
+		// todo: make it recreates these textures on window resize / setting change
+		const int textureCount = 6;
+		m_RenderTextures = new RenderTexture[textureCount];
+		for (int i = 0; i < textureCount; ++i)
+		{
+			m_RenderTextures[i] = new RenderTexture((uint)Window_.Size.X, (uint)Window_.Size.Y);
+		}
+		m_FullscreenQuad = new();
 	}
 
 	public void Window_Closing() {
@@ -461,15 +484,36 @@ public abstract class Game : IDisposable {
 			AsyncActions[0]?.Invoke();
 			AsyncActions.Remove(AsyncActions[0]);
 		}
+
+		int oldestIndex = (m_RenderTextureDrawIndex + 1) % m_RenderTextures.Length;
+		DrawToBackBuffer(m_RenderTextures[oldestIndex].Texture);
+
+		RenderTexture renderTexture = m_RenderTextures[m_RenderTextureDrawIndex];
+		renderTexture.Bind();
 		Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
 		Draw();
-
-		double fps = 1.0f / deltaTime;
-
 		ImGuiController?.Render();
+		renderTexture.Unbind();
+
+		m_RenderTextureDrawIndex = oldestIndex;
 
 		if (!OperatingSystem.IsMacOS()) Context.SwapBuffers();
+	}
+
+	private void DrawToBackBuffer(uint textureId)
+	{
+		Gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+		Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+		Gl.UseProgram(m_FullscreenQuad.Shader);
+
+		Gl.ActiveTexture(TextureUnit.Texture0);
+		Gl.BindTexture(TextureTarget.Texture2D, textureId);
+		Gl.Uniform1(Gl.GetUniformLocation(m_FullscreenQuad.Shader, "screenTexture"), 0);
+
+		Gl.BindVertexArray(m_FullscreenQuad.VAO);
+		Gl.DrawArrays(PrimitiveType.TriangleStrip, 0, 4);
+		Gl.BindVertexArray(0);
 	}
 
 	public void Window_Resize(Vector2D<int> size) {
