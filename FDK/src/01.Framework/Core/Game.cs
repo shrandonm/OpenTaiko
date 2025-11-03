@@ -450,8 +450,8 @@ public abstract class Game : IDisposable {
 		// 6 gives 11
 		// 5 gives 9
 		// todo: add to config
-		// todo: make it recreates these textures on window resize / setting change
-		const int textureCount = 6;
+		
+		const int textureCount = 10;
 		m_RenderTextures = new(textureCount);
 		for (int i = 0; i < textureCount; ++i)
 		{
