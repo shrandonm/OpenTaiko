@@ -1029,7 +1029,7 @@ internal class CStageSongSelect : CStage {
 
 							#region [ Up ]
 							if (!this.bCurrentlyScrolling) {
-								this.ctキー反復用.Up.KeyIntervalFunc(OpenTaiko.InputManager.Keyboard.KeyPressing((int)SlimDXKeys.Key.LeftArrow), new CCounter.KeyProcess(this.tカーソルを上へ移動する));
+								//this.ctキー反復用.Up.KeyIntervalFunc(OpenTaiko.InputManager.Keyboard.KeyPressing((int)SlimDXKeys.Key.LeftArrow), new CCounter.KeyProcess(this.tカーソルを上へ移動する));
 								//this.ctキー反復用.Up.tキー反復( CDTXMania.Input管理.Keyboard.bキーが押されている( (int) SlimDXKeys.Key.UpArrow ) || CDTXMania.Input管理.Keyboard.bキーが押されている( (int) SlimDXKeys.Key.LeftArrow ), new CCounter.DGキー処理( this.tカーソルを上へ移動する ) );
 								if (OpenTaiko.Pad.IsPressingLeftChange()) {
 									this.tカーソルを上へ移動する();
@@ -1047,7 +1047,7 @@ internal class CStageSongSelect : CStage {
 
 							#region [ Down ]
 							if (!this.bCurrentlyScrolling) {
-								this.ctキー反復用.Down.KeyIntervalFunc(OpenTaiko.InputManager.Keyboard.KeyPressing((int)SlimDXKeys.Key.RightArrow), new CCounter.KeyProcess(this.tカーソルを下へ移動する));
+								//this.ctキー反復用.Down.KeyIntervalFunc(OpenTaiko.InputManager.Keyboard.KeyPressing((int)SlimDXKeys.Key.RightArrow), new CCounter.KeyProcess(this.tカーソルを下へ移動する));
 								//this.ctキー反復用.Down.tキー反復( CDTXMania.Input管理.Keyboard.bキーが押されている( (int) SlimDXKeys.Key.DownArrow ) || CDTXMania.Input管理.Keyboard.bキーが押されている( (int) SlimDXKeys.Key.RightArrow ), new CCounter.DGキー処理( this.tカーソルを下へ移動する ) );
 
 								if (OpenTaiko.Pad.IsPressingRightChange()) {
