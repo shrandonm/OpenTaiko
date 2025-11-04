@@ -161,6 +161,10 @@
 		"SETTINGS_GAME_VISUALOFFSET": "Visual Offset (ms)",
 		"SETTINGS_GAME_VISUALOFFSET_DESC": "Change the visual offset of the notes in milliseconds.\nCan be set between -999 and 999ms.",
 
+		// [Divergence] Add frame render delay
+		"SETTINGS_GAME_FRAMERENDERDELAY": "Frame Render Delay",
+		"SETTINGS_GAME_FRAMERENDERDELAY_DESC": "Introduces N frames of delay.\nUse this to match the feeling of arcade cabs.\nExample: To match white scanner cabs try up to 6 frames,\nand red scanner try  up to 10 frames.\nImportant note this may vary\ndepending on your monitor and PC.",
+
 		"SETTINGS_GAME_CALIBRATION": "Calibrate Offset",
 		"SETTINGS_GAME_CALIBRATION_DESC": "Calibrate your offset.\nGlobal Offset will be overwritten if saved.",
 		"SETTINGS_GAME_CALIBRATION_OFFSET": "OFFSET: {0}",

@@ -304,6 +304,11 @@ internal class OpenTaiko : Game {
 		OpenTaiko.app = this;
 	}
 
+	protected override int GetFrameRenderDelay()
+	{
+		return ConfigIni.nFrameRenderDelay;
+	}
+
 	public static string sEncType = "Shift_JIS";
 
 	public static string LargeImageKey {

@@ -443,15 +443,18 @@ public abstract class Game : IDisposable {
 		LoadContent();
 	}
 
-	private void InitRenderTextures()
+	protected virtual int GetFrameRenderDelay()
 	{
 		// 10 gives 15 frames of lag
 		// 7 gave 12-14
 		// 6 gives 11
 		// 5 gives 9
-		// todo: add to config
-		
-		const int textureCount = 10;
+		return 0;
+	}
+
+	private void InitRenderTextures()
+	{
+		int textureCount = GetFrameRenderDelay();
 		m_RenderTextures = new(textureCount);
 		for (int i = 0; i < textureCount; ++i)
 		{
@@ -462,6 +465,7 @@ public abstract class Game : IDisposable {
 	private void DestroyRenderTextures()
 	{
 		m_RenderTextures.Clear();
+		m_RenderTextureDrawIndex = 0;
 	}
 
 	public void Window_Closing() {
@@ -490,17 +494,26 @@ public abstract class Game : IDisposable {
 			AsyncActions.Remove(AsyncActions[0]);
 		}
 
-		int oldestIndex = (m_RenderTextureDrawIndex + 1) % m_RenderTextures.Count;
-		DrawToBackBuffer(m_RenderTextures[oldestIndex].Texture);
+		if (m_RenderTextures.Count > 0)
+		{
+			int oldestIndex = (m_RenderTextureDrawIndex + 1) % m_RenderTextures.Count;
+			DrawToBackBuffer(m_RenderTextures[oldestIndex].Texture);
 
-		RenderTexture renderTexture = m_RenderTextures[m_RenderTextureDrawIndex];
-		renderTexture.Bind();
-		Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-		Draw();
-		ImGuiController?.Render();
-		renderTexture.Unbind();
+			RenderTexture renderTexture = m_RenderTextures[m_RenderTextureDrawIndex];
+			renderTexture.Bind();
+			Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+			Draw();
+			ImGuiController?.Render();
+			renderTexture.Unbind();
 
-		m_RenderTextureDrawIndex = oldestIndex;
+			m_RenderTextureDrawIndex = oldestIndex;
+		}
+		else
+		{
+			Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+			Draw();
+			ImGuiController?.Render();
+		}
 
 		if (!OperatingSystem.IsMacOS()) Context.SwapBuffers();
 	}
@@ -543,6 +556,11 @@ public abstract class Game : IDisposable {
 	public void Window_Move(Vector2D<int> size) { }
 
 	public void Window_FramebufferResize(Vector2D<int> size)
+	{
+		RecreateFrameBuffers();
+	}
+
+	public void RecreateFrameBuffers()
 	{
 		DestroyRenderTextures();
 		InitRenderTextures();

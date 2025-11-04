@@ -359,6 +359,11 @@ internal class CActConfigList : CActivity {
 			CLangManager.LangInstance.GetString("SETTINGS_GAME_VISUALOFFSET_DESC"));
 		this.list項目リスト.Add(this.iVisualOffsetMs);
 
+		// [Divergence] Add frame render delay
+		this.iFrameRenderDelay = new CItemInteger(CLangManager.LangInstance.GetString("SETTINGS_GAME_FRAMERENDERDELAY"), -9999, 9999, OpenTaiko.ConfigIni.nFrameRenderDelay,
+			CLangManager.LangInstance.GetString("SETTINGS_GAME_FRAMERENDERDELAY_DESC"));
+		this.list項目リスト.Add(this.iFrameRenderDelay);
+
 		this.iTaikoDefaultCourse = new CItemList(CLangManager.LangInstance.GetString("SETTINGS_GAME_DEFAULTDIFF"), CItemBase.EPanelType.Normal, OpenTaiko.ConfigIni.nDefaultCourse,
 			CLangManager.LangInstance.GetString("SETTINGS_GAME_DEFAULTDIFF_DESC"),
 			new string[] {
@@ -1637,6 +1642,7 @@ internal class CActConfigList : CActivity {
 	private CItemInteger iInputAdjustTimeMs;
 	public CItemInteger iGlobalOffsetMs;
 	public CItemInteger iVisualOffsetMs;
+	public CItemInteger iFrameRenderDelay;
 
 	private CItemList iSystemSkinSubfolder;             // #28195 2012.5.2 yyagi
 	private CItemBase iSystemReloadDTX;                 // #32081 2013.10.21 yyagi
@@ -1752,6 +1758,8 @@ internal class CActConfigList : CActivity {
 		OpenTaiko.ConfigIni.nGlobalOffsetMs = this.iGlobalOffsetMs.n現在の値;
 		// [Divergence] Add visual offset
 		OpenTaiko.ConfigIni.nVisualOffsetMs = this.iVisualOffsetMs.n現在の値;
+		// [Divergence] Add frame render delay
+		OpenTaiko.ConfigIni.nFrameRenderDelay = this.iFrameRenderDelay.n現在の値;
 
 		OpenTaiko.ConfigIni.nControllerDeadzone = this.iControllerDeadzone.n現在の値;
 		OpenTaiko.InputManager.Deadzone = OpenTaiko.ConfigIni.nControllerDeadzone / 100.0f;

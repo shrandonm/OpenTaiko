@@ -1201,6 +1201,8 @@ internal class CConfigIni : INotifyPropertyChanged {
 	public int nGlobalOffsetMs;
 	// [Divergence] Add visual offset
 	public int nVisualOffsetMs;
+	// [Divergence] Add frame render delay
+	public int nFrameRenderDelay;
 	public bool bIsAutoResultCapture; // #25399 2011.6.9 yyagi リザルト画像自動保存機能のON/OFF制御
 	public int nPoliphonicSounds; // #28228 2012.5.1 yyagi レーン毎の最大同時発音数
 	public bool bBufferedInputs;
@@ -1590,6 +1592,8 @@ internal class CConfigIni : INotifyPropertyChanged {
 		this.nGlobalOffsetMs = 0;
 		// [Divergence] Add visual offset
 		this.nVisualOffsetMs = 0;
+		// [Divergence] Add frame render delay
+		this.nFrameRenderDelay = 0;
 		for (int i = 0; i < 3; i++) {
 			this.bReverse[i] = false;
 			this.JudgeTextDisplayPosition[i] = EJudgeTextDisplayPosition.AboveLane;
@@ -2167,6 +2171,10 @@ internal class CConfigIni : INotifyPropertyChanged {
 		sw.WriteLine();
 		// [Divergence] Add visual offset
 		sw.WriteLine("VisualOffset={0}", this.nVisualOffsetMs);
+		sw.WriteLine();
+
+		// [Divergence] Frame render delay
+		sw.WriteLine("FrameRenderDelay={0}", this.nFrameRenderDelay);
 		sw.WriteLine();
 		#endregion
 
@@ -2912,7 +2920,10 @@ internal class CConfigIni : INotifyPropertyChanged {
 				break;
 			// [Divergence] Add visual offset
 			case "VisualOffset":
-				this.nVisualOffsetMs = CConversion.ParseIntInRange(value, -9999, 9999, this.nGlobalOffsetMs);
+				this.nVisualOffsetMs = CConversion.ParseIntInRange(value, -9999, 9999, this.nVisualOffsetMs);
+				break;
+			case "FrameRenderDelay":
+				this.nFrameRenderDelay = CConversion.ParseIntInRange(value, 0, 999, this.nFrameRenderDelay);
 				break;
 			case "BufferedInput":
 				this.bBufferedInputs = CConversion.bONorOFF(value[0]);

@@ -100,6 +100,7 @@ internal class CStageコンフィグ : CStage {
 			txMenuItemLeft = null;
 
 			OpenTaiko.tDisposeSafely(ref Background);
+			OpenTaiko.app.RecreateFrameBuffers();
 
 			base.DeActivate();
 		} catch (UnauthorizedAccessException e) {
