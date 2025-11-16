@@ -1349,6 +1349,11 @@ internal abstract class CStage演奏画面共通 : CStage {
 
 		if (NotesManager.IsMissableNote(pChip)) {
 			actGauge.Damage(screenmode, eJudgeResult, nPlayer);
+
+			if (eJudgeResult == ENoteJudge.Miss)
+			{
+				OpenTaiko.ShrandyExtension.OnNoteHit(pChip, eJudgeResult, EPad.Unknown);
+			}
 		}
 
 

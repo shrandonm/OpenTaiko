@@ -8,6 +8,7 @@ namespace OpenTaiko.Shrandy
 {
 	public enum Hand
 	{
+		None,
 		Left,
 		Right,
 	}
@@ -79,7 +80,7 @@ namespace OpenTaiko.Shrandy
 				case EPad.RBlue2P:
 					return Hand.Right;
 			}
-			return Hand.Left;
+			return Hand.None;
 		}
 
 		private static Note GetNoteFromPad(EPad pad)
