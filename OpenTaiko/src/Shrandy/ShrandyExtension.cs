@@ -29,11 +29,24 @@ namespace OpenTaiko.Shrandy
 
 	class ShrandyExtension
 	{
+		public const string SaveDirectoryPath = "ShrandySaveData";
 		private List<Tool> m_Tools = new();
 
 		public ShrandyExtension()
 		{
-			m_Tools.Add(new ShrandyTool());
+			if (!Directory.Exists(SaveDirectoryPath))
+			{
+				Directory.CreateDirectory(SaveDirectoryPath);
+			}
+			m_Tools.Add(new TrainingTool(SlimDXKeys.Key.F4));
+		}
+
+		public void OnStageChanged(CStage stage)
+		{
+			foreach (Tool tool in m_Tools)
+			{
+				tool.OnStageChanged(stage);
+			}
 		}
 
 		public void OnPerformanceInfoActivate()
@@ -61,7 +74,11 @@ namespace OpenTaiko.Shrandy
 		{
 			foreach (Tool tool in m_Tools)
 			{
-				//tool.Draw();
+				tool.UpdateEnabledState();
+				if (tool.Enabled)
+				{
+					tool.Draw();
+				}
 			}
 		}
 

@@ -62,4 +62,10 @@ public class CStage : CActivity {
 		Game_EndStage, //2016.07.15 kairera0467
 		Game_Reload
 	}
+
+	public override void Activate()
+	{
+		base.Activate();
+		OpenTaiko.ShrandyExtension.OnStageChanged(this);
+	}
 }

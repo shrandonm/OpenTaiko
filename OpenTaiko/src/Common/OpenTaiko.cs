@@ -356,8 +356,14 @@ internal class OpenTaiko : Game {
 	public void ChangeStage(CStage Stage) {
 		UnmountCurrentStage();
 		MountStage(Stage);
+		SetCurrentStage(Stage);
+	}
+
+	private void SetCurrentStage(CStage Stage)
+	{
 		rPreviousStage = rCurrentStage;
 		rCurrentStage = Stage;
+		ShrandyExtension.OnStageChanged(Stage);
 	}
 
 	public void TriggerSystemError(CSystemError.Errno errno) {
@@ -840,8 +846,7 @@ internal class OpenTaiko : Game {
 								Trace.TraceInformation("----------------------");
 								Trace.TraceInformation("■ Skin Change");
 								stageChangeSkin.Activate();
-								rPreviousStage = rCurrentStage;
-								rCurrentStage = stageChangeSkin;
+								SetCurrentStage(stageChangeSkin);
 								break;
 								//-----------------------------
 								#endregion
@@ -945,10 +950,8 @@ internal class OpenTaiko : Game {
 								Trace.TraceInformation("■ Return to song select menu");
 								MountStage(OpenTaiko.latestSongSelect);
 
-								rPreviousStage = rCurrentStage;
-
 								// Seek latest registered song select screen
-								rCurrentStage = OpenTaiko.latestSongSelect;
+								SetCurrentStage(OpenTaiko.latestSongSelect);
 
 								break;
 							}
@@ -957,8 +960,7 @@ internal class OpenTaiko : Game {
 							Trace.TraceInformation("----------------------");
 							Trace.TraceInformation("■ Gameplay (Drum Screen)");
 
-							rPreviousStage = rCurrentStage;
-							rCurrentStage = stageGameScreen;
+							SetCurrentStage(stageGameScreen);
 
 							this.tExecuteGarbageCollection();
 						}
@@ -986,8 +988,7 @@ internal class OpenTaiko : Game {
 									stageSongLoading.CreateManagedResource();
 									stageSongLoading.CreateUnmanagedResource();
 								}
-								rPreviousStage = rCurrentStage;
-								rCurrentStage = stageSongLoading;
+								SetCurrentStage(stageSongLoading);
 								this.tExecuteGarbageCollection();
 								break;
 							#endregion
@@ -1017,10 +1018,9 @@ internal class OpenTaiko : Game {
 									OpenTaiko.latestSongSelect.CreateManagedResource();
 									OpenTaiko.latestSongSelect.CreateUnmanagedResource();
 								}
-								rPreviousStage = rCurrentStage;
 
 								// Seek latest registered song select screen
-								rCurrentStage = OpenTaiko.latestSongSelect;
+								SetCurrentStage(OpenTaiko.latestSongSelect);
 
 								this.tExecuteGarbageCollection();
 								this.tExecuteGarbageCollection();
@@ -1049,8 +1049,7 @@ internal class OpenTaiko : Game {
 									stageSongSelect.CreateManagedResource();
 									stageSongSelect.CreateUnmanagedResource();
 								}
-								rPreviousStage = rCurrentStage;
-								rCurrentStage = stageSongSelect;
+								SetCurrentStage(stageSongSelect);
 
 								this.tExecuteGarbageCollection();
 								break;
@@ -1078,8 +1077,7 @@ internal class OpenTaiko : Game {
 									stageResults.CreateManagedResource();
 									stageResults.CreateUnmanagedResource();
 								}
-								rPreviousStage = rCurrentStage;
-								rCurrentStage = stageResults;
+								SetCurrentStage(stageResults);
 
 								break;
 								//-----------------------------
@@ -1111,8 +1109,7 @@ internal class OpenTaiko : Game {
 								Trace.TraceInformation("----------------------");
 								Trace.TraceInformation("■ Cut Scene");
 
-								rPreviousStage = rCurrentStage;
-								rCurrentStage = stageCutScene;
+								SetCurrentStage(stageCutScene);
 							} else {
 								this.ReturnToSongSelection(rCurrentStage);
 							}
@@ -1304,6 +1301,8 @@ internal class OpenTaiko : Game {
 				OpenTaiko.ConfigIni.DEBUG_bShowImgui = !OpenTaiko.ConfigIni.DEBUG_bShowImgui;
 			if (OpenTaiko.ConfigIni.DEBUG_bShowImgui)
 				ImGuiDebugWindow.Draw();
+
+			ShrandyExtension.Draw();
 		}
 #if !DEBUG
 		catch (Exception e) {
@@ -1321,10 +1320,10 @@ internal class OpenTaiko : Game {
 		Trace.TraceInformation("----------------------");
 		Trace.TraceInformation("■ Return to song select menu");
 		this.MountStage(OpenTaiko.latestSongSelect);
-		rPreviousStage = fromStage;
 
 		// Seek latest registered song select screen
-		rCurrentStage = OpenTaiko.latestSongSelect;
+		SetCurrentStage(OpenTaiko.latestSongSelect);
+		rPreviousStage = fromStage;
 
 		stageSongSelect.NowSong++;
 

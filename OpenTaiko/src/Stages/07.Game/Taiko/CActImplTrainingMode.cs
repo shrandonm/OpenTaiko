@@ -200,8 +200,8 @@ class CActImplTrainingMode : CActivity {
 			if (OpenTaiko.ConfigIni.KeyAssign.KeyIsPressed(OpenTaiko.ConfigIni.KeyAssign.Drums.TrainingBookmark))
 				this.tToggleBookmarkAtTheCurrentPosition();
 
-			if (bAutoSkipBackQueued) {
-				AutoSkipBack();
+			if (nQueuedJumpToMeasure != -1) {
+				JumpToQueuedMeasure();
 			}
 
 			if (this.bCurrentlyScrolling) {
@@ -260,34 +260,47 @@ class CActImplTrainingMode : CActivity {
 	{
 		if (this.bTrainingPAUSE)
 		{
-			this.nCurrentMeasure -= measureCount;
-			if (this.nCurrentMeasure <= 0)
-				this.nCurrentMeasure = 1;
+			int newMeasure = this.nCurrentMeasure - measureCount;
+			if (newMeasure <= 0)
+				newMeasure = 1;
 
+			JumpToMeasure(newMeasure);
+		}
+	}
+
+	public void JumpToMeasure(int measure)
+	{
+		if (this.bTrainingPAUSE)
+		{
+			this.nCurrentMeasure = measure;
 			this.tMatchWithTheChartDisplayPosition(true);
 			OpenTaiko.Skin.soundTrainingModeScrollSFX.tPlay();
 		}
 	}
 
 	public void QueueAutoSkipBack() {
-		bAutoSkipBackQueued = true;
+		int bookmarkMeasure = GetBookmarkMeasureBefore(this.nCurrentMeasure + 1);
+		if (bookmarkMeasure != -1)
+		{
+			nQueuedJumpToMeasure = bookmarkMeasure;
+		}
+		else
+		{
+			const int autoSkipMeasureCount = 2;
+			nQueuedJumpToMeasure = Math.Max(0, this.nCurrentMeasure - autoSkipMeasureCount);
+		}
 	}
 
-	private void AutoSkipBack() {
+	private void JumpToQueuedMeasure() {
 		if (!bTrainingPAUSE) {
 			tPausePlay();
 		}
 
-		int bookmarkMeasure = GetBookmarkMeasureBefore(this.nCurrentMeasure + 1);
-		if (bookmarkMeasure != -1) {
-			SkipBackMeasures(this.nCurrentMeasure - bookmarkMeasure);
-		} else {
-			const int autoSkipMeasureCount = 2;
-			SkipBackMeasures(autoSkipMeasureCount);
-		}
+		JumpToMeasure(nQueuedJumpToMeasure);
 		tResumePlay();
-		bAutoSkipBackQueued = false;
+		nQueuedJumpToMeasure = -1;
 	}
+	// [End divergence]
 
 	public int On進行描画_背景() {
 		if (this.ctBackgroundScrollTimer != null) {
@@ -451,6 +464,7 @@ class CActImplTrainingMode : CActivity {
 		}
 	}
 
+	// [Divergence]
 	public void tToggleBookmarkAtTheCurrentPosition() {
 		if (!this.bCurrentlyScrolling && this.bTrainingPAUSE) {
 			CTja tja = OpenTaiko.TJA!;
@@ -465,7 +479,6 @@ class CActImplTrainingMode : CActivity {
 		}
 	}
 
-	// [Divergence]
 	private int GetBookmarkMeasureBefore(int measure)
 	{
 		for (int i = JumpPointList.Count - 1; i >= 0; --i)
@@ -496,7 +509,7 @@ class CActImplTrainingMode : CActivity {
 	private long n最終演奏位置ms;
 
 	public bool bTrainingPAUSE { get; private set; }
-	private bool bAutoSkipBackQueued = false;
+	private int nQueuedJumpToMeasure = -1;
 	private bool bCurrentlyScrolling;
 
 	private CCounter ctScrollCounter;
@@ -505,13 +518,13 @@ class CActImplTrainingMode : CActivity {
 	private long length = 1; // chart length in TJA time
 
 	private List<int> gogoXList;
-	private List<STJUMPP> JumpPointList;
+	public List<STJUMPP> JumpPointList { get; set; }
 	private long[] LBlue = new long[] { 0, 0, 0, 0, 0 };
 	private long[] RBlue = new long[] { 0, 0, 0, 0, 0 };
 
-	private struct STJUMPP {
-		public long Time;
-		public int Measure;
+	public struct STJUMPP {
+		public long Time { get; set; }
+		public int Measure { get; set; }
 	}
 
 	/// <summary>
