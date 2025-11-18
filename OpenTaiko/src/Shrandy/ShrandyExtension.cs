@@ -38,7 +38,7 @@ namespace OpenTaiko.Shrandy
 			{
 				Directory.CreateDirectory(SaveDirectoryPath);
 			}
-			m_Tools.Add(new TrainingTool(SlimDXKeys.Key.F4));
+			m_Tools.Add(new TrainingTool.TrainingTool(SlimDXKeys.Key.F4));
 		}
 
 		public void OnStageChanged(CStage stage)
@@ -68,6 +68,11 @@ namespace OpenTaiko.Shrandy
 				Note = GetNoteFromPad(pad),
 			};
 			OpenTaiko.stageGameScreen.m_ShrandyGameOverlay.OnNoteHit(hitParams);
+
+			foreach (Tool tool in m_Tools)
+			{
+				tool.OnNoteHit(hitParams);
+			}
 		}
 
 		public void Draw()

@@ -278,17 +278,24 @@ class CActImplTrainingMode : CActivity {
 		}
 	}
 
-	public void QueueAutoSkipBack() {
+	public void QueueAutoSkipBack()
+	{
 		int bookmarkMeasure = GetBookmarkMeasureBefore(this.nCurrentMeasure + 1);
 		if (bookmarkMeasure != -1)
 		{
-			nQueuedJumpToMeasure = bookmarkMeasure;
+			QueueJumpToMeasure(bookmarkMeasure);
 		}
 		else
 		{
 			const int autoSkipMeasureCount = 2;
-			nQueuedJumpToMeasure = Math.Max(0, this.nCurrentMeasure - autoSkipMeasureCount);
+			QueueJumpToMeasure(Math.Max(0, this.nCurrentMeasure - autoSkipMeasureCount));
 		}
+	}
+
+	public void QueueJumpToMeasure(int measure)
+	{
+		tPausePlay();
+		nQueuedJumpToMeasure = Math.Max(0, measure);
 	}
 
 	private void JumpToQueuedMeasure() {

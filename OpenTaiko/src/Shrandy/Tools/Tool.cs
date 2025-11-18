@@ -24,6 +24,10 @@ namespace OpenTaiko.Shrandy
 			}
 		}
 
+		public virtual void OnNoteHit(HitParams hitParams)
+		{
+		}
+
 		public virtual void OnStageChanged(CStage stage)
 		{
 		}

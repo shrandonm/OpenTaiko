@@ -14,7 +14,6 @@ namespace OpenTaiko.Shrandy
 		{
 			m_OverlayWidgets.Add(new HitDeltaInfoWidget(stage));
 			m_OverlayWidgets.Add(new HitDeltaPopupWidget(stage));
-			m_OverlayWidgets.Add(new TrainingModeWidget(stage));
 		}
 
 		public void Reset()

@@ -6,33 +6,21 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace OpenTaiko.Shrandy
+namespace OpenTaiko.Shrandy.TrainingTool
 {
-	internal class TrainingToolSaveData
+	internal class SaveData
 	{
 		public string SongName { get; set; } = "";
-		public List<MeasureSaveData> MeasureData { get; set; } = new();
-		public List<CActImplTrainingMode.STJUMPP> Bookmarks { get; set; } = new();
-
-		public class MeasureSaveData
-		{
-			public int GoodCount { get; set; }
-			public int OkayCount { get; set; }
-			public int BadCount { get; set; }
-			public float AverageError { get; set; }
-		}
+		public List<Bookmark> Bookmarks { get; set; } = new();
+		public List<BookmarkInstance> BookmarkHistory { get; set; } = new();
 
 		public void Save()
 		{
 			CTja? tja = OpenTaiko.GetTJA(0);
-			CActImplTrainingMode trainingMode = OpenTaiko.stageGameScreen.actTokkun;
-
-			if (tja == null || trainingMode == null)
+			if (tja == null)
 			{
 				return;
 			}
-
-			Bookmarks = new(trainingMode.JumpPointList);
 
 			string path = tja.strFileName + ".json";
 			JsonSerializerOptions options = new()
@@ -43,13 +31,13 @@ namespace OpenTaiko.Shrandy
 			File.WriteAllText(Path.Combine(ShrandyExtension.SaveDirectoryPath, path), json);
 		}
 
-		public static TrainingToolSaveData? Load(string songFileName)
+		public static SaveData? Load(string songFileName)
 		{
 			string path = Path.Combine(ShrandyExtension.SaveDirectoryPath, songFileName + ".json");
 			if (File.Exists(path))
 			{
 				string json = File.ReadAllText(path);
-				return JsonSerializer.Deserialize<TrainingToolSaveData>(json);
+				return JsonSerializer.Deserialize<SaveData>(json);
 			}
 			return null;
 		}
