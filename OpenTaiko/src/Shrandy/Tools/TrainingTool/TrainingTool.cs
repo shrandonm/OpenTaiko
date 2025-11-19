@@ -14,8 +14,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 	{
 		private SaveData m_SaveData = new();
 		private MeasureListener m_MeasureListener = new();
-		private BookmarkInstance? m_BookmarkInstance;
-		private List<BookmarkInstance> m_BookmarkSessionHistory = new();
+		private BookmarkInstance? m_ActiveBookmarkInstance;
 
 		private bool m_SaveRequested = false;
 
@@ -46,9 +45,9 @@ namespace OpenTaiko.Shrandy.TrainingTool
 				return;
 			}
 
-			if (m_BookmarkInstance != null && IsNoteWithinBookmarkRange(hitParams, m_BookmarkInstance.Bookmark))
+			if (m_ActiveBookmarkInstance != null && IsNoteWithinBookmarkRange(hitParams, m_ActiveBookmarkInstance.Bookmark))
 			{
-				m_BookmarkInstance.NoteStats.OnNoteHit(hitParams);
+				m_ActiveBookmarkInstance.NoteStats.OnNoteHit(hitParams);
 			}
 
 			int absDelta = Math.Abs(hitParams.Chip.nLag);
@@ -69,7 +68,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 
 		private void OnMistakeMade()
 		{
-			if (m_BookmarkInstance == null)
+			if (m_ActiveBookmarkInstance == null)
 			{
 				OpenTaiko.stageGameScreen.actTokkun.QueueAutoSkipBack();
 			}
@@ -104,7 +103,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 
 		private void SelectBookmark(Bookmark bookmark)
 		{
-			m_BookmarkInstance = CreateBookmarkInstance(bookmark);
+			m_ActiveBookmarkInstance = CreateBookmarkInstance(bookmark);
 			CActImplTrainingMode trainingMode = OpenTaiko.stageGameScreen.actTokkun;
 			if (trainingMode != null)
 			{
@@ -123,9 +122,9 @@ namespace OpenTaiko.Shrandy.TrainingTool
 
 		private void OnMeasureCompleted(int measure)
 		{
-			if (m_BookmarkInstance != null && m_BookmarkInstance.Bookmark.EndMeasure == measure)
+			if (m_ActiveBookmarkInstance != null && m_ActiveBookmarkInstance.Bookmark.EndMeasure == measure)
 			{
-				CompleteBookmark(m_BookmarkInstance);
+				CompleteBookmark(m_ActiveBookmarkInstance);
 			}
 		}
 
@@ -138,27 +137,14 @@ namespace OpenTaiko.Shrandy.TrainingTool
 		{
 			if (DidParticipate(bookmarkInstance))
 			{
-				AddToHistory(m_SaveData.BookmarkHistory, bookmarkInstance);
-				AddToHistory(m_BookmarkSessionHistory, bookmarkInstance);
+				bookmarkInstance.NoteStats.StatEntryCount = 1;
+				m_SaveData.AddToHistory(bookmarkInstance);
 				RequestSave();
 			}
 
 			BookmarkInstance newInstance = CreateBookmarkInstance(bookmarkInstance.Bookmark);
-			m_BookmarkInstance = newInstance;
+			m_ActiveBookmarkInstance = newInstance;
 			JumpToStartOfBookmark(newInstance.Bookmark);
-		}
-
-		private void AddToHistory(List<BookmarkInstance> history, BookmarkInstance bookmarkInstance)
-		{
-			BookmarkInstance? recordedInstance = history.Find(x => x.BookmarkName == bookmarkInstance.BookmarkName);
-			if (recordedInstance == null)
-			{
-				recordedInstance = CreateBookmarkInstance(bookmarkInstance.Bookmark);
-				history.Add(recordedInstance);
-			}
-
-			recordedInstance.PlayCount++;
-			recordedInstance.NoteStats = recordedInstance.NoteStats + bookmarkInstance.NoteStats;
 		}
 
 		public override void OnStageChanged(CStage stage)
@@ -166,7 +152,6 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			base.OnStageChanged(stage);
 
 			m_SaveData = new();
-			m_BookmarkSessionHistory.Clear();
 
 			if (stage == OpenTaiko.stageGameScreen)
 			{
@@ -183,7 +168,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 
 		private void OnSaveLoaded(SaveData saveData)
 		{
-			foreach (BookmarkInstance bookmarkInstance in saveData.BookmarkHistory)
+			foreach (BookmarkInstance bookmarkInstance in saveData.AllTimeBookmarkHistory)
 			{
 				bookmarkInstance.Bookmark = saveData.Bookmarks.Find(x => x.Name == bookmarkInstance.BookmarkName);
 			}
@@ -191,9 +176,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 
 		private void DeleteBookmark(Bookmark bookmark)
 		{
-			m_SaveData.Bookmarks.Remove(bookmark);
-			m_SaveData.BookmarkHistory.RemoveAll(x => x.BookmarkName == bookmark.Name);
-			m_BookmarkSessionHistory.RemoveAll(x => x.BookmarkName == bookmark.Name);
+			m_SaveData.DeleteBookmark(bookmark);
 			RequestSave();
 		}
 
@@ -229,7 +212,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 
 		private void DrawBookmarks()
 		{
-			ImGui.Text("Bookmarked Measures");
+			ImGui.Text("Bookmark Management");
 
 			if (ImGui.CollapsingHeader("Create Bookmark"))
 			{
@@ -245,6 +228,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			}
 
 			ImGui.Separator();
+			ImGui.Text("Bookmarks");
 			for (int i = m_SaveData.Bookmarks.Count - 1; i >= 0; --i)
 			{
 				DrawBookmark(m_SaveData.Bookmarks[i]);
@@ -255,70 +239,69 @@ namespace OpenTaiko.Shrandy.TrainingTool
 		{
 			ImGui.PushID(bookmark.Name);
 
-			if (ImGui.CollapsingHeader(bookmark.Name))
+			NoteStats recentStats = m_SaveData.GetAggregateStats(bookmark.Name);
+
+			string headerText = $"{recentStats.GetPercentString(recentStats.GoodCount, recentStats.TotalNotes)} {bookmark.Name}";
+			if (ImGui.CollapsingHeader(headerText))
 			{
 				ImGui.Indent();
 
-				ImGui.Text(bookmark.Name);
 				ImGui.Text($"Start Measure: {bookmark.StartMeasure}");
+				ImGui.SameLine();
 				ImGui.Text($"End Measure: {bookmark.EndMeasure}");
-				DrawBookmarkStats(bookmark);
+
 				if (ImGui.Button("Go"))
 				{
 					SelectBookmark(bookmark);
 				}
 				ImGui.SameLine();
-				if (ImGui.Button("Delete"))
+				if (ImGui.Button("Delete Bookmark"))
 				{
 					DeleteBookmark(bookmark);
 				}
+				DrawBookmarkStats(bookmark, recentStats);
 				ImGui.Separator();
 
-				ImGui.PopID();
 				ImGui.Unindent();
 			}
+			ImGui.PopID();
 		}
 
-		private void DrawBookmarkStats(Bookmark bookmark)
+		private void DrawBookmarkStats(Bookmark bookmark, NoteStats recentStats)
 		{
-			DrawBookmarkStats("This Session", m_BookmarkSessionHistory, bookmark);
-			DrawBookmarkStats("All Time", m_SaveData.BookmarkHistory, bookmark);
-		}
+			BookmarkInstance? allTimeInstance = m_SaveData.AllTimeBookmarkHistory.Find(x => x.BookmarkName == bookmark.Name);
 
-		private void DrawBookmarkStats(string title, List<BookmarkInstance> history, Bookmark bookmark)
-		{
-			BookmarkInstance? instance = history.Find(x => x.BookmarkName == bookmark.Name);
-			if (instance != null)
+			if (recentStats.StatEntryCount == 0 || allTimeInstance == null)
 			{
-				ImGui.PushID(title);
+				return;
+			}
 
-				if (ImGui.CollapsingHeader(title, ImGuiTreeNodeFlags.DefaultOpen))
-				{
-					ImGui.Indent();
-					ImGui.Text($"Play Count: {instance.PlayCount}");
-					int totalNotes = instance.NoteStats.TotalNotes;
-					if (totalNotes > 0)
-					{
-						float goodPercent = (instance.NoteStats.GoodCount / (float)totalNotes) * 100.0f;
-						float okayPercent = (instance.NoteStats.OkayCount / (float)totalNotes) * 100.0f;
-						float badPercent = (instance.NoteStats.BadCount   / (float)totalNotes) * 100.0f;
+			if (ImGui.Button("Reset recent stats"))
+			{
+				m_SaveData.RollingRecords.Clear();
+			}
+			ImGui.SameLine();
+			if (ImGui.Button("Reset all time stats"))
+			{
+				m_SaveData.AllTimeBookmarkHistory.Remove(allTimeInstance);
+			}
 
-						ImGui.Text($"Total Notes: {totalNotes}");
-						ImGui.Separator();
-						ImGui.Text($"Goods: {instance.NoteStats.GoodCount} ({goodPercent:F2}%%)");
-						ImGui.Text($"Okays: {instance.NoteStats.OkayCount} ({okayPercent:F2}%%)");
-						ImGui.Text($"Bads: {instance.NoteStats.BadCount} ({badPercent:F2}%%)");
-						ImGui.Text($"Average Error: +/- {instance.NoteStats.AverageHitError}ms");
-					}
 
-					if (ImGui.Button("Reset"))
-					{
-						history.Clear();
-					}
+			if (ImGui.BeginTable("StatsTable", 2, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg))
+			{
+				ImGui.TableSetupColumn("Recent", ImGuiTableColumnFlags.WidthStretch);
+				ImGui.TableSetupColumn("All Time", ImGuiTableColumnFlags.WidthStretch);
+				ImGui.TableHeadersRow();
 
-					ImGui.Unindent();
-				}
-				ImGui.PopID();
+				ImGui.TableNextRow();
+
+				ImGui.TableSetColumnIndex(0);
+				recentStats.Draw();
+
+				ImGui.TableSetColumnIndex(1);
+				allTimeInstance.NoteStats.Draw();
+
+				ImGui.EndTable();
 			}
 		}
 	}

@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ImGuiNET;
 
 namespace OpenTaiko.Shrandy
 {
 	internal class NoteStats
 	{
+		public int StatEntryCount { get; set; }
 		public int GoodCount { get; set; }
 		public int OkayCount { get; set; }
 		public int BadCount { get; set; }
@@ -40,11 +42,32 @@ namespace OpenTaiko.Shrandy
 		{
 			return new NoteStats()
 			{
+				StatEntryCount = left.StatEntryCount + right.StatEntryCount,
 				GoodCount = left.GoodCount + right.GoodCount,
 				OkayCount = left.OkayCount + right.OkayCount,
 				BadCount = left.BadCount + right.BadCount,
 				TotalHitError = left.TotalHitError + right.TotalHitError,
 			};
+		}
+
+		public string GetPercentString(int hits, int totalNotes)
+		{
+			return $"{(hits / (float)totalNotes) * 100.0f:F2}%";
+		}
+
+		public void Draw()
+		{
+			int totalNotes = TotalNotes;
+			if (totalNotes > 0)
+			{
+				ImGui.Text($"Count: {StatEntryCount}");
+				ImGui.Text($"Total Notes: {totalNotes}");
+				ImGui.Separator();
+				ImGui.Text($"Goods: {GoodCount} ({GetPercentString(GoodCount, totalNotes)}%)");
+				ImGui.Text($"Okays: {OkayCount} ({GetPercentString(OkayCount, totalNotes)}%)");
+				ImGui.Text($"Bads: {BadCount} ({GetPercentString(BadCount, totalNotes)}%)");
+				ImGui.Text($"Average Error: +/- {AverageHitError}ms");
+			}
 		}
 	}
 }

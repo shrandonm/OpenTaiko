@@ -12,7 +12,75 @@ namespace OpenTaiko.Shrandy.TrainingTool
 	{
 		public string SongName { get; set; } = "";
 		public List<Bookmark> Bookmarks { get; set; } = new();
-		public List<BookmarkInstance> BookmarkHistory { get; set; } = new();
+		public List<BookmarkInstance> AllTimeBookmarkHistory { get; set; } = new();
+		public Dictionary<string, List<BookmarkInstance>> RollingRecords { get; set; } = new();
+		private const int HistoryLimit = 30;
+
+		public NoteStats GetAggregateStats(string bookmarkName)
+		{
+			NoteStats stats = new();
+			foreach (BookmarkInstance instance in GetRollingHistory(bookmarkName))
+			{
+				stats += instance.NoteStats;
+			}
+			return stats;
+		}
+
+		public void AddToHistory(BookmarkInstance bookmarkInstance)
+		{
+			AddToHistory(AllTimeBookmarkHistory, bookmarkInstance);
+
+			List<BookmarkInstance> rollingHistory = GetRollingHistory(bookmarkInstance.BookmarkName);
+			if (rollingHistory.Count >= HistoryLimit)
+			{
+				rollingHistory.RemoveAt(0);
+			}
+			AddToHistory(rollingHistory, bookmarkInstance);
+		}
+
+		private List<BookmarkInstance> GetRollingHistory(string bookmarkName)
+		{
+			if (!RollingRecords.ContainsKey(bookmarkName))
+			{
+				RollingRecords.Add(bookmarkName, new());
+			}
+
+			if (RollingRecords[bookmarkName] == null)
+			{
+				RollingRecords[bookmarkName] = new();
+			}
+
+			return RollingRecords[bookmarkName];
+		}
+
+		private void AddToHistory(List<BookmarkInstance> history, BookmarkInstance bookmarkInstance)
+		{
+			BookmarkInstance? recordedInstance = history.Find(x => x.BookmarkName == bookmarkInstance.BookmarkName);
+			if (recordedInstance == null)
+			{
+				recordedInstance = new BookmarkInstance()
+				{
+					BookmarkName = bookmarkInstance.BookmarkName,
+					Bookmark = bookmarkInstance.Bookmark,
+				};
+				history.Add(recordedInstance);
+			}
+			recordedInstance.NoteStats += bookmarkInstance.NoteStats;
+		}
+
+		public void DeleteBookmark(Bookmark bookmark)
+		{
+			Bookmarks.Remove(bookmark);
+			AllTimeBookmarkHistory.RemoveAll(x => x.BookmarkName == bookmark.Name);
+
+			foreach (var kvp in RollingRecords)
+			{
+				if (kvp.Value != null)
+				{
+					kvp.Value.RemoveAll(x => x.BookmarkName == bookmark.Name);
+				}
+			}
+		}
 
 		public void Save()
 		{
