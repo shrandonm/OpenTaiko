@@ -46,19 +46,25 @@ namespace OpenTaiko.Shrandy.TrainingTool
 				return;
 			}
 
-			int absDelta = Math.Abs(hitParams.Chip.nLag);
-
-			if (m_BookmarkInstance != null
-				&& trainingMode.nCurrentMeasure >= m_BookmarkInstance.Bookmark.StartMeasure
-				&& trainingMode.nCurrentMeasure <= m_BookmarkInstance.Bookmark.EndMeasure)
+			if (m_BookmarkInstance != null && IsNoteWithinBookmarkRange(hitParams, m_BookmarkInstance.Bookmark))
 			{
 				m_BookmarkInstance.NoteStats.OnNoteHit(hitParams);
 			}
-			
+
+			int absDelta = Math.Abs(hitParams.Chip.nLag);
 			if (absDelta > OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold || hitParams.JudgeResult == ENoteJudge.Miss)
 			{
 				OnMistakeMade();
 			}
+		}
+
+		private bool IsNoteWithinBookmarkRange(HitParams hitParams, Bookmark bookmark)
+		{
+			int startNoteIndex = OpenTaiko.TJA.GetListChipIndexOfMeasure(bookmark.StartMeasure);
+			int lastNoteIndex = OpenTaiko.TJA.GetListChipIndexOfMeasure(bookmark.EndMeasure + 1) - 1;
+			int hitIndex = OpenTaiko.TJA.listChip.IndexOf(hitParams.Chip);
+
+			return hitIndex >= startNoteIndex && hitIndex <= lastNoteIndex;
 		}
 
 		private void OnMistakeMade()
