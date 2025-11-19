@@ -50,9 +50,14 @@ namespace OpenTaiko.Shrandy
 			};
 		}
 
+		public float GetPercent(int hits, int totalNotes)
+		{
+			return totalNotes > 0 ? hits / (float)totalNotes : 0.0f;
+		}
+
 		public string GetPercentString(int hits, int totalNotes)
 		{
-			return $"{(hits / (float)totalNotes) * 100.0f:F2}%";
+			return $"{GetPercent(hits, totalNotes) * 100.0f:F2}%";
 		}
 
 		public void Draw()

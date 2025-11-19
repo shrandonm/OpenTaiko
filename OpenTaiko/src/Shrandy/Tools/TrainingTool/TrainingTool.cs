@@ -235,14 +235,41 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			}
 		}
 
+		private System.Numerics.Vector4 GetPerformanceColour(float percent)
+		{
+			percent = Math.Clamp(percent, 0.8f, 1.0f);
+			if (percent < 0.9f)
+			{
+				float t = (percent - 0.8f) / 0.1f;
+				float r = 1f;
+				float g = t;
+				float b = 0f;
+				return new System.Numerics.Vector4(r, g, b, 1f);
+			}
+			else
+			{
+				float t = (percent - 0.9f) / 0.1f;
+				float r = 1f - t;
+				float g = 1f;
+				float b = 0f;
+				return new System.Numerics.Vector4(r, g, b, 1f);
+			}
+		}
+
 		private void DrawBookmark(Bookmark bookmark)
 		{
 			ImGui.PushID(bookmark.Name);
 
 			NoteStats recentStats = m_SaveData.GetAggregateStats(bookmark.Name);
 
-			string headerText = $"{recentStats.GetPercentString(recentStats.GoodCount, recentStats.TotalNotes)} {bookmark.Name}";
-			if (ImGui.CollapsingHeader(headerText))
+			int totalNotes = recentStats.TotalNotes;
+			string headerText = $"{recentStats.GetPercentString(recentStats.GoodCount, totalNotes)} {bookmark.Name}";
+			var performanceColour = GetPerformanceColour(recentStats.GetPercent(recentStats.GoodCount, totalNotes));
+
+			ImGui.PushStyleColor(ImGuiCol.Text, performanceColour);
+			bool headerExpanded = ImGui.CollapsingHeader(headerText);
+			ImGui.PopStyleColor();
+			if (headerExpanded)
 			{
 				ImGui.Indent();
 
