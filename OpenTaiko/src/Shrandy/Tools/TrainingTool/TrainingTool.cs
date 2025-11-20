@@ -237,22 +237,25 @@ namespace OpenTaiko.Shrandy.TrainingTool
 
 		private System.Numerics.Vector4 GetPerformanceColour(float percent)
 		{
-			percent = Math.Clamp(percent, 0.8f, 1.0f);
-			if (percent < 0.9f)
+			const float minPercent = 0.85f;
+			const float midPoint = (1.0f - minPercent) / 2.0f;
+
+			percent = Math.Clamp(percent, minPercent, 1.0f);
+			if (percent < midPoint)
 			{
-				float t = (percent - 0.8f) / 0.1f;
-				float r = 1f;
+				float t = (percent - minPercent) / 0.1f;
+				float r = 1.0f;
 				float g = t;
-				float b = 0f;
-				return new System.Numerics.Vector4(r, g, b, 1f);
+				float b = 0.0f;
+				return new System.Numerics.Vector4(r, g, b, 1.0f);
 			}
 			else
 			{
-				float t = (percent - 0.9f) / 0.1f;
-				float r = 1f - t;
-				float g = 1f;
-				float b = 0f;
-				return new System.Numerics.Vector4(r, g, b, 1f);
+				float t = (percent - midPoint) / 0.1f;
+				float r = 1.0f - t;
+				float g = 1.0f;
+				float b = 0.0f;
+				return new System.Numerics.Vector4(r, g, b, 1.0f);
 			}
 		}
 
