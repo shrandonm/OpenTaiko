@@ -137,7 +137,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 		{
 			if (DidParticipate(bookmarkInstance))
 			{
-				bookmarkInstance.NoteStats.StatEntryCount = 1;
+				bookmarkInstance.TimestampUtc = DateTime.UtcNow.Ticks;
 				m_SaveData.AddToHistory(bookmarkInstance);
 				RequestSave();
 			}
@@ -168,9 +168,17 @@ namespace OpenTaiko.Shrandy.TrainingTool
 
 		private void OnSaveLoaded(SaveData saveData)
 		{
-			foreach (BookmarkInstance bookmarkInstance in saveData.AllTimeBookmarkHistory)
+			foreach (var kvp in saveData.History)
 			{
-				bookmarkInstance.Bookmark = saveData.Bookmarks.Find(x => x.Name == bookmarkInstance.BookmarkName);
+				if (kvp.Value == null)
+				{
+					continue;
+				}
+
+				foreach (BookmarkInstance instance in kvp.Value)
+				{
+					instance.Bookmark = saveData.Bookmarks.Find(x => x.Name == instance.BookmarkName);
+				}
 			}
 		}
 
@@ -263,14 +271,16 @@ namespace OpenTaiko.Shrandy.TrainingTool
 		{
 			ImGui.PushID(bookmark.Name);
 
-			NoteStats recentStats = m_SaveData.GetAggregateStats(bookmark.Name);
+			const int recentStatCount = 3;
+			NoteStats recentStats = m_SaveData.GetAggregateStats(bookmark.Name, recentStatCount, 1);
+			NoteStats allTimeStats = m_SaveData.GetAggregateStats(bookmark.Name, int.MaxValue, 1);
 
 			int totalNotes = recentStats.TotalNotes;
 			string headerText = $"{recentStats.GetPercentString(recentStats.GoodCount, totalNotes)} {bookmark.Name}";
 			var performanceColour = GetPerformanceColour(recentStats.GetPercent(recentStats.GoodCount, totalNotes));
 
 			ImGui.PushStyleColor(ImGuiCol.Text, performanceColour);
-			bool headerExpanded = ImGui.CollapsingHeader(headerText);
+			bool headerExpanded = ImGui.CollapsingHeader($"{headerText}###{bookmark.Name}");
 			ImGui.PopStyleColor();
 			if (headerExpanded)
 			{
@@ -289,7 +299,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 				{
 					DeleteBookmark(bookmark);
 				}
-				DrawBookmarkStats(bookmark, recentStats);
+				DrawBookmarkStats(bookmark, recentStats, allTimeStats);
 				ImGui.Separator();
 
 				ImGui.Unindent();
@@ -297,25 +307,12 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			ImGui.PopID();
 		}
 
-		private void DrawBookmarkStats(Bookmark bookmark, NoteStats recentStats)
+		private void DrawBookmarkStats(Bookmark bookmark, NoteStats statsA, NoteStats statsB)
 		{
-			BookmarkInstance? allTimeInstance = m_SaveData.AllTimeBookmarkHistory.Find(x => x.BookmarkName == bookmark.Name);
-
-			if (recentStats.StatEntryCount == 0 || allTimeInstance == null)
+			if (ImGui.Button("Reset stats"))
 			{
-				return;
+				m_SaveData.History.Clear();
 			}
-
-			if (ImGui.Button("Reset recent stats"))
-			{
-				m_SaveData.RollingRecords.Clear();
-			}
-			ImGui.SameLine();
-			if (ImGui.Button("Reset all time stats"))
-			{
-				m_SaveData.AllTimeBookmarkHistory.Remove(allTimeInstance);
-			}
-
 
 			if (ImGui.BeginTable("StatsTable", 2, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg))
 			{
@@ -326,10 +323,9 @@ namespace OpenTaiko.Shrandy.TrainingTool
 				ImGui.TableNextRow();
 
 				ImGui.TableSetColumnIndex(0);
-				recentStats.Draw();
-
+				statsA.Draw();
 				ImGui.TableSetColumnIndex(1);
-				allTimeInstance.NoteStats.Draw();
+				statsB.Draw();
 
 				ImGui.EndTable();
 			}

@@ -12,74 +12,53 @@ namespace OpenTaiko.Shrandy.TrainingTool
 	{
 		public string SongName { get; set; } = "";
 		public List<Bookmark> Bookmarks { get; set; } = new();
-		public List<BookmarkInstance> AllTimeBookmarkHistory { get; set; } = new();
-		public Dictionary<string, List<BookmarkInstance>> RollingRecords { get; set; } = new();
-		private const int HistoryLimit = 30;
+		public Dictionary<string, List<BookmarkInstance>> History { get; set; } = new();
+		private const int HistoryLimit = int.MaxValue;
 
-		public NoteStats GetAggregateStats(string bookmarkName)
+		public NoteStats GetAggregateStats(string bookmarkName, int amount, int bpm)
 		{
 			NoteStats stats = new();
-			foreach (BookmarkInstance instance in GetRollingHistory(bookmarkName))
+			List<BookmarkInstance> instances = GetBookmarkEntryList(bookmarkName);
+			amount = Math.Min(amount, instances.Count);
+			foreach (BookmarkInstance instance in instances[^amount..])
 			{
-				stats += instance.NoteStats;
+				//if (instance.BPM == bpm)
+				{
+					stats += instance.NoteStats;
+				}
 			}
 			return stats;
 		}
 
 		public void AddToHistory(BookmarkInstance bookmarkInstance)
 		{
-			AddToHistory(AllTimeBookmarkHistory, bookmarkInstance);
-
-			List<BookmarkInstance> rollingHistory = GetRollingHistory(bookmarkInstance.BookmarkName);
-			if (rollingHistory.Count >= HistoryLimit)
+			List<BookmarkInstance> bookmarkEntries = GetBookmarkEntryList(bookmarkInstance.BookmarkName);
+			if (bookmarkEntries.Count >= HistoryLimit)
 			{
-				rollingHistory.RemoveAt(0);
+				bookmarkEntries.RemoveAt(0);
 			}
-			AddToHistory(rollingHistory, bookmarkInstance);
+			bookmarkEntries.Add(bookmarkInstance);
 		}
 
-		private List<BookmarkInstance> GetRollingHistory(string bookmarkName)
+		private List<BookmarkInstance> GetBookmarkEntryList(string bookmarkName)
 		{
-			if (!RollingRecords.ContainsKey(bookmarkName))
+			if (!History.ContainsKey(bookmarkName))
 			{
-				RollingRecords.Add(bookmarkName, new());
+				History.Add(bookmarkName, new());
 			}
 
-			if (RollingRecords[bookmarkName] == null)
+			if (History[bookmarkName] == null)
 			{
-				RollingRecords[bookmarkName] = new();
+				History[bookmarkName] = new();
 			}
 
-			return RollingRecords[bookmarkName];
-		}
-
-		private void AddToHistory(List<BookmarkInstance> history, BookmarkInstance bookmarkInstance)
-		{
-			BookmarkInstance? recordedInstance = history.Find(x => x.BookmarkName == bookmarkInstance.BookmarkName);
-			if (recordedInstance == null)
-			{
-				recordedInstance = new BookmarkInstance()
-				{
-					BookmarkName = bookmarkInstance.BookmarkName,
-					Bookmark = bookmarkInstance.Bookmark,
-				};
-				history.Add(recordedInstance);
-			}
-			recordedInstance.NoteStats += bookmarkInstance.NoteStats;
+			return History[bookmarkName];
 		}
 
 		public void DeleteBookmark(Bookmark bookmark)
 		{
 			Bookmarks.Remove(bookmark);
-			AllTimeBookmarkHistory.RemoveAll(x => x.BookmarkName == bookmark.Name);
-
-			foreach (var kvp in RollingRecords)
-			{
-				if (kvp.Value != null)
-				{
-					kvp.Value.RemoveAll(x => x.BookmarkName == bookmark.Name);
-				}
-			}
+			History.Remove(bookmark.Name);
 		}
 
 		public void Save()

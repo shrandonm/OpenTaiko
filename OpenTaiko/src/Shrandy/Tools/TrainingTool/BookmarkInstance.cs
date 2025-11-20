@@ -10,7 +10,9 @@ namespace OpenTaiko.Shrandy.TrainingTool
 	internal class BookmarkInstance
 	{
 		public string BookmarkName { get; set; } = "";
+		public long TimestampUtc { get; set; }
 		public NoteStats NoteStats { get; set; } = new();
+		public int BPM { get; set; }
 
 		[JsonIgnore]
 		public Bookmark Bookmark { get; set; }

@@ -4,18 +4,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ImGuiNET;
+using System.Text.Json.Serialization;
 
 namespace OpenTaiko.Shrandy
 {
 	internal class NoteStats
 	{
-		public int StatEntryCount { get; set; }
 		public int GoodCount { get; set; }
 		public int OkayCount { get; set; }
 		public int BadCount { get; set; }
 		public float TotalHitError { get; set; }
 
+		[JsonIgnore]
 		public int TotalNotes { get { return GoodCount + OkayCount + BadCount; } }
+		[JsonIgnore]
 		public float AverageHitError { get { return TotalNotes > 0 ? TotalHitError / TotalNotes : 0.0f; } }
 
 		public void OnNoteHit(HitParams hitParams)
@@ -42,7 +44,6 @@ namespace OpenTaiko.Shrandy
 		{
 			return new NoteStats()
 			{
-				StatEntryCount = left.StatEntryCount + right.StatEntryCount,
 				GoodCount = left.GoodCount + right.GoodCount,
 				OkayCount = left.OkayCount + right.OkayCount,
 				BadCount = left.BadCount + right.BadCount,
@@ -65,12 +66,12 @@ namespace OpenTaiko.Shrandy
 			int totalNotes = TotalNotes;
 			if (totalNotes > 0)
 			{
-				ImGui.Text($"Count: {StatEntryCount}");
-				ImGui.Text($"Total Notes: {totalNotes}");
-				ImGui.Separator();
 				ImGui.Text($"Goods: {GoodCount} ({GetPercentString(GoodCount, totalNotes)}%)");
+				ImGui.Separator();
 				ImGui.Text($"Okays: {OkayCount} ({GetPercentString(OkayCount, totalNotes)}%)");
+				ImGui.Separator();
 				ImGui.Text($"Bads: {BadCount} ({GetPercentString(BadCount, totalNotes)}%)");
+				ImGui.Separator();
 				ImGui.Text($"Average Error: +/- {AverageHitError}ms");
 			}
 		}
