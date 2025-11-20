@@ -40,7 +40,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			bookmarkEntries.Add(bookmarkInstance);
 		}
 
-		private List<BookmarkInstance> GetBookmarkEntryList(string bookmarkName)
+		public List<BookmarkInstance> GetBookmarkEntryList(string bookmarkName)
 		{
 			if (!History.ContainsKey(bookmarkName))
 			{

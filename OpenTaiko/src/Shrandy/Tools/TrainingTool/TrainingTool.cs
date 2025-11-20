@@ -22,6 +22,8 @@ namespace OpenTaiko.Shrandy.TrainingTool
 		private int m_StartMeasureInput;
 		private int m_EndMeasureInput;
 
+		const int RecentStatCount = 10;
+
 		public TrainingTool(Key enableHotkey) : base(enableHotkey)
 		{
 			m_MeasureListener.OnMeasureCompleted += OnMeasureCompleted;
@@ -245,13 +247,13 @@ namespace OpenTaiko.Shrandy.TrainingTool
 
 		private System.Numerics.Vector4 GetPerformanceColour(float percent)
 		{
-			const float minPercent = 0.85f;
-			const float midPoint = (1.0f - minPercent) / 2.0f;
+			const float min = 0.85f;
+			const float mid = (1.0f + min) / 2.0f;
 
-			percent = Math.Clamp(percent, minPercent, 1.0f);
-			if (percent < midPoint)
+			percent = Math.Clamp(percent, min, 1.0f);
+			if (percent < mid)
 			{
-				float t = (percent - minPercent) / 0.1f;
+				float t = (percent - min) / (mid - min);
 				float r = 1.0f;
 				float g = t;
 				float b = 0.0f;
@@ -259,7 +261,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			}
 			else
 			{
-				float t = (percent - midPoint) / 0.1f;
+				float t = (percent - mid) / (1.0f - mid);
 				float r = 1.0f - t;
 				float g = 1.0f;
 				float b = 0.0f;
@@ -271,8 +273,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 		{
 			ImGui.PushID(bookmark.Name);
 
-			const int recentStatCount = 3;
-			NoteStats recentStats = m_SaveData.GetAggregateStats(bookmark.Name, recentStatCount, 1);
+			NoteStats recentStats = m_SaveData.GetAggregateStats(bookmark.Name, RecentStatCount, 1);
 			NoteStats allTimeStats = m_SaveData.GetAggregateStats(bookmark.Name, int.MaxValue, 1);
 
 			int totalNotes = recentStats.TotalNotes;
@@ -301,6 +302,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 				}
 				DrawBookmarkStats(bookmark, recentStats, allTimeStats);
 				ImGui.Separator();
+				DrawGraph(m_SaveData.GetBookmarkEntryList(bookmark.Name));
 
 				ImGui.Unindent();
 			}
@@ -316,7 +318,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 
 			if (ImGui.BeginTable("StatsTable", 2, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg))
 			{
-				ImGui.TableSetupColumn("Recent", ImGuiTableColumnFlags.WidthStretch);
+				ImGui.TableSetupColumn($"Last {RecentStatCount} runs", ImGuiTableColumnFlags.WidthStretch);
 				ImGui.TableSetupColumn("All Time", ImGuiTableColumnFlags.WidthStretch);
 				ImGui.TableHeadersRow();
 
@@ -329,6 +331,29 @@ namespace OpenTaiko.Shrandy.TrainingTool
 
 				ImGui.EndTable();
 			}
+		}
+
+		private void DrawGraph(List<BookmarkInstance> instances)
+		{
+			if (instances.Count == 0)
+			{
+				return;
+			}
+			List<float> goodPercentages = new(instances.Count);
+			foreach (BookmarkInstance instance in instances)
+			{
+				goodPercentages.Add(instance.NoteStats.GetPercent(instance.NoteStats.GoodCount, instance.NoteStats.TotalNotes));
+			}
+
+			ImGui.Text("Good percentage over time");
+			ImGui.Text("100%%");
+			ImGui.PlotLines("", ref goodPercentages.ToArray()[0], goodPercentages.Count,
+				values_offset: 0,
+				overlay_text: string.Empty,
+				scale_min: 0.5f,
+				scale_max: 1.0f,
+				new System.Numerics.Vector2(0, 120.0f));
+			ImGui.Text("50%%");
 		}
 	}
 }
