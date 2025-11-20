@@ -350,10 +350,10 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			ImGui.PlotLines("", ref goodPercentages.ToArray()[0], goodPercentages.Count,
 				values_offset: 0,
 				overlay_text: string.Empty,
-				scale_min: 0.5f,
+				scale_min: 0.0f,
 				scale_max: 1.0f,
 				new System.Numerics.Vector2(0, 120.0f));
-			ImGui.Text("50%%");
+			ImGui.Text("0%%");
 		}
 	}
 }
