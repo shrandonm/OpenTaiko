@@ -12,27 +12,24 @@ namespace OpenTaiko.Shrandy.TrainingTool
 	{
 		public string SongName { get; set; } = "";
 		public List<Bookmark> Bookmarks { get; set; } = new();
-		public Dictionary<string, List<BookmarkInstance>> History { get; set; } = new();
+		public Dictionary<BookmarkKey, List<BookmarkInstance>> History { get; set; } = new();
 		private const int HistoryLimit = int.MaxValue;
 
-		public NoteStats GetAggregateStats(string bookmarkName, int amount, int bpm)
+		public NoteStats GetAggregateStats(string bookmarkName, int amount, int speed)
 		{
 			NoteStats stats = new();
-			List<BookmarkInstance> instances = GetBookmarkEntryList(bookmarkName);
+			List<BookmarkInstance> instances = GetBookmarkEntryList(new BookmarkKey(bookmarkName, speed));
 			amount = Math.Min(amount, instances.Count);
 			foreach (BookmarkInstance instance in instances[^amount..])
 			{
-				//if (instance.BPM == bpm)
-				{
-					stats += instance.NoteStats;
-				}
+				stats += instance.NoteStats;
 			}
 			return stats;
 		}
 
 		public void AddToHistory(BookmarkInstance bookmarkInstance)
 		{
-			List<BookmarkInstance> bookmarkEntries = GetBookmarkEntryList(bookmarkInstance.BookmarkName);
+			List<BookmarkInstance> bookmarkEntries = GetBookmarkEntryList(bookmarkInstance.GetBookmarkKey());
 			if (bookmarkEntries.Count >= HistoryLimit)
 			{
 				bookmarkEntries.RemoveAt(0);
@@ -40,25 +37,33 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			bookmarkEntries.Add(bookmarkInstance);
 		}
 
-		public List<BookmarkInstance> GetBookmarkEntryList(string bookmarkName)
+		public List<BookmarkInstance> GetBookmarkEntryList(BookmarkKey bookmarkKey)
 		{
-			if (!History.ContainsKey(bookmarkName))
+			if (!History.ContainsKey(bookmarkKey))
 			{
-				History.Add(bookmarkName, new());
+				History.Add(bookmarkKey, new());
 			}
 
-			if (History[bookmarkName] == null)
+			if (History[bookmarkKey] == null)
 			{
-				History[bookmarkName] = new();
+				History[bookmarkKey] = new();
 			}
 
-			return History[bookmarkName];
+			return History[bookmarkKey];
 		}
 
 		public void DeleteBookmark(Bookmark bookmark)
 		{
 			Bookmarks.Remove(bookmark);
-			History.Remove(bookmark.Name);
+			foreach (BookmarkKey key in History.Keys.Where(x => x.Key.StartsWith($"{bookmark.Name}_")).ToList())
+			{
+				History.Remove(key);
+			}
+		}
+
+		public void DeleteHistory(Bookmark bookmark, int speed)
+		{
+			History.Remove(new BookmarkKey(bookmark.Name, speed));
 		}
 
 		public void Save()

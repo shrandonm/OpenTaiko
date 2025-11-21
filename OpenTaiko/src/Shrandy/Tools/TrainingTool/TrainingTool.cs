@@ -100,13 +100,13 @@ namespace OpenTaiko.Shrandy.TrainingTool
 					EndMeasure = endMeasure,
 				});
 			}
-			m_SaveData.Bookmarks.Sort((a, b) => a.StartMeasure.CompareTo(b.StartMeasure));
+			m_SaveData.Bookmarks.Sort((a, b) => b.StartMeasure.CompareTo(a.StartMeasure));
 			RequestSave();
 		}
 
-		private void SelectBookmark(Bookmark bookmark)
+		private void SelectBookmark(Bookmark bookmark, int speed)
 		{
-			m_ActiveBookmarkInstance = CreateBookmarkInstance(bookmark);
+			m_ActiveBookmarkInstance = CreateBookmarkInstance(bookmark, speed);
 			CActImplTrainingMode trainingMode = OpenTaiko.stageGameScreen.actTokkun;
 			if (trainingMode != null)
 			{
@@ -114,12 +114,13 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			}
 		}
 
-		private BookmarkInstance CreateBookmarkInstance(Bookmark bookmark)
+		private BookmarkInstance CreateBookmarkInstance(Bookmark bookmark, int speed)
 		{
 			return new()
 			{
 				BookmarkName = bookmark.Name,
 				Bookmark = bookmark,
+				Speed = speed,
 			};
 		}
 
@@ -145,7 +146,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 				RequestSave();
 			}
 
-			BookmarkInstance newInstance = CreateBookmarkInstance(bookmarkInstance.Bookmark);
+			BookmarkInstance newInstance = CreateBookmarkInstance(bookmarkInstance.Bookmark, bookmarkInstance.Speed);
 			m_ActiveBookmarkInstance = newInstance;
 			JumpToStartOfBookmark(newInstance.Bookmark);
 		}
@@ -242,7 +243,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			ImGui.Text("Bookmarks");
 			for (int i = m_SaveData.Bookmarks.Count - 1; i >= 0; --i)
 			{
-				DrawBookmark(m_SaveData.Bookmarks[i]);
+				DrawBookmarkTabs(m_SaveData.Bookmarks[i]);
 			}
 		}
 
@@ -270,12 +271,11 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			}
 		}
 
-		private void DrawBookmark(Bookmark bookmark)
+		private void DrawBookmarkTabs(Bookmark bookmark)
 		{
 			ImGui.PushID(bookmark.Name);
 
-			NoteStats recentStats = m_SaveData.GetAggregateStats(bookmark.Name, RecentStatCount, 1);
-			NoteStats allTimeStats = m_SaveData.GetAggregateStats(bookmark.Name, int.MaxValue, 1);
+			NoteStats recentStats = m_SaveData.GetAggregateStats(bookmark.Name, RecentStatCount, 100);
 
 			int totalNotes = recentStats.TotalNotes;
 			string headerText = $"{recentStats.GetPercentString(recentStats.GoodCount, totalNotes)} {bookmark.Name}";
@@ -286,37 +286,60 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			ImGui.PopStyleColor();
 			if (headerExpanded)
 			{
-				ImGui.Indent();
+				ImGui.Text($"Measures {bookmark.StartMeasure} to {bookmark.EndMeasure}");
+				ImGui.BeginTabBar(bookmark.Name);
 
-				ImGui.Text($"Start Measure: {bookmark.StartMeasure}");
-				ImGui.SameLine();
-				ImGui.Text($"End Measure: {bookmark.EndMeasure}");
-
-				if (ImGui.Button("Go"))
+				if (ImGui.BeginTabItem("1.0 (97.55%)"))
 				{
-					SelectBookmark(bookmark);
+					DrawBookmark(bookmark, 100);
+					ImGui.EndTabItem();
 				}
-				ImGui.SameLine();
-				if (ImGui.Button("Delete Bookmark"))
+				if (ImGui.BeginTabItem("0.95 (87.35%)"))
 				{
-					DeleteBookmark(bookmark);
+					DrawBookmark(bookmark, 95);
+					ImGui.EndTabItem();
 				}
-				DrawBookmarkStats(bookmark, recentStats, allTimeStats);
-				ImGui.Separator();
-				DrawGraph(m_SaveData.GetBookmarkEntryList(bookmark.Name));
 
-				ImGui.Unindent();
+				ImGui.EndTabBar();
 			}
 			ImGui.PopID();
 		}
 
-		private void DrawBookmarkStats(Bookmark bookmark, NoteStats statsA, NoteStats statsB)
+		private void ResetStats(Bookmark bookmark, int speed)
 		{
+			m_SaveData.DeleteHistory(bookmark, speed);
+			RequestSave();
+		}
+
+		private void DrawBookmark(Bookmark bookmark, int speed)
+		{
+			ImGui.Indent();
+			if (ImGui.Button("Go"))
+			{
+				SelectBookmark(bookmark, speed);
+			}
+			ImGui.SameLine();
+			if (ImGui.Button("Delete Bookmark"))
+			{
+				DeleteBookmark(bookmark);
+			}
+			ImGui.SameLine();
 			if (ImGui.Button("Reset stats"))
 			{
-				m_SaveData.History.Clear();
+				ResetStats(bookmark, speed);
 			}
 
+			NoteStats recentStats = m_SaveData.GetAggregateStats(bookmark.Name, RecentStatCount, speed);
+			NoteStats allTimeStats = m_SaveData.GetAggregateStats(bookmark.Name, int.MaxValue, speed);
+			DrawBookmarkStats(bookmark, recentStats, allTimeStats);
+			ImGui.Separator();
+			DrawGraph(m_SaveData.GetBookmarkEntryList(new BookmarkKey(bookmark.Name, speed)));
+
+			ImGui.Unindent();
+		}
+
+		private void DrawBookmarkStats(Bookmark bookmark, NoteStats statsA, NoteStats statsB)
+		{
 			if (ImGui.BeginTable("StatsTable", 2, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg))
 			{
 				ImGui.TableSetupColumn($"Last {RecentStatCount} runs", ImGuiTableColumnFlags.WidthStretch);

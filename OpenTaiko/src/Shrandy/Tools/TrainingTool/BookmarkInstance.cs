@@ -12,9 +12,14 @@ namespace OpenTaiko.Shrandy.TrainingTool
 		public string BookmarkName { get; set; } = "";
 		public long TimestampUtc { get; set; }
 		public NoteStats NoteStats { get; set; } = new();
-		public int BPM { get; set; }
+		public int Speed { get; set; }
 
 		[JsonIgnore]
 		public Bookmark Bookmark { get; set; }
+
+		public BookmarkKey GetBookmarkKey()
+		{
+			return new BookmarkKey(BookmarkName, Speed);
+		}
 	}
 }
