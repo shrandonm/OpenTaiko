@@ -29,18 +29,36 @@ namespace OpenTaiko.Shrandy.TrainingTool
 
 		public TrainingTool(Key enableHotkey) : base(enableHotkey)
 		{
-			m_MeasureListener.OnMeasureCompleted += OnMeasureCompleted;
 		}
 
-		~TrainingTool()
+		public override void OnStageChanged(CStage stage)
 		{
-			m_MeasureListener.OnMeasureCompleted -= OnMeasureCompleted;
+			base.OnStageChanged(stage);
+
+			m_SaveData = new();
+
+			if (stage == OpenTaiko.stageGameScreen && OpenTaiko.ConfigIni.bTokkunMode)
+			{
+				SaveData? loadedSaveData = SaveData.Load(OpenTaiko.GetTJA(0)?.strFileName ?? "");
+				if (loadedSaveData != null)
+				{
+					m_SaveData = loadedSaveData;
+					OnSaveLoaded(m_SaveData);
+				}
+
+				m_MeasureListener.OnMeasureCompleted += OnMeasureCompleted;
+				m_MeasureListener.Reset();
+			}
+			else
+			{
+				m_MeasureListener.OnMeasureCompleted -= OnMeasureCompleted;
+			}
 		}
 
 		public override void OnNoteHit(HitParams hitParams)
 		{
 			CActImplTrainingMode trainingMode = OpenTaiko.stageGameScreen.actTokkun;
-			if (trainingMode == null)
+			if (trainingMode == null || !OpenTaiko.ConfigIni.bTokkunMode)
 			{
 				return;
 			}
@@ -158,25 +176,6 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			JumpToStartOfBookmark(newInstance.Bookmark);
 		}
 
-		public override void OnStageChanged(CStage stage)
-		{
-			base.OnStageChanged(stage);
-
-			m_SaveData = new();
-
-			if (stage == OpenTaiko.stageGameScreen)
-			{
-				SaveData? loadedSaveData = SaveData.Load(OpenTaiko.GetTJA(0)?.strFileName ?? "");
-				if (loadedSaveData != null)
-				{
-					m_SaveData = loadedSaveData;
-					OnSaveLoaded(m_SaveData);
-				}
-
-				m_MeasureListener.Reset();
-			}
-		}
-
 		private void OnSaveLoaded(SaveData saveData)
 		{
 			foreach (var kvp in saveData.History)
@@ -207,6 +206,11 @@ namespace OpenTaiko.Shrandy.TrainingTool
 		public override void Draw()
 		{
 			base.Draw();
+
+			if (!OpenTaiko.ConfigIni.bTokkunMode)
+			{
+				return;
+			}
 
 			m_MeasureListener.Update();
 
