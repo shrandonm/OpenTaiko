@@ -307,6 +307,14 @@ class CActImplTrainingMode : CActivity {
 		tResumePlay();
 		nQueuedJumpToMeasure = -1;
 	}
+
+	// 20 = 100% speed, 19 = 95% etc
+	public void SetSongSpeed(int newValue)
+	{
+		tPausePlay();
+		OpenTaiko.ConfigIni.nSongSpeed = newValue;
+		tMatchWithTheChartDisplayPosition(false);
+	}
 	// [End divergence]
 
 	public int On進行描画_背景() {

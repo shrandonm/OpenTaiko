@@ -15,10 +15,10 @@ namespace OpenTaiko.Shrandy.TrainingTool
 		public Dictionary<BookmarkKey, List<BookmarkInstance>> History { get; set; } = new();
 		private const int HistoryLimit = int.MaxValue;
 
-		public NoteStats GetAggregateStats(string bookmarkName, int amount, int speed)
+		public NoteStats GetAggregateStats(BookmarkKey key, int amount)
 		{
 			NoteStats stats = new();
-			List<BookmarkInstance> instances = GetBookmarkEntryList(new BookmarkKey(bookmarkName, speed));
+			List<BookmarkInstance> instances = GetBookmarkEntryList(key);
 			amount = Math.Min(amount, instances.Count);
 			foreach (BookmarkInstance instance in instances[^amount..])
 			{

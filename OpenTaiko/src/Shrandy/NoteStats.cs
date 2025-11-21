@@ -61,6 +61,16 @@ namespace OpenTaiko.Shrandy
 			return $"{GetPercent(hits, totalNotes) * 100.0f:F2}%";
 		}
 
+		public float GetGoodPercent()
+		{
+			return GetPercent(GoodCount, TotalNotes);
+		}
+
+		public string GetGoodPercentString()
+		{
+			return GetPercentString(GoodCount, TotalNotes);
+		}
+
 		public void Draw()
 		{
 			int totalNotes = TotalNotes;

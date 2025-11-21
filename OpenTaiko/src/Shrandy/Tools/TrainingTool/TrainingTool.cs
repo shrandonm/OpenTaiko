@@ -23,6 +23,9 @@ namespace OpenTaiko.Shrandy.TrainingTool
 		private int m_EndMeasureInput;
 
 		const int RecentStatCount = 10;
+		readonly int[] Speeds = { 100, 95, 90, 85, 80, 75, 70 };
+		// Scroll speeds start at 9. They do (speed + 1) / 10 to get 1.0, 1.1, 1.2 etc
+		readonly int[] ScrollSpeeds = { 9, 10, 10, 11, 11, 12, 12 };
 
 		public TrainingTool(Key enableHotkey) : base(enableHotkey)
 		{
@@ -110,6 +113,10 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			CActImplTrainingMode trainingMode = OpenTaiko.stageGameScreen.actTokkun;
 			if (trainingMode != null)
 			{
+				int scrollSpeedIndex = Array.IndexOf(Speeds, speed);
+				OpenTaiko.ConfigIni.nScrollSpeed[OpenTaiko.SaveFile] = ScrollSpeeds[scrollSpeedIndex];
+				const int songSpeedInterval = 5;
+				trainingMode.SetSongSpeed(speed / songSpeedInterval);
 				JumpToStartOfBookmark(bookmark);
 			}
 		}
@@ -249,7 +256,11 @@ namespace OpenTaiko.Shrandy.TrainingTool
 
 		private System.Numerics.Vector4 GetPerformanceColour(float percent)
 		{
-			const float min = 0.85f;
+			if (percent == 0.0f)
+			{
+				return new(0.75f);
+			}
+			const float min = 0.80f;
 			const float mid = (1.0f + min) / 2.0f;
 
 			percent = Math.Clamp(percent, min, 1.0f);
@@ -271,11 +282,9 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			}
 		}
 
-		private void DrawBookmarkTabs(Bookmark bookmark)
+		private bool DrawBookmarkHeader(Bookmark bookmark)
 		{
-			ImGui.PushID(bookmark.Name);
-
-			NoteStats recentStats = m_SaveData.GetAggregateStats(bookmark.Name, RecentStatCount, 100);
+			NoteStats recentStats = m_SaveData.GetAggregateStats(new BookmarkKey(bookmark.Name, 100), RecentStatCount);
 
 			int totalNotes = recentStats.TotalNotes;
 			string headerText = $"{recentStats.GetPercentString(recentStats.GoodCount, totalNotes)} {bookmark.Name}";
@@ -284,20 +293,39 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			ImGui.PushStyleColor(ImGuiCol.Text, performanceColour);
 			bool headerExpanded = ImGui.CollapsingHeader($"{headerText}###{bookmark.Name}");
 			ImGui.PopStyleColor();
-			if (headerExpanded)
+
+			return headerExpanded;
+		}
+
+		private void DrawBookmarkTab(Bookmark bookmark, int speed)
+		{
+			BookmarkKey key = new BookmarkKey(bookmark.Name, speed);
+			NoteStats stats = m_SaveData.GetAggregateStats(key, RecentStatCount);
+			var performanceColour = GetPerformanceColour(stats.GetGoodPercent());
+
+			ImGui.PushStyleColor(ImGuiCol.Text, performanceColour);
+			bool isTabActive = ImGui.BeginTabItem($"{speed}% ({stats.GetGoodPercentString()})###{key.Key}");
+			ImGui.PopStyleColor();
+
+			if (isTabActive)
+			{
+				DrawBookmark(bookmark, speed);
+				ImGui.EndTabItem();
+			}
+		}
+
+		private void DrawBookmarkTabs(Bookmark bookmark)
+		{
+			ImGui.PushID(bookmark.Name);
+
+			if (DrawBookmarkHeader(bookmark))
 			{
 				ImGui.Text($"Measures {bookmark.StartMeasure} to {bookmark.EndMeasure}");
 				ImGui.BeginTabBar(bookmark.Name);
 
-				if (ImGui.BeginTabItem("1.0 (97.55%)"))
+				foreach (int speed in Speeds)
 				{
-					DrawBookmark(bookmark, 100);
-					ImGui.EndTabItem();
-				}
-				if (ImGui.BeginTabItem("0.95 (87.35%)"))
-				{
-					DrawBookmark(bookmark, 95);
-					ImGui.EndTabItem();
+					DrawBookmarkTab(bookmark, speed);
 				}
 
 				ImGui.EndTabBar();
@@ -329,11 +357,12 @@ namespace OpenTaiko.Shrandy.TrainingTool
 				ResetStats(bookmark, speed);
 			}
 
-			NoteStats recentStats = m_SaveData.GetAggregateStats(bookmark.Name, RecentStatCount, speed);
-			NoteStats allTimeStats = m_SaveData.GetAggregateStats(bookmark.Name, int.MaxValue, speed);
+			BookmarkKey key = new BookmarkKey(bookmark.Name, speed);
+			NoteStats recentStats = m_SaveData.GetAggregateStats(key, RecentStatCount);
+			NoteStats allTimeStats = m_SaveData.GetAggregateStats(key, int.MaxValue);
 			DrawBookmarkStats(bookmark, recentStats, allTimeStats);
 			ImGui.Separator();
-			DrawGraph(m_SaveData.GetBookmarkEntryList(new BookmarkKey(bookmark.Name, speed)));
+			DrawGraph(m_SaveData.GetBookmarkEntryList(key));
 
 			ImGui.Unindent();
 		}
