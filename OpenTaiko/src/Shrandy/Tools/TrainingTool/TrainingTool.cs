@@ -100,6 +100,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 					EndMeasure = endMeasure,
 				});
 			}
+			m_SaveData.Bookmarks.Sort((a, b) => a.StartMeasure.CompareTo(b.StartMeasure));
 			RequestSave();
 		}
 
