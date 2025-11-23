@@ -25,7 +25,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 		const int RecentStatCount = 10;
 		readonly int[] Speeds = { 100, 95, 90, 85, 80, 75, 70 };
 		// Scroll speeds start at 9. They do (speed + 1) / 10 to get 1.0, 1.1, 1.2 etc
-		readonly int[] ScrollSpeeds = { 9, 10, 10, 11, 11, 12, 12 };
+		readonly int[] ScrollSpeeds = { 9, 10, 11, 12, 13, 14, 15 };
 
 		public TrainingTool(Key enableHotkey) : base(enableHotkey)
 		{
