@@ -15,6 +15,8 @@ namespace OpenTaiko.Shrandy.TrainingTool
 		private SaveData m_SaveData = new();
 		private MeasureListener m_MeasureListener = new();
 		private BookmarkInstance? m_ActiveBookmarkInstance;
+		private MicroStopwatch m_SaveStopwatch = new();
+		private MicroStopwatch m_DrawTime = new();
 
 		private bool m_SaveRequested = false;
 
@@ -203,6 +205,27 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			m_SaveRequested = true;
 		}
 
+		private void Save()
+		{
+			m_SaveStopwatch = new();
+			m_SaveStopwatch.Start();
+
+			m_SaveData.Save();
+			m_SaveRequested = false;
+
+			m_SaveStopwatch.Stop();
+		}
+
+		private void DrawProfilingStats()
+		{
+			ImGui.Text("Performance Metrics");
+			ImGui.SameLine();
+			ImGui.Text($"|  Last save time: {m_SaveStopwatch.ElapsedMicroseconds / 1000.0}ms");
+			ImGui.SameLine();
+			ImGui.Text($"|  Draw time: {m_DrawTime.ElapsedMicroseconds / 1000.0}ms");
+			ImGui.Separator();
+		}
+
 		public override void Draw()
 		{
 			base.Draw();
@@ -211,7 +234,6 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			{
 				return;
 			}
-
 			m_MeasureListener.Update();
 
 			ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, 0), ImGuiCond.Once);
@@ -220,7 +242,13 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			{
 				if (OpenTaiko.stageGameScreen.actTokkun != null)
 				{
+					DrawProfilingStats();
+
+					m_DrawTime.Restart();
+
 					DrawBookmarks();
+
+					m_DrawTime.Stop();
 				}
 
 				ImGui.End();
@@ -228,8 +256,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 
 			if (m_SaveRequested)
 			{
-				m_SaveData.Save();
-				m_SaveRequested = false;
+				Save();
 			}
 		}
 
@@ -288,11 +315,11 @@ namespace OpenTaiko.Shrandy.TrainingTool
 
 		private bool DrawBookmarkHeader(Bookmark bookmark)
 		{
-			NoteStats recentStats = m_SaveData.GetAggregateStats(new BookmarkKey(bookmark.Name, 100), RecentStatCount);
+			AggregateNoteStats recentStats = m_SaveData.GetAggregateStats(new BookmarkKey(bookmark.Name, 100), RecentStatCount);
 
-			int totalNotes = recentStats.TotalNotes;
-			string headerText = $"{recentStats.GetPercentString(recentStats.GoodCount, totalNotes)} {bookmark.Name}";
-			var performanceColour = GetPerformanceColour(recentStats.GetPercent(recentStats.GoodCount, totalNotes));
+			int totalNotes = recentStats.CombinedNoteStats.TotalNotes;
+			string headerText = $"{StringHelpers.GetPercentString(recentStats.CombinedNoteStats.GoodCount, totalNotes)} {bookmark.Name}";
+			var performanceColour = GetPerformanceColour(StringHelpers.GetPercent(recentStats.CombinedNoteStats.GoodCount, totalNotes));
 
 			ImGui.PushStyleColor(ImGuiCol.Text, performanceColour);
 			bool headerExpanded = ImGui.CollapsingHeader($"{headerText}###{bookmark.Name}");
@@ -304,11 +331,11 @@ namespace OpenTaiko.Shrandy.TrainingTool
 		private void DrawBookmarkTab(Bookmark bookmark, int speed)
 		{
 			BookmarkKey key = new BookmarkKey(bookmark.Name, speed);
-			NoteStats stats = m_SaveData.GetAggregateStats(key, RecentStatCount);
-			var performanceColour = GetPerformanceColour(stats.GetGoodPercent());
+			AggregateNoteStats stats = m_SaveData.GetAggregateStats(key, RecentStatCount);
+			var performanceColour = GetPerformanceColour(stats.CombinedNoteStats.GetGoodPercent());
 
 			ImGui.PushStyleColor(ImGuiCol.Text, performanceColour);
-			bool isTabActive = ImGui.BeginTabItem($"{speed}% ({stats.GetGoodPercentString()})###{key.Key}");
+			bool isTabActive = ImGui.BeginTabItem($"{speed}% ({stats.CombinedNoteStats.GetGoodPercentString()})###{key.Key}");
 			ImGui.PopStyleColor();
 
 			if (isTabActive)
@@ -362,8 +389,8 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			}
 
 			BookmarkKey key = new BookmarkKey(bookmark.Name, speed);
-			NoteStats recentStats = m_SaveData.GetAggregateStats(key, RecentStatCount);
-			NoteStats allTimeStats = m_SaveData.GetAggregateStats(key, int.MaxValue);
+			AggregateNoteStats recentStats = m_SaveData.GetAggregateStats(key, RecentStatCount);
+			AggregateNoteStats allTimeStats = m_SaveData.GetAggregateStats(key, int.MaxValue);
 			DrawBookmarkStats(bookmark, recentStats, allTimeStats);
 			ImGui.Separator();
 			DrawGraph(m_SaveData.GetBookmarkEntryList(key));
@@ -371,7 +398,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			ImGui.Unindent();
 		}
 
-		private void DrawBookmarkStats(Bookmark bookmark, NoteStats statsA, NoteStats statsB)
+		private void DrawBookmarkStats(Bookmark bookmark, AggregateNoteStats statsA, AggregateNoteStats statsB)
 		{
 			if (ImGui.BeginTable("StatsTable", 2, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg))
 			{
@@ -399,7 +426,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 			List<float> goodPercentages = new(instances.Count);
 			foreach (BookmarkInstance instance in instances)
 			{
-				goodPercentages.Add(instance.NoteStats.GetPercent(instance.NoteStats.GoodCount, instance.NoteStats.TotalNotes));
+				goodPercentages.Add(StringHelpers.GetPercent(instance.NoteStats.GoodCount, instance.NoteStats.TotalNotes));
 			}
 
 			ImGui.Text("Good percentage over time");

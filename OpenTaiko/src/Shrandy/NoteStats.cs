@@ -19,6 +19,10 @@ namespace OpenTaiko.Shrandy
 		public int TotalNotes { get { return GoodCount + OkayCount + BadCount; } }
 		[JsonIgnore]
 		public float AverageHitError { get { return TotalNotes > 0 ? TotalHitError / TotalNotes : 0.0f; } }
+		[JsonIgnore]
+		public bool IsDFC { get { return OkayCount == 0 && BadCount == 0; } }
+		[JsonIgnore]
+		public bool IsFC { get { return BadCount == 0; } }
 
 		public void OnNoteHit(HitParams hitParams)
 		{
@@ -51,24 +55,14 @@ namespace OpenTaiko.Shrandy
 			};
 		}
 
-		public float GetPercent(int hits, int totalNotes)
-		{
-			return totalNotes > 0 ? hits / (float)totalNotes : 0.0f;
-		}
-
-		public string GetPercentString(int hits, int totalNotes)
-		{
-			return $"{GetPercent(hits, totalNotes) * 100.0f:F2}%";
-		}
-
 		public float GetGoodPercent()
 		{
-			return GetPercent(GoodCount, TotalNotes);
+			return StringHelpers.GetPercent(GoodCount, TotalNotes);
 		}
 
 		public string GetGoodPercentString()
 		{
-			return GetPercentString(GoodCount, TotalNotes);
+			return StringHelpers.GetPercentString(GoodCount, TotalNotes);
 		}
 
 		public void Draw()
@@ -76,11 +70,11 @@ namespace OpenTaiko.Shrandy
 			int totalNotes = TotalNotes;
 			if (totalNotes > 0)
 			{
-				ImGui.Text($"Goods: {GoodCount} ({GetPercentString(GoodCount, totalNotes)}%)");
+				ImGui.Text($"Goods: {GoodCount} ({StringHelpers.GetPercentString(GoodCount, totalNotes)}%)");
 				ImGui.Separator();
-				ImGui.Text($"Okays: {OkayCount} ({GetPercentString(OkayCount, totalNotes)}%)");
+				ImGui.Text($"Okays: {OkayCount} ({StringHelpers.GetPercentString(OkayCount, totalNotes)}%)");
 				ImGui.Separator();
-				ImGui.Text($"Bads: {BadCount} ({GetPercentString(BadCount, totalNotes)}%)");
+				ImGui.Text($"Bads: {BadCount} ({StringHelpers.GetPercentString(BadCount, totalNotes)}%)");
 				ImGui.Separator();
 				ImGui.Text($"Average Error: +/- {AverageHitError}ms");
 			}

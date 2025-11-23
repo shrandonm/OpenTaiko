@@ -15,16 +15,25 @@ namespace OpenTaiko.Shrandy.TrainingTool
 		public Dictionary<BookmarkKey, List<BookmarkInstance>> History { get; set; } = new();
 		private const int HistoryLimit = int.MaxValue;
 
-		public NoteStats GetAggregateStats(BookmarkKey key, int amount)
+		public AggregateNoteStats GetAggregateStats(BookmarkKey key, int amount)
 		{
-			NoteStats stats = new();
+			AggregateNoteStats aggregate = new();
 			List<BookmarkInstance> instances = GetBookmarkEntryList(key);
 			amount = Math.Min(amount, instances.Count);
 			foreach (BookmarkInstance instance in instances[^amount..])
 			{
-				stats += instance.NoteStats;
+				aggregate.TotalRuns++;
+				aggregate.CombinedNoteStats += instance.NoteStats;
+				if (instance.NoteStats.IsDFC)
+				{
+					aggregate.DFCCount++;
+				}
+				if (instance.NoteStats.IsFC)
+				{
+					aggregate.FCCount++;
+				}
 			}
-			return stats;
+			return aggregate;
 		}
 
 		public void AddToHistory(BookmarkInstance bookmarkInstance)
