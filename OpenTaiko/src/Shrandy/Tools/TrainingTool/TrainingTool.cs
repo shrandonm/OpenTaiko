@@ -65,16 +65,19 @@ namespace OpenTaiko.Shrandy.TrainingTool
 				return;
 			}
 
-			if (OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold <= 0)
-			{
-				return;
-			}
-
 			if (m_ActiveBookmarkInstance != null && IsNoteWithinBookmarkRange(hitParams, m_ActiveBookmarkInstance.Bookmark))
 			{
 				m_ActiveBookmarkInstance.NoteStats.OnNoteHit(hitParams);
 			}
 
+			if (OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold > 0)
+			{
+				TryAutoSkipBack(hitParams);
+			}
+		}
+
+		private void TryAutoSkipBack(HitParams hitParams)
+		{
 			int absDelta = Math.Abs(hitParams.Chip.nLag);
 			if (absDelta > OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold || hitParams.JudgeResult == ENoteJudge.Miss)
 			{
