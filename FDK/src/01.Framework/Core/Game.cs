@@ -433,11 +433,14 @@ public abstract class Game : IDisposable {
 
 		if (!OperatingSystem.IsMacOS())
 			Gl.Viewport(0, 0, (uint)Window_.Size.X, (uint)Window_.Size.Y);
-		
+
 		Context.SwapInterval(VSync ? 1 : 0);
 
 		InitRenderTextures();
-		m_FullscreenQuad = new();
+		if (!OperatingSystem.IsMacOS())
+		{
+			m_FullscreenQuad = new();
+		}
 
 		Initialize();
 		LoadContent();
