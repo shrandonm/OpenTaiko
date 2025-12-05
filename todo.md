@@ -1,0 +1,8 @@
+- Adjust frame buffer size when the setting changes or when backing out of the menu
+- Fix shader so alpha/colour is correct
+- Allow ka to pop balloons
+- Auto name new bookmarks as their range
+- Add graph showing average hit error for the last play
+- Create a chart that has every pattern in the game
+- Fix scrolling jitter
+- 
