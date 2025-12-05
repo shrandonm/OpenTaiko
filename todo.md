@@ -5,4 +5,3 @@
 - Add graph showing average hit error for the last play
 - Create a chart that has every pattern in the game
 - Fix scrolling jitter
-- 
