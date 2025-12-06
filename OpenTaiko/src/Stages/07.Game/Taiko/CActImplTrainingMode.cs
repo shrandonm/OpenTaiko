@@ -205,7 +205,7 @@ class CActImplTrainingMode : CActivity {
 			}
 
 			if (this.bCurrentlyScrolling) {
-				int msTargetTime = easing.EaseOut(this.ctScrollCounter, (int)this.nスクロール前ms, (int)this.nスクロール後ms, Easing.CalcType.Circular);
+				int msTargetTime = Easing.EaseOut(this.ctScrollCounter, (int)this.nスクロール前ms, (int)this.nスクロール後ms, Easing.CalcType.Circular);
 
 				this.ctScrollCounter.Tick();
 
@@ -529,7 +529,6 @@ class CActImplTrainingMode : CActivity {
 
 	private CCounter ctScrollCounter;
 	private CCounter ctBackgroundScrollTimer;
-	private Easing easing = new Easing();
 	private long length = 1; // chart length in TJA time
 
 	private List<int> gogoXList;

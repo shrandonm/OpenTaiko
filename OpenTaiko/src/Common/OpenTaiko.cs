@@ -300,7 +300,7 @@ internal class OpenTaiko : Game {
 
 	// Constructor
 
-	public OpenTaiko() : base("OpenTaiko.ico") {
+	public OpenTaiko(params string[] args) : base("OpenTaiko.ico", args) {
 		OpenTaiko.app = this;
 	}
 
