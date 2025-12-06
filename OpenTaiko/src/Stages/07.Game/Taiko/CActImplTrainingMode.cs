@@ -5,7 +5,7 @@ namespace OpenTaiko;
 
 class CActImplTrainingMode : CActivity {
 
-	public CTja.ECourse? ForcedCourse { get; set; } = null;
+	public CTja.ECourse? ForcedCourse { get; set; } = CTja.ECourse.eMaster;
 
 	public CActImplTrainingMode() {
 		base.IsDeActivated = true;
@@ -435,7 +435,7 @@ class CActImplTrainingMode : CActivity {
 
 		if (ForcedCourse != null)
 		{
-			OpenTaiko.stageGameScreen.ForceSwitchBranch(dTX, ForcedCourse.Value);
+			OpenTaiko.stageGameScreen.ChangeBranch(ForcedCourse.Value, 0);
 		}
 
 		for (int i = 0; i < n演奏開始Chip; i++) {
