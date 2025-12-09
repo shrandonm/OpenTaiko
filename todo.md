@@ -7,4 +7,6 @@
 - Auto name new bookmarks as their range
 - Create a chart that has every pattern in the game
 - Fix scrolling jitter
+	- UpdateScrolledChipPosition
 - Add a % good based score, summary at end of song with +/-, celebrate records
+- Remove onscreen shrandy text drawing, it's slow and ugly. Replace with imgui

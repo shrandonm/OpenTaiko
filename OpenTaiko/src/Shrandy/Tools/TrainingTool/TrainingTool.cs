@@ -233,28 +233,22 @@ namespace OpenTaiko.Shrandy.TrainingTool
 		{
 			base.Draw();
 
-			if (!OpenTaiko.ConfigIni.bTokkunMode)
-			{
-				return;
-			}
 			m_MeasureListener.Update();
 
 			ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, 0), ImGuiCond.Once);
 			ImGui.SetNextWindowSize(new System.Numerics.Vector2(400, 300), ImGuiCond.Once);
 			if (ImGui.Begin("ShrandyTool"))
 			{
-				if (OpenTaiko.stageGameScreen.actTokkun != null)
+				DrawProfilingStats();
+				m_DrawTime.Restart();
+
+				if (OpenTaiko.stageGameScreen.actTokkun != null && OpenTaiko.ConfigIni.bTokkunMode)
 				{
-					DrawProfilingStats();
-
-					m_DrawTime.Restart();
-
 					DrawBookmarks();
-
-					m_DrawTime.Stop();
 				}
 
 				ImGui.End();
+				m_DrawTime.Stop();
 			}
 
 			if (m_SaveRequested)
