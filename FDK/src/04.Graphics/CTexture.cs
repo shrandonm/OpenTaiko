@@ -753,7 +753,7 @@ public class CTexture : IDisposable {
 
 		Game.Gl.Uniform1(NoteModeID, rollMode ? 1 : 0);
 
-		float _time = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) % 100;
+		float _time = Environment.TickCount % 100;
 		Game.Gl.Uniform1(TimeID, _time);
 		Game.Gl.Uniform1(NoiseEffectID, bUseNoiseEffect ? 1 : 0);
 
@@ -889,7 +889,7 @@ public class CTexture : IDisposable {
 
 		Game.Gl.Uniform1(NoteModeID, 0);
 
-		float _time = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) % 100;
+		float _time = Environment.TickCount % 100;
 		Game.Gl.Uniform1(TimeID, _time);
 		Game.Gl.Uniform1(NoiseEffectID, bUseNoiseEffect ? 1 : 0);
 
