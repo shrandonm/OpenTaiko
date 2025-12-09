@@ -29,7 +29,7 @@ namespace OpenTaiko.Shrandy.TrainingTool
 		// Scroll speeds start at 9. They do (speed + 1) / 10 to get 1.0, 1.1, 1.2 etc
 		readonly int[] ScrollSpeeds = { 9, 10, 11, 12, 13, 15, 18 };
 
-		public TrainingTool(Key enableHotkey) : base(enableHotkey)
+		public TrainingTool(string toolName, Key enableHotkey) : base(toolName, enableHotkey)
 		{
 		}
 
@@ -235,21 +235,15 @@ namespace OpenTaiko.Shrandy.TrainingTool
 
 			m_MeasureListener.Update();
 
-			ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, 0), ImGuiCond.Once);
-			ImGui.SetNextWindowSize(new System.Numerics.Vector2(400, 300), ImGuiCond.Once);
-			if (ImGui.Begin("ShrandyTool"))
+			DrawProfilingStats();
+			m_DrawTime.Restart();
+
+			if (OpenTaiko.stageGameScreen.actTokkun != null && OpenTaiko.ConfigIni.bTokkunMode)
 			{
-				DrawProfilingStats();
-				m_DrawTime.Restart();
-
-				if (OpenTaiko.stageGameScreen.actTokkun != null && OpenTaiko.ConfigIni.bTokkunMode)
-				{
-					DrawBookmarks();
-				}
-
-				ImGui.End();
-				m_DrawTime.Stop();
+				DrawBookmarks();
 			}
+
+			m_DrawTime.Stop();
 
 			if (m_SaveRequested)
 			{

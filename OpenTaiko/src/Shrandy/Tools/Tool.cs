@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ImGuiNET;
 
 namespace OpenTaiko.Shrandy
 {
@@ -10,9 +11,11 @@ namespace OpenTaiko.Shrandy
 	{
 		public bool Enabled { get; private set; } = false;
 		protected SlimDXKeys.Key m_EnableHotkey = SlimDXKeys.Key.Unknown;
+		protected string m_ToolName = "Tool";
 
-		public Tool(SlimDXKeys.Key enableHotkey)
+		public Tool(string toolName, SlimDXKeys.Key enableHotkey)
 		{
+			m_ToolName = toolName;
 			m_EnableHotkey = enableHotkey;
 		}
 
@@ -30,6 +33,17 @@ namespace OpenTaiko.Shrandy
 
 		public virtual void OnStageChanged(CStage stage)
 		{
+		}
+
+		public void DrawWindow()
+		{
+			ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, 0), ImGuiCond.Once);
+			ImGui.SetNextWindowSize(new System.Numerics.Vector2(400, 300), ImGuiCond.Once);
+			if (ImGui.Begin(m_ToolName))
+			{
+				Draw();
+				ImGui.End();
+			}
 		}
 
 		public virtual void Draw()
