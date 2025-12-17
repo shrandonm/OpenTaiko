@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json.Serialization;
 
-namespace OpenTaiko.Shrandy.TrainingTool
+namespace OpenTaiko.Shrandy.Tools
 {
 	internal class BookmarkInstance
 	{

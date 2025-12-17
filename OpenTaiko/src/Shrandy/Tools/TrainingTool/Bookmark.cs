@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OpenTaiko.Shrandy.TrainingTool
+namespace OpenTaiko.Shrandy.Tools
 {
 	internal struct Bookmark
 	{

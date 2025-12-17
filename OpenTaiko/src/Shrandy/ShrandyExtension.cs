@@ -38,7 +38,8 @@ namespace OpenTaiko.Shrandy
 			{
 				Directory.CreateDirectory(SaveDirectoryPath);
 			}
-			m_Tools.Add(new TrainingTool.TrainingTool("TrainingTool", SlimDXKeys.Key.F4));
+			m_Tools.Add(new Tools.TrainingTool("Training Tool", SlimDXKeys.Key.F4));
+			m_Tools.Add(new Tools.NoteVisualizer("Note Visualizer", SlimDXKeys.Key.F4));
 		}
 
 		public void OnStageChanged(CStage stage)

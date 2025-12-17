@@ -1,4 +1,3 @@
-- Match scroll speed to cab
 - Add graph showing average hit error for the last play
 	- Make sure it shows either the full song in regular play, or the segment you just completed in training mode, need to be able to parse what happened at a glance inbetween runs
 - Adjust frame buffer size when the setting changes or when backing out of the menu

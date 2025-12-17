@@ -19,7 +19,7 @@ namespace OpenTaiko.Shrandy
 			m_EnableHotkey = enableHotkey;
 		}
 
-		public virtual void UpdateEnabledState()
+		public void UpdateEnabledState()
 		{
 			if (OpenTaiko.InputManager != null && OpenTaiko.InputManager.Keyboard.KeyPressed((int)m_EnableHotkey))
 			{
