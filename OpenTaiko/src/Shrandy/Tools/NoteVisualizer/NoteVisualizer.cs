@@ -206,15 +206,31 @@ namespace OpenTaiko.Shrandy.Tools
 				float noteTime = hitParams.Chip.n発声時刻ms;
 				if (noteTime >= visibleStartTime && noteTime <= visibleEndTime)
 				{
-					float hitTime = noteTime - hitParams.HitErrorMs;
-					float x = XFromT(hitTime);
+					float hitTime = noteTime + hitParams.HitErrorMs;
+					float hitX = XFromT(hitTime);
+					float noteX = XFromT(noteTime);
 					const float offsetY = 32.0f;
-					Vector2 position = new Vector2(x, timelineCenterY + offsetY);
+					Vector2 position = new Vector2(hitX, timelineCenterY + offsetY);
 
 					if (hitParams.JudgeResult != ENoteJudge.Miss)
 					{
 						DrawNote(hitParams.Chip, position, alpha: 0.5f,
 							outlineColour: GetOutlineColour(hitParams.Chip, hitParams.JudgeResult));
+
+						const float textOffsetY = 16.0f;
+						Vector2 textPosition = new Vector2(hitX, position.Y + textOffsetY);
+
+						textPosition.Y += textOffsetY;
+						m_DrawList.AddText(textPosition, 0xFFFFFFFF, hitParams.HitErrorMs.ToString("+0;-0;0"));
+
+						string errorText = hitParams.HitErrorMs == 0 ? "Perfect"
+							: hitParams.HitErrorMs < 0 ? "Early"
+							: "Late";
+						textPosition.Y += textOffsetY;
+						m_DrawList.AddText(textPosition, 0xFFFFFFFF, errorText);
+
+						textPosition.Y += textOffsetY;
+						m_DrawList.AddText(textPosition, 0xFFFFFFFF, hitParams.Hand.ToString());
 					}
 				}
 			}
