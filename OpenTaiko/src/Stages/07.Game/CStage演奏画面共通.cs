@@ -3599,6 +3599,8 @@ internal abstract class CStage演奏画面共通 : CStage {
 			}
 		}
 		this.bPAUSE = false;
+
+		OpenTaiko.ShrandyExtension.OnSongRestart();
 	}
 
 	public void t停止() {

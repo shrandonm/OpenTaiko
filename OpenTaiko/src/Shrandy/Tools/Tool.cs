@@ -35,6 +35,10 @@ namespace OpenTaiko.Shrandy
 		{
 		}
 
+		public virtual void OnSongRestart()
+		{
+		}
+
 		public void DrawWindow()
 		{
 			ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, 0), ImGuiCond.Once);

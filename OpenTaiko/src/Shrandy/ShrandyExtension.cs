@@ -25,6 +25,7 @@ namespace OpenTaiko.Shrandy
 		public ENoteJudge JudgeResult;
 		public Hand Hand;
 		public Note Note;
+		public int HitErrorMs;
 	}
 
 	class ShrandyExtension
@@ -50,6 +51,14 @@ namespace OpenTaiko.Shrandy
 			}
 		}
 
+		public void OnSongRestart()
+		{
+			foreach (Tool tool in m_Tools)
+			{
+				tool.OnSongRestart();
+			}
+		}
+
 		public void OnPerformanceInfoActivate()
 		{
 			OpenTaiko.stageGameScreen.m_ShrandyGameOverlay.Reset();
@@ -67,6 +76,7 @@ namespace OpenTaiko.Shrandy
 				JudgeResult = judgeResult,
 				Hand = GetHandFromPad(pad),
 				Note = GetNoteFromPad(pad),
+				HitErrorMs = chip.nLag,
 			};
 			OpenTaiko.stageGameScreen.m_ShrandyGameOverlay.OnNoteHit(hitParams);
 
@@ -127,6 +137,11 @@ namespace OpenTaiko.Shrandy
 		public static bool IsGood(ENoteJudge judgement)
 		{
 			return judgement <= ENoteJudge.Perfect;
+		}
+
+		public static bool IsOkay(ENoteJudge judgement)
+		{
+			return judgement == ENoteJudge.Good;
 		}
 	}
 }
