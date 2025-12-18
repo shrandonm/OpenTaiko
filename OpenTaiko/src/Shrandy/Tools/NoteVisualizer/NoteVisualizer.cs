@@ -86,12 +86,13 @@ namespace OpenTaiko.Shrandy.Tools
 			m_DrawList.AddCircle(position, radius, outlineColour, circleSegments, circleThickness);
 		}
 
-		private void DrawBar(float xPosition, uint colour)
+		private void DrawBar(float xPosition, int index, uint colour)
 		{
 			const float barHeight = 8.0f;
-			m_DrawList.AddLine(new Vector2(xPosition, m_CursorPos.Y + (barHeight / 2.0f)),
-				new Vector2(xPosition, m_WidgetBottomRight.Y - (barHeight / 2.0f)),
-				colour, 2.0f);
+			Vector2 start = new Vector2(xPosition, m_CursorPos.Y + (barHeight / 2.0f));
+			Vector2 end = new Vector2(xPosition, m_WidgetBottomRight.Y - (barHeight / 2.0f));
+			m_DrawList.AddLine(start, end, colour, 2.0f);
+			m_DrawList.AddText(end, colour, index.ToString());
 		}
 
 		void DrawTimelineWidget(string id, float songDuration,
@@ -176,14 +177,15 @@ namespace OpenTaiko.Shrandy.Tools
 				m_Zoom = 50.0f;
 			}
 
-			// Draw bar
 			m_DrawList.AddLine(new Vector2(timelineLeftX, timelineCenterY), new Vector2(timelineRightX, timelineCenterY), ImGui.GetColorU32(ImGuiCol.Separator), 2.0f);
 
-			// Current time line
-			foreach (CChip bar in tjaBars)
+			for (int i = 0; i < tjaBars.Count; ++i)
 			{
-				float barTime = XFromT(bar.n発声時刻ms);
-				DrawBar(barTime, ImGui.GetColorU32(ImGuiCol.PlotLines));
+				float barTime = XFromT(tjaBars[i].n発声時刻ms);
+				if ((i % 3) == 0)
+				{
+					DrawBar(barTime, i / 3, ImGui.GetColorU32(ImGuiCol.PlotLines));
+				}
 			}
 
 			for (int i = tjaNotes.Count - 1; i >= 0; --i)
