@@ -126,7 +126,7 @@ public class CCachedFontRenderer : CFontRenderer {
 			// 呼び出し元のDispose()でキャッシュもDispose()されないように、Clone()で返す。
 			return listFontCache[listFontCache.Count - 1].bmp.Copy();
 		} else {
-			Debug.WriteLine(drawstr + ": Cacheにヒット!! index=" + index);
+			//Debug.WriteLine(drawstr + ": Cacheにヒット!! index=" + index);
 			#region [ キャッシュにヒット。レンダリングは行わず、キャッシュ内のデータを返して終了。]
 			// 呼び出し元のDispose()でキャッシュもDispose()されないように、Clone()で返す。
 			return listFontCache[index].bmp.Copy();
@@ -181,7 +181,7 @@ public class CCachedFontRenderer : CFontRenderer {
 			// 呼び出し元のDispose()でキャッシュもDispose()されないように、Clone()で返す。
 			return listFontCache[listFontCache.Count - 1].bmp.Copy();
 		} else {
-			Debug.WriteLine(drawstr + ": Cacheにヒット!! index=" + index);
+			//Debug.WriteLine(drawstr + ": Cacheにヒット!! index=" + index);
 			#region [ キャッシュにヒット。レンダリングは行わず、キャッシュ内のデータを返して終了。]
 			// 呼び出し元のDispose()でキャッシュもDispose()されないように、Clone()で返す。
 			return listFontCache[index].bmp.Copy();
