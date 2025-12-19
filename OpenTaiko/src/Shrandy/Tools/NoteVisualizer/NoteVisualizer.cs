@@ -17,6 +17,7 @@ namespace OpenTaiko.Shrandy.Tools
 		private ImDrawListPtr m_DrawList;
 		private Vector2 m_WidgetTopLeft;
 		private Vector2 m_WidgetBottomRight;
+		private int m_NoteErrorFilterMs = 0;
 
 		public NoteVisualizer(string toolName, SlimDXKeys.Key enableHotkey)
 			: base(toolName, enableHotkey)
@@ -50,6 +51,9 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			if (OpenTaiko.TJA != null && OpenTaiko.TJA.listChip.Count > 0)
 			{
+				ImGui.Text("Note Error Filter (ms)");
+				ImGui.SliderInt("", ref m_NoteErrorFilterMs, 0, 100);
+
 				double songDuration = OpenTaiko.TJA.listChip[^1].n発声時刻ms;
 				DrawTimelineWidget("##NoteTimeline", (float)songDuration,
 					tjaNotes: OpenTaiko.TJA.listNoteChip,
@@ -204,34 +208,41 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				HitParams hitParams = hitHistory[i];
 				float noteTime = hitParams.Chip.n発声時刻ms;
-				if (noteTime >= visibleStartTime && noteTime <= visibleEndTime)
+				if (noteTime < visibleStartTime || noteTime > visibleEndTime)
 				{
-					float hitTime = noteTime + hitParams.HitErrorMs;
-					float hitX = XFromT(hitTime);
-					float noteX = XFromT(noteTime);
-					const float offsetY = 32.0f;
-					Vector2 position = new Vector2(hitX, timelineCenterY + offsetY);
+					continue;
+				}
 
-					if (hitParams.JudgeResult != ENoteJudge.Miss)
-					{
-						DrawNote(hitParams.Chip, position, alpha: 0.5f,
-							outlineColour: GetOutlineColour(hitParams.Chip, hitParams.JudgeResult));
+				if (hitParams.HitErrorMs < m_NoteErrorFilterMs)
+				{
+					continue;
+				}
 
-						const float textOffsetY = 16.0f;
-						Vector2 textPosition = new Vector2(hitX, position.Y + textOffsetY);
+				float hitTime = noteTime + hitParams.HitErrorMs;
+				float hitX = XFromT(hitTime);
+				float noteX = XFromT(noteTime);
+				const float offsetY = 32.0f;
+				Vector2 position = new Vector2(hitX, timelineCenterY + offsetY);
 
-						textPosition.Y += textOffsetY;
-						m_DrawList.AddText(textPosition, 0xFFFFFFFF, hitParams.HitErrorMs.ToString("+0;-0;0"));
+				if (hitParams.JudgeResult != ENoteJudge.Miss)
+				{
+					DrawNote(hitParams.Chip, position, alpha: 0.5f,
+						outlineColour: GetOutlineColour(hitParams.Chip, hitParams.JudgeResult));
 
-						string errorText = hitParams.HitErrorMs == 0 ? "Perfect"
-							: hitParams.HitErrorMs < 0 ? "Early"
-							: "Late";
-						textPosition.Y += textOffsetY;
-						m_DrawList.AddText(textPosition, 0xFFFFFFFF, errorText);
+					const float textOffsetY = 16.0f;
+					Vector2 textPosition = new Vector2(hitX, position.Y + textOffsetY);
 
-						textPosition.Y += textOffsetY;
-						m_DrawList.AddText(textPosition, 0xFFFFFFFF, hitParams.Hand.ToString());
-					}
+					textPosition.Y += textOffsetY;
+					m_DrawList.AddText(textPosition, 0xFFFFFFFF, hitParams.HitErrorMs.ToString("+0;-0;0"));
+
+					string errorText = hitParams.HitErrorMs == 0 ? "Perfect"
+						: hitParams.HitErrorMs < 0 ? "Early"
+						: "Late";
+					textPosition.Y += textOffsetY;
+					m_DrawList.AddText(textPosition, 0xFFFFFFFF, errorText);
+
+					textPosition.Y += textOffsetY;
+					m_DrawList.AddText(textPosition, 0xFFFFFFFF, hitParams.Hand.ToString());
 				}
 			}
 
