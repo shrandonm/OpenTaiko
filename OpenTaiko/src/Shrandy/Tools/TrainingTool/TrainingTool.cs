@@ -16,9 +16,9 @@ namespace OpenTaiko.Shrandy.Tools
 		private MeasureListener m_MeasureListener = new();
 		private BookmarkInstance? m_ActiveBookmarkInstance;
 		private MicroStopwatch m_SaveStopwatch = new();
-		private MicroStopwatch m_DrawTime = new();
 
 		private bool m_SaveRequested = false;
+		private bool m_WaitingForBookmarkRestart = false;
 
 		private string m_BookmarkNameInput = "";
 		private int m_StartMeasureInput;
@@ -31,6 +31,36 @@ namespace OpenTaiko.Shrandy.Tools
 
 		public TrainingTool(string toolName, Key enableHotkey) : base(toolName, enableHotkey)
 		{
+		}
+
+		protected override void Update()
+		{
+			base.Update();
+
+			m_MeasureListener.Update();
+
+			if (m_SaveRequested)
+			{
+				Save();
+			}
+
+			if (m_WaitingForBookmarkRestart && OpenTaiko.Pad.IsPressingDecide())
+			{
+				RestartBookmark();
+				m_WaitingForBookmarkRestart = false;
+			}
+		}
+
+		protected override void Draw()
+		{
+			base.Draw();
+
+			DrawProfilingStats();
+
+			if (OpenTaiko.stageGameScreen.actTokkun != null && OpenTaiko.ConfigIni.bTokkunMode)
+			{
+				DrawBookmarks();
+			}
 		}
 
 		public override void OnStageChanged(CStage stage)
@@ -176,9 +206,18 @@ namespace OpenTaiko.Shrandy.Tools
 				RequestSave();
 			}
 
-			BookmarkInstance newInstance = CreateBookmarkInstance(bookmarkInstance.Bookmark, bookmarkInstance.Speed);
-			m_ActiveBookmarkInstance = newInstance;
-			JumpToStartOfBookmark(newInstance.Bookmark);
+			OpenTaiko.stageGameScreen.actTokkun.tPausePlay();
+			m_WaitingForBookmarkRestart = true;
+		}
+
+		private void RestartBookmark()
+		{
+			if (m_ActiveBookmarkInstance != null)
+			{
+				BookmarkInstance newInstance = CreateBookmarkInstance(m_ActiveBookmarkInstance.Bookmark, m_ActiveBookmarkInstance.Speed);
+				m_ActiveBookmarkInstance = newInstance;
+				JumpToStartOfBookmark(newInstance.Bookmark);
+			}
 		}
 
 		private void OnSaveLoaded(SaveData saveData)
@@ -219,36 +258,10 @@ namespace OpenTaiko.Shrandy.Tools
 			m_SaveStopwatch.Stop();
 		}
 
-		private void DrawProfilingStats()
+		protected override void DrawProfilingStats()
 		{
-			ImGui.Text("Performance Metrics");
 			ImGui.SameLine();
 			ImGui.Text($"|  Last save time: {m_SaveStopwatch.ElapsedMicroseconds / 1000.0}ms");
-			ImGui.SameLine();
-			ImGui.Text($"|  Draw time: {m_DrawTime.ElapsedMicroseconds / 1000.0}ms");
-			ImGui.Separator();
-		}
-
-		public override void Draw()
-		{
-			base.Draw();
-
-			m_MeasureListener.Update();
-
-			DrawProfilingStats();
-			m_DrawTime.Restart();
-
-			if (OpenTaiko.stageGameScreen.actTokkun != null && OpenTaiko.ConfigIni.bTokkunMode)
-			{
-				DrawBookmarks();
-			}
-
-			m_DrawTime.Stop();
-
-			if (m_SaveRequested)
-			{
-				Save();
-			}
 		}
 
 		private void DrawBookmarks()

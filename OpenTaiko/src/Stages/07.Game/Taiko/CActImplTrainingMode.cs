@@ -433,10 +433,12 @@ class CActImplTrainingMode : CActivity {
 
 		OpenTaiko.stageGameScreen.t数値の初期化(true, true);
 
+		// [Divergence]
 		if (ForcedCourse != null)
 		{
 			OpenTaiko.stageGameScreen.ChangeBranch(ForcedCourse.Value, 0);
 		}
+		// [End Divergence]
 
 		for (int i = 0; i < n演奏開始Chip; i++) {
 			//2020.07.08 ノーツだけ消す。
@@ -456,6 +458,10 @@ class CActImplTrainingMode : CActivity {
 		}
 
 		this.bTrainingPAUSE = false;
+
+		// [Divergence]
+		OpenTaiko.ShrandyExtension.OnTrainingModeResumePlay();
+		// [End Divergence]
 	}
 
 	public void tMatchWithTheChartDisplayPosition(bool doScroll) {

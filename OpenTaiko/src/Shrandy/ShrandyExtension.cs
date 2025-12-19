@@ -51,6 +51,14 @@ namespace OpenTaiko.Shrandy
 			}
 		}
 
+		public void OnTrainingModeResumePlay()
+		{
+			foreach (Tool tool in m_Tools)
+			{
+				tool.OnTrainingModeResumePlay();
+			}
+		}
+
 		public void OnSongRestart()
 		{
 			foreach (Tool tool in m_Tools)

@@ -24,6 +24,28 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 		}
 
+		protected override void Draw()
+		{
+			if (OpenTaiko.TJA != null && OpenTaiko.TJA.listChip.Count > 0)
+			{
+				ImGui.Text("Note Error Filter (ms)");
+				ImGui.SameLine();
+				ImGui.SliderInt("", ref m_NoteErrorFilterMs, 0, 100);
+
+				double songDuration = OpenTaiko.TJA.listChip[^1].n発声時刻ms;
+				DrawTimelineWidget("##NoteTimeline", (float)songDuration,
+					tjaNotes: OpenTaiko.TJA.listNoteChip,
+					tjaBars: OpenTaiko.TJA.listBarLineChip,
+					m_HitHistory);
+			}
+		}
+
+		public override void OnTrainingModeResumePlay()
+		{
+			base.OnTrainingModeResumePlay();
+			Reset();
+		}
+
 		public override void OnNoteHit(HitParams hitParams)
 		{
 			base.OnNoteHit(hitParams);
@@ -45,21 +67,6 @@ namespace OpenTaiko.Shrandy.Tools
 		private void Reset()
 		{
 			m_HitHistory.Clear();
-		}
-
-		public override void Draw()
-		{
-			if (OpenTaiko.TJA != null && OpenTaiko.TJA.listChip.Count > 0)
-			{
-				ImGui.Text("Note Error Filter (ms)");
-				ImGui.SliderInt("", ref m_NoteErrorFilterMs, 0, 100);
-
-				double songDuration = OpenTaiko.TJA.listChip[^1].n発声時刻ms;
-				DrawTimelineWidget("##NoteTimeline", (float)songDuration,
-					tjaNotes: OpenTaiko.TJA.listNoteChip,
-					tjaBars: OpenTaiko.TJA.listBarLineChip,
-					m_HitHistory);
-			}
 		}
 
 		private void DrawNote(CChip note, in Vector2 position, float alpha, uint outlineColour)
@@ -129,7 +136,13 @@ namespace OpenTaiko.Shrandy.Tools
 			float clampedZoomValue = Math.Max(0.0001f, m_Zoom);
 			float visibleTimeSpan = songDuration / clampedZoomValue;
 
-			float visibleStartTime = isPaused ? m_Pan : songTime - visibleTimeSpan / 2.0f;
+			if (!isPaused)
+			{
+				const float lookAheadPercent = 0.8f;
+				m_Pan = songTime - visibleTimeSpan * lookAheadPercent;
+				m_Zoom = 30.0f;
+			}
+			float visibleStartTime = m_Pan;
 			float visibleEndTime = visibleStartTime + visibleTimeSpan;
 
 			float TFromX(float x)
@@ -144,7 +157,7 @@ namespace OpenTaiko.Shrandy.Tools
 				return timelineLeftX + u * (timelineRightX - timelineLeftX);
 			}
 
-			if (OpenTaiko.stageGameScreen.bPAUSE)
+			if (isPaused)
 			{
 				// Zoom
 				if (ImGui.IsItemHovered())
@@ -174,11 +187,6 @@ namespace OpenTaiko.Shrandy.Tools
 
 				// Clamp pan to base range
 				m_Pan = Math.Clamp(m_Pan, 0f, Math.Max(0f, songDuration - songDuration / m_Zoom));
-			}
-			else
-			{
-				m_Pan = songTime;
-				m_Zoom = 50.0f;
 			}
 
 			m_DrawList.AddLine(new Vector2(timelineLeftX, timelineCenterY), new Vector2(timelineRightX, timelineCenterY), ImGui.GetColorU32(ImGuiCol.Separator), 2.0f);
@@ -213,7 +221,7 @@ namespace OpenTaiko.Shrandy.Tools
 					continue;
 				}
 
-				if (hitParams.HitErrorMs < m_NoteErrorFilterMs)
+				if (Math.Abs(hitParams.HitErrorMs) < m_NoteErrorFilterMs)
 				{
 					continue;
 				}
