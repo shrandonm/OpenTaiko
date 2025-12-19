@@ -1,5 +1,4 @@
-- Add graph showing average hit error for the last play
-	- Make sure it shows either the full song in regular play, or the segment you just completed in training mode, need to be able to parse what happened at a glance inbetween runs
+Todo:
 - Adjust frame buffer size when the setting changes or when backing out of the menu
 - Fix shader so alpha/colour is correct
 - Allow ka to pop balloons
@@ -9,3 +8,8 @@
 	- UpdateScrolledChipPosition
 - Add a % good based score, summary at end of song with +/-, celebrate records
 - Remove onscreen shrandy text drawing, it's slow and ugly. Replace with imgui
+
+
+Done:
+- Add perfect hit sound
+- Add note visualizer

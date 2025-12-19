@@ -738,9 +738,18 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 		if (chipNoHit != null && NotesManager.IsMissableNote(chipNoHit) && !NotesManager.IsGenericRoll(chipNoHit))
 		{
 			OpenTaiko.ShrandyExtension.OnNoteHit(chipNoHit, e判定, nPad);
+			
 		}
+		// [End Divergence]
 
 		// Visual and sound effects
+		// [Divergence]
+		if (chipNoHit != null && chipNoHit.nLag == 0 && OpenTaiko.Skin.soundPerfectTiming != null)
+		{
+			OpenTaiko.Skin.soundPerfectTiming.tPlay();
+		}
+		// [End Divergence]
+
 		PlayerLane.FlashType nLane = NotesManager.PadToLane(nPad, gameType);
 		int nHand = NotesManager.PadToHand(nPad);
 		OpenTaiko.stageGameScreen.actMtaiko.tMtaikoEvent(NotesManager.PadToInputType(nPad), nHand, nUsePlayer);
