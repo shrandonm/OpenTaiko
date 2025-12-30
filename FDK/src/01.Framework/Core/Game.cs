@@ -493,7 +493,7 @@ public abstract class Game : IDisposable {
 		m_RenderTextures = new(textureCount);
 		for (int i = 0; i < textureCount; ++i)
 		{
-			m_RenderTextures.Add(new RenderTexture((uint)Window_.Size.X, (uint)Window_.Size.Y));
+			m_RenderTextures.Add(new RenderTexture((uint)ViewPortSize.X, (uint)ViewPortSize.Y));
 		}
 	}
 
