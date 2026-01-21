@@ -547,7 +547,10 @@ public abstract class Game : IDisposable {
 		{
 			Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 			Draw();
+
+			Gl.Viewport(0, 0, (uint)Window_.Size.X, (uint)Window_.Size.Y);
 			ImGuiController?.Render();
+			Gl.Viewport(ViewPortOffset.X, ViewPortOffset.Y, (uint)ViewPortSize.X, (uint)ViewPortSize.Y);
 		}
 
 		if (!OperatingSystem.IsMacOS()) Context.SwapBuffers();
