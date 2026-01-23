@@ -58,8 +58,9 @@ namespace OpenTaiko.Shrandy
 				Draw();
 				m_DrawTime.Stop();
 
-				DrawProfilingStats();
 				ImGui.Separator();
+
+				DrawProfilingStats();
 
 				ImGui.End();
 			}
@@ -77,7 +78,7 @@ namespace OpenTaiko.Shrandy
 		{
 			ImGui.Text("Performance Metrics");
 			ImGui.SameLine();
-			ImGui.Text($" | Draw time: {m_DrawTime.ElapsedMicroseconds / 1000.0}ms");
+			ImGui.Text($"Draw time: {m_DrawTime.ElapsedMicroseconds / 1000.0}ms");
 		}
 	}
 }

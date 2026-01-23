@@ -102,6 +102,12 @@ public static class ImGuiDebugWindow {
 			ImGui.Text($"Allocated Memory: {pagedmemory} bytes ({String.Format("{0:0.###}", (float)pagedmemory / (1024 * 1024 * 1024))}GB)");
 			ImGui.Text($"FPS: {(OpenTaiko.FPS != null ? OpenTaiko.FPS.NowFPS : "???")}");
 			ImGui.Text("Current Stage: " + OpenTaiko.rCurrentStage.eStageID.ToString() + " (StageID " + ((int)OpenTaiko.rCurrentStage.eStageID).ToString() + ")");
+
+			if (ImGui.SliderFloat("Font Scale", ref ImGui.GetIO().FontGlobalScale, 0.25f, 5.0f))
+			{
+				OpenTaiko.ConfigIni.DEBUG_ImGuiFontScale = ImGui.GetIO().FontGlobalScale;
+			}
+
 			#endregion
 
 			ImGui.BeginTabBar("Tabs");

@@ -55,8 +55,6 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			base.Draw();
 
-			DrawProfilingStats();
-
 			if (OpenTaiko.stageGameScreen.actTokkun != null && OpenTaiko.ConfigIni.bTokkunMode)
 			{
 				DrawBookmarks();
@@ -260,6 +258,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		protected override void DrawProfilingStats()
 		{
+			base.DrawProfilingStats();
 			ImGui.SameLine();
 			ImGui.Text($"|  Last save time: {m_SaveStopwatch.ElapsedMicroseconds / 1000.0}ms");
 		}
@@ -432,6 +431,7 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				goodPercentages.Add(StringHelpers.GetPercent(instance.NoteStats.GoodCount, instance.NoteStats.TotalNotes));
 			}
+
 
 			ImGui.Text("Good percentage over time");
 			ImGui.Text("100%%");

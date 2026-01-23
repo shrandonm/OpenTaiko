@@ -1892,6 +1892,11 @@ internal class OpenTaiko : Game {
 		#endregion
 
 
+		#region [ ImGui Config dependent setup ]
+		ImGuiNET.ImGui.GetIO().FontGlobalScale = ConfigIni.DEBUG_ImGuiFontScale;
+		#endregion
+
+
 		Trace.TraceInformation("Application successfully started.");
 
 		#region [ Move to Startup Stage ]

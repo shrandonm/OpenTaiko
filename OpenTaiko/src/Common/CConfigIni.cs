@@ -1507,6 +1507,8 @@ internal class CConfigIni : INotifyPropertyChanged {
 	#region[DEBUG]
 
 	public bool DEBUG_bShowImgui;
+	public float DEBUG_ImGuiFontScale = 1.0f;
+
 
 	#endregion
 
@@ -1755,6 +1757,7 @@ internal class CConfigIni : INotifyPropertyChanged {
 		#region[DEBUG]
 
 		DEBUG_bShowImgui = true;
+		DEBUG_ImGuiFontScale = 1.0f;
 
 		#endregion
 	}
@@ -2627,7 +2630,7 @@ internal class CConfigIni : INotifyPropertyChanged {
 		sw.WriteLine("[DEBUG]");
 		sw.WriteLine();
 		sw.WriteLine("ImGui={0}", this.DEBUG_bShowImgui ? 1 : 0);
-		sw.WriteLine();
+		sw.WriteLine("ImGuiFontScale={0}", this.DEBUG_ImGuiFontScale);
 		sw.WriteLine();
 
 		#endregion
@@ -3568,6 +3571,9 @@ internal class CConfigIni : INotifyPropertyChanged {
 		switch (key) {
 			case "ImGui":
 				this.DEBUG_bShowImgui = CConversion.bONorOFF(value[0]);
+				break;
+			case "ImGuiFontScale":
+				float.TryParse(value, out DEBUG_ImGuiFontScale);
 				break;
 		}
 	}
