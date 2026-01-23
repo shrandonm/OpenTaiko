@@ -31,6 +31,11 @@ namespace OpenTaiko.Shrandy
 
 		public void OnNoteHit(HitParams hitParams)
 		{
+			if (hitParams.Chip == null)
+			{
+				return;
+			}
+
 			int error = hitParams.Chip.nLag;
 			TotalSync += error;
 

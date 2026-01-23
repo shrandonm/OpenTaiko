@@ -25,7 +25,8 @@ namespace OpenTaiko.Shrandy
 		public ENoteJudge JudgeResult;
 		public Hand Hand;
 		public Note Note;
-		public int HitErrorMs;
+		public double HitErrorMs;
+		public double HitTjaTimeMs;
 	}
 
 	class ShrandyExtension
@@ -76,7 +77,7 @@ namespace OpenTaiko.Shrandy
 		{
 		}
 
-		public void OnNoteHit(CChip chip, ENoteJudge judgeResult, EPad pad)
+		public void OnNoteHit(CChip? chip, ENoteJudge judgeResult, EPad pad, double hitTjaTimeMs)
 		{
 			HitParams hitParams = new()
 			{
@@ -84,7 +85,8 @@ namespace OpenTaiko.Shrandy
 				JudgeResult = judgeResult,
 				Hand = GetHandFromPad(pad),
 				Note = GetNoteFromPad(pad),
-				HitErrorMs = chip.nLag,
+				HitErrorMs = chip != null ? chip.nLag : 0,
+				HitTjaTimeMs = hitTjaTimeMs,
 			};
 			OpenTaiko.stageGameScreen.m_ShrandyGameOverlay.OnNoteHit(hitParams);
 

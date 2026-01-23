@@ -735,9 +735,9 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 						}
 
 		// [Divergence]
-		if (chipNoHit != null && NotesManager.IsMissableNote(chipNoHit) && !NotesManager.IsGenericRoll(chipNoHit))
+		if (!NotesManager.IsGenericRoll(chipNoHit))
 		{
-			OpenTaiko.ShrandyExtension.OnNoteHit(chipNoHit, e判定, nPad);
+			OpenTaiko.ShrandyExtension.OnNoteHit(chipNoHit, e判定, nPad, (double)msHitTjaTime);
 			
 		}
 		// [End Divergence]

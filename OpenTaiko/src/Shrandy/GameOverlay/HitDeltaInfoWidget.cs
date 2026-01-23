@@ -43,15 +43,18 @@ namespace OpenTaiko.Shrandy
 			base.OnNoteHit(hitParams);
 			const int maxHitDeltaMs = 75;
 
-			int absDelta = Math.Abs(hitParams.Chip.nLag);
-			if (absDelta <= maxHitDeltaMs)
+			if (hitParams.Chip != null)
 			{
-				m_NoteHistory.Add(new HitInfo()
+				int absDelta = Math.Abs(hitParams.Chip.nLag);
+				if (absDelta <= maxHitDeltaMs)
 				{
-					Delta = hitParams.Chip.nLag,
-					Hand = hitParams.Hand,
-					JudgeResult = hitParams.JudgeResult
-				});
+					m_NoteHistory.Add(new HitInfo()
+					{
+						Delta = hitParams.Chip.nLag,
+						Hand = hitParams.Hand,
+						JudgeResult = hitParams.JudgeResult
+					});
+				}
 			}
 		}
 

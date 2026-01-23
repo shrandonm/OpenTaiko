@@ -1366,10 +1366,12 @@ internal abstract class CStage演奏画面共通 : CStage {
 		if (pChip == null || NotesManager.IsMissableNote(pChip)) {
 			actGauge.Damage(screenmode, eJudgeResult, nPlayer, (pChip == null || pChip.IsEndedBranching) ? null : pChip.nBranch);
 
+			// [Divergence]
 			if (eJudgeResult == ENoteJudge.Miss)
 			{
-				OpenTaiko.ShrandyExtension.OnNoteHit(pChip, eJudgeResult, EPad.Unknown);
+				//OpenTaiko.ShrandyExtension.OnNoteHit(pChip, eJudgeResult, EPad.Unknown);
 			}
+			// [End Divergence]
 		}
 
 		var chara = OpenTaiko.Tx.Characters[OpenTaiko.SaveFileInstances[OpenTaiko.GetActualPlayer(nPlayer)].data.Character];

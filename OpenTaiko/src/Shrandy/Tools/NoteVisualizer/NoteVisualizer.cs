@@ -69,18 +69,18 @@ namespace OpenTaiko.Shrandy.Tools
 			m_HitHistory.Clear();
 		}
 
-		private void DrawNote(CChip note, in Vector2 position, float alpha, uint outlineColour)
+		private void DrawNote(bool isMissed, NotesManager.ENoteType noteType, in Vector2 position, float alpha, uint outlineColour)
 		{
 			const float smallCircleRadius = 16.0f;
 			const float bigCircleRadius = 20.0f;
 			const int circleSegments = 16;
-			float circleThickness = note.IsMissed ? 4.0f : 2.0f;
+			
+			float circleThickness = isMissed ? 4.0f : 2.0f;
 			uint donColour = Utilities.ColourHelper.GetDonImGuiColour();
 			uint kaColour = Utilities.ColourHelper.GetKaImGuiColour();
 			uint rollColour = Utilities.ColourHelper.GetRollImGuiColour();
 			uint balloonColour = Utilities.ColourHelper.GetBalloonImGuiColour();
 
-			NotesManager.ENoteType noteType = NotesManager.GetNoteType(note);
 			bool isDon = noteType == NotesManager.ENoteType.Don || noteType == NotesManager.ENoteType.DonBig;
 			bool isBig = noteType == NotesManager.ENoteType.DonBig || noteType == NotesManager.ENoteType.KaBig;
 			bool isRoll = NotesManager.IsRoll(noteType);
@@ -189,7 +189,9 @@ namespace OpenTaiko.Shrandy.Tools
 				m_Pan = Math.Clamp(m_Pan, 0f, Math.Max(0f, songDuration - songDuration / m_Zoom));
 			}
 
-			m_DrawList.AddLine(new Vector2(timelineLeftX, timelineCenterY), new Vector2(timelineRightX, timelineCenterY), ImGui.GetColorU32(ImGuiCol.Separator), 2.0f);
+			m_DrawList.AddLine(new Vector2(timelineLeftX, timelineCenterY),
+				new Vector2(timelineRightX, timelineCenterY),
+				ImGui.GetColorU32(ImGuiCol.Separator), 2.0f);
 
 			for (int i = 0; i < tjaBars.Count; ++i)
 			{
@@ -207,7 +209,8 @@ namespace OpenTaiko.Shrandy.Tools
 				if (noteTime >= visibleStartTime && noteTime <= visibleEndTime)
 				{
 					float x = XFromT(noteTime);
-					DrawNote(note, new Vector2(x, timelineCenterY), alpha: 1.0f,
+
+					DrawNote(note.IsMissed, NotesManager.GetNoteType(note), new Vector2(x, timelineCenterY), alpha: 1.0f,
 						outlineColour: GetOutlineColour(note, ENoteJudge.Auto));
 				}
 			}
@@ -215,7 +218,7 @@ namespace OpenTaiko.Shrandy.Tools
 			for (int i = hitHistory.Count - 1; i >= 0; --i)
 			{
 				HitParams hitParams = hitHistory[i];
-				float noteTime = hitParams.Chip.n発声時刻ms;
+				double noteTime = hitParams.Chip != null ? hitParams.Chip.n発声時刻ms : hitParams.HitTjaTimeMs;
 				if (noteTime < visibleStartTime || noteTime > visibleEndTime)
 				{
 					continue;
@@ -226,32 +229,38 @@ namespace OpenTaiko.Shrandy.Tools
 					continue;
 				}
 
-				float hitTime = noteTime + hitParams.HitErrorMs;
-				float hitX = XFromT(hitTime);
-				float noteX = XFromT(noteTime);
+				double hitTime = noteTime + hitParams.HitErrorMs;
+				float hitX = XFromT((float)hitTime);
 				const float offsetY = 32.0f;
 				Vector2 position = new Vector2(hitX, timelineCenterY + offsetY);
 
-				if (hitParams.JudgeResult != ENoteJudge.Miss)
+				NotesManager.ENoteType noteType = NotesManager.ENoteType.Unknown;
+				if (hitParams.Chip != null)
 				{
-					DrawNote(hitParams.Chip, position, alpha: 0.5f,
-						outlineColour: GetOutlineColour(hitParams.Chip, hitParams.JudgeResult));
-
-					const float textOffsetY = 16.0f;
-					Vector2 textPosition = new Vector2(hitX, position.Y + textOffsetY);
-
-					textPosition.Y += textOffsetY;
-					m_DrawList.AddText(textPosition, 0xFFFFFFFF, hitParams.HitErrorMs.ToString("+0;-0;0"));
-
-					string errorText = hitParams.HitErrorMs == 0 ? "Perfect"
-						: hitParams.HitErrorMs < 0 ? "Early"
-						: "Late";
-					textPosition.Y += textOffsetY;
-					m_DrawList.AddText(textPosition, 0xFFFFFFFF, errorText);
-
-					textPosition.Y += textOffsetY;
-					m_DrawList.AddText(textPosition, 0xFFFFFFFF, hitParams.Hand.ToString());
+					noteType = NotesManager.GetNoteType(hitParams.Chip);
 				}
+				else
+				{
+					noteType = hitParams.Note == Note.Don ? NotesManager.ENoteType.Don : NotesManager.ENoteType.Ka;
+				}
+
+				DrawNote(hitParams.JudgeResult == ENoteJudge.Bad, noteType, position, alpha: 0.5f,
+					outlineColour: GetOutlineColour(hitParams.Chip, hitParams.JudgeResult));
+
+				const float textOffsetY = 16.0f;
+				Vector2 textPosition = new Vector2(hitX, position.Y + textOffsetY);
+
+				textPosition.Y += textOffsetY;
+				m_DrawList.AddText(textPosition, 0xFFFFFFFF, hitParams.HitErrorMs.ToString("+0;-0;0"));
+
+				string errorText = hitParams.HitErrorMs == 0 ? "Perfect"
+					: hitParams.HitErrorMs < 0 ? "Early"
+					: "Late";
+				textPosition.Y += textOffsetY;
+				m_DrawList.AddText(textPosition, 0xFFFFFFFF, errorText);
+
+				textPosition.Y += textOffsetY;
+				m_DrawList.AddText(textPosition, 0xFFFFFFFF, hitParams.Hand.ToString());
 			}
 
 			// Optional tooltip
@@ -264,8 +273,12 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 		}
 
-		private uint GetOutlineColour(CChip note, ENoteJudge judgeResult)
+		private uint GetOutlineColour(CChip? note, ENoteJudge judgeResult)
 		{
+			if (note == null)
+			{
+				return 0xFFFF00FF;
+			}
 			if (note.IsMissed)
 			{
 				return 0xFF0000BB;

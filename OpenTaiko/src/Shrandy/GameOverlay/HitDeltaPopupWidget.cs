@@ -51,7 +51,7 @@ namespace OpenTaiko.Shrandy
 		public override void OnNoteHit(in HitParams hitParams)
 		{
 			base.OnNoteHit(hitParams);
-			if (hitParams.JudgeResult != ENoteJudge.Miss)
+			if (hitParams.Chip != null && hitParams.JudgeResult != ENoteJudge.Miss)
 			{
 				int screenWidth = OpenTaiko.Skin.Resolution[0];
 				int screenHeight = OpenTaiko.Skin.Resolution[1];

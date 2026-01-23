@@ -93,12 +93,14 @@ namespace OpenTaiko.Shrandy.Tools
 				return;
 			}
 
-			if (m_ActiveBookmarkInstance != null && IsNoteWithinBookmarkRange(hitParams, m_ActiveBookmarkInstance.Bookmark))
+			if (hitParams.Chip != null
+				&& m_ActiveBookmarkInstance != null
+				&& IsNoteWithinBookmarkRange(hitParams, m_ActiveBookmarkInstance.Bookmark))
 			{
 				m_ActiveBookmarkInstance.NoteStats.OnNoteHit(hitParams);
 			}
 
-			if (OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold > 0)
+			if (hitParams.Chip != null && OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold > 0)
 			{
 				TryAutoSkipBack(hitParams);
 			}

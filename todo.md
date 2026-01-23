@@ -1,4 +1,8 @@
 Todo:
+- Match cab hit feedback
+	- Add a fading note exactly at the hit position
+	- Make flying notes spawn a frame later, and above the target not on it
+	
 - Adjust frame buffer size when the setting changes or when backing out of the menu
 - Fix shader so alpha/colour is correct
 - Allow ka to pop balloons
