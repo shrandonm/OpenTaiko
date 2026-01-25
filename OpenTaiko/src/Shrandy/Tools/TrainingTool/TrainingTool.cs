@@ -476,7 +476,10 @@ namespace OpenTaiko.Shrandy.Tools
 
 			if (songSpeedChanged && IsTrainingModeActive())
 			{
-				OpenTaiko.stageGameScreen.actTokkun.tPausePlay();
+				if (!OpenTaiko.stageGameScreen.actTokkun.bTrainingPAUSE)
+				{
+					OpenTaiko.stageGameScreen.actTokkun.tPausePlay();
+				}
 				OpenTaiko.stageGameScreen.actTokkun.tMatchWithTheChartDisplayPosition(false);
 			}
 		}
