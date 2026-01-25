@@ -1017,9 +1017,13 @@ internal class CConfigIni : INotifyPropertyChanged {
 	public int nMsSleepPerFrame; // #xxxxx 2011.11.27 yyagi add
 	public int nSongSpeed;
 
+	// [Divergence]
+	public double? SongPlaybackSpeedOverride = null;
+
 	public double SongPlaybackSpeed {
-		get => ((double)nSongSpeed) / 20.0;
+		get => SongPlaybackSpeedOverride.HasValue ? SongPlaybackSpeedOverride.Value : ((double)nSongSpeed) / 20.0;
 	}
+	// [End Divergence]
 
 	public bool bNoAudioIfNot1xSpeed; // FIXME: Negation should be removed and booleans flipped
 	public int nMsWaitPreviewSoundFromSongSelected;

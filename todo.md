@@ -1,4 +1,5 @@
 Todo:
+- Move song speed override out of training tool, maybe build a song select tool
 - Match cab hit feedback
 	- Add a fading note exactly at the hit position
 	- Make flying notes spawn a frame later, and above the target not on it
