@@ -50,8 +50,8 @@ namespace OpenTaiko.Shrandy
 		{
 			Update();
 
-			ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, 0), ImGuiCond.Once);
-			ImGui.SetNextWindowSize(new System.Numerics.Vector2(400, 300), ImGuiCond.Once);
+			ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, 0), ImGuiCond.FirstUseEver);
+			ImGui.SetNextWindowSize(new System.Numerics.Vector2(400, 300), ImGuiCond.FirstUseEver);
 			if (ImGui.Begin(m_ToolName))
 			{
 				m_DrawTime.Restart();
