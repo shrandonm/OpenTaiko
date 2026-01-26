@@ -37,17 +37,20 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			base.Update();
 
-			m_MeasureListener.Update();
-
-			if (m_SaveRequested)
+			if (OpenTaiko.rCurrentStage == OpenTaiko.stageGameScreen && OpenTaiko.ConfigIni.bTokkunMode)
 			{
-				Save();
-			}
+				m_MeasureListener.Update();
 
-			if (m_WaitingForBookmarkRestart && OpenTaiko.Pad.IsPressingDecide())
-			{
-				RestartBookmark();
-				m_WaitingForBookmarkRestart = false;
+				if (m_SaveRequested)
+				{
+					Save();
+				}
+
+				if (m_WaitingForBookmarkRestart && OpenTaiko.Pad.IsPressingDecide())
+				{
+					RestartBookmark();
+					m_WaitingForBookmarkRestart = false;
+				}
 			}
 		}
 
@@ -59,6 +62,10 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				DrawBookmarks();
 			}
+		}
+
+		private void Cleanup()
+		{
 		}
 
 		public override void OnStageChanged(CStage stage)
@@ -82,6 +89,7 @@ namespace OpenTaiko.Shrandy.Tools
 			else
 			{
 				m_MeasureListener.OnMeasureCompleted -= OnMeasureCompleted;
+				m_WaitingForBookmarkRestart = false;
 			}
 		}
 
