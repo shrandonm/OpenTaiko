@@ -43,7 +43,10 @@ internal class CActSelectQuickConfig : CActSelectPopupMenu {
 			""));
 		#endregion
 		#region [ 共通 Dark/Risky/PlaySpeed ]
-		l.Add(new CItemInteger(CLangManager.LangInstance.GetString("MOD_SONGSPEED"), 5, 400, OpenTaiko.ConfigIni.nSongSpeed,
+		l.Add(new CItemInteger(CLangManager.LangInstance.GetString("MOD_SONGSPEED"),
+			CConfigIni.MinSongSpeed,
+			CConfigIni.MaxSongSpeed,
+			OpenTaiko.ConfigIni.nSongSpeed,
 			""));
 		#endregion
 		#region [ 個別 Sud/Hid ]

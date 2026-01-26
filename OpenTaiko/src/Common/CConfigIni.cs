@@ -1015,13 +1015,19 @@ internal class CConfigIni : INotifyPropertyChanged {
 	public CKeyAssign KeyAssign;
 	public int nMsSleepUnfocused; // #23568 2010.11.04 ikanick add
 	public int nMsSleepPerFrame; // #xxxxx 2011.11.27 yyagi add
+
+	public const int DefaultSongSpeed = 100;
+	public const int MinSongSpeed = DefaultSongSpeed / 2;
+	public const int MaxSongSpeed = DefaultSongSpeed * 4;
 	public int nSongSpeed;
 
 	// [Divergence]
-	public double? SongPlaybackSpeedOverride = null;
-
+	public static string SongPlaybackSpeedToString(float nSpeed)
+	{
+		return (nSpeed / 100.0f).ToString("n2");
+	}
 	public double SongPlaybackSpeed {
-		get => SongPlaybackSpeedOverride.HasValue ? SongPlaybackSpeedOverride.Value : ((double)nSongSpeed) / 20.0;
+		get => ((double)nSongSpeed) / DefaultSongSpeed;
 	}
 	// [End Divergence]
 
@@ -1612,7 +1618,7 @@ internal class CConfigIni : INotifyPropertyChanged {
 			this.nTimingZones[i] = 2;
 		}
 
-		this.nSongSpeed = 20;
+		this.nSongSpeed = DefaultSongSpeed;
 		this.bNoAudioIfNot1xSpeed = false;
 
 		#region [ AutoPlay ]
@@ -2295,7 +2301,7 @@ internal class CConfigIni : INotifyPropertyChanged {
 		sw.WriteLine("FunMods4P={0}", (int)this.nFunMods[3]);
 		sw.WriteLine("FunMods5P={0}", (int)this.nFunMods[4]);
 		sw.WriteLine();
-		sw.WriteLine("; 演奏速度(5～40)(→x5/20～x40/20)");
+		sw.WriteLine("; 演奏速度(50～400)(→x50/100～x400/100)");
 		sw.WriteLine("PlaySpeed={0}", this.nSongSpeed);
 		sw.WriteLine();
 
@@ -3244,7 +3250,7 @@ internal class CConfigIni : INotifyPropertyChanged {
 				break;
 			case "PlaySpeed":
 				this.nSongSpeed =
-					CConversion.ParseIntInRange(value, 5, 400, this.nSongSpeed);
+					CConversion.ParseIntInRange(value, DefaultSongSpeed / 2, DefaultSongSpeed * 4, this.nSongSpeed);
 				break;
 			case "PlaySpeedNotEqualOneNoSound":
 				this.bNoAudioIfNot1xSpeed = CConversion.bONorOFF(value[0]);

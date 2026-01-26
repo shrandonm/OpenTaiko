@@ -55,8 +55,6 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			base.Draw();
 
-			DrawSongSpeedOverride();
-
 			if (OpenTaiko.stageGameScreen.actTokkun != null && OpenTaiko.ConfigIni.bTokkunMode)
 			{
 				DrawBookmarks();
@@ -446,42 +444,6 @@ namespace OpenTaiko.Shrandy.Tools
 				scale_max: 1.0f,
 				new System.Numerics.Vector2(0, 120.0f));
 			ImGui.Text("0%%");
-		}
-
-		private bool IsTrainingModeActive()
-		{
-			return OpenTaiko.stageGameScreen.actTokkun != null && OpenTaiko.ConfigIni.bTokkunMode && OpenTaiko.TJA != null;
-		}
-
-		private void DrawSongSpeedOverride()
-		{
-			bool enabled = OpenTaiko.ConfigIni.SongPlaybackSpeedOverride.HasValue;
-			bool songSpeedChanged = false;
-
-			if (ImGui.Checkbox("Enable song speed override", ref enabled))
-			{
-				OpenTaiko .ConfigIni.SongPlaybackSpeedOverride = enabled ? 1.0 : null;
-				songSpeedChanged = true;
-			}
-
-			if (OpenTaiko.ConfigIni.SongPlaybackSpeedOverride.HasValue)
-			{
-				float songSpeedOverride = (float)OpenTaiko.ConfigIni.SongPlaybackSpeedOverride.Value;
-				if (ImGui.SliderFloat("Song Speed", ref songSpeedOverride, 0.25f, 4.0f))
-				{
-					OpenTaiko.ConfigIni.SongPlaybackSpeedOverride = songSpeedOverride;
-					songSpeedChanged = true;
-				}
-			}
-
-			if (songSpeedChanged && IsTrainingModeActive())
-			{
-				if (!OpenTaiko.stageGameScreen.actTokkun.bTrainingPAUSE)
-				{
-					OpenTaiko.stageGameScreen.actTokkun.tPausePlay();
-				}
-				OpenTaiko.stageGameScreen.actTokkun.tMatchWithTheChartDisplayPosition(false);
-			}
 		}
 	}
 }

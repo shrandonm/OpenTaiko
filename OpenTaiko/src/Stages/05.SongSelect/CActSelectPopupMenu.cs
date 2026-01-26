@@ -306,8 +306,7 @@ internal class CActSelectPopupMenu : CActivity {
 				if (bItemBold || bShowAllItems) {
 					string s;
 					if (lciMenuItems[i].cItem.str項目名 == CLangManager.LangInstance.GetString("MOD_SONGSPEED")) {
-						double d = (double)((int)lciMenuItems[i].cItem.obj現在値() / 20.0);
-						s = "x" + d.ToString("0.00");
+						s = $"x{CConfigIni.SongPlaybackSpeedToString((int)lciMenuItems[i].cItem.obj現在値())}";
 					} else if (lciMenuItems[i].cItem.str項目名 == CLangManager.LangInstance.GetString("MOD_SPEED")) {
 						double d = (double)((((int)lciMenuItems[i].cItem.obj現在値()) + 1) / 10.0);
 						s = "x" + d.ToString("0.0");

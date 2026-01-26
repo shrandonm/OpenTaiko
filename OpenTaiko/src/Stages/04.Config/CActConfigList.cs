@@ -111,7 +111,7 @@ internal class CActConfigList : CActivity {
 			CLangManager.LangInstance.GetString("SETTINGS_SYSTEM_HIDEDANTOWER_DESC"));
 		this.list項目リスト.Add(this.iDanTowerHide);
 
-		this.iCommonPlaySpeed = new CItemInteger(CLangManager.LangInstance.GetString("MOD_SONGSPEED"), 5, 400, OpenTaiko.ConfigIni.nSongSpeed,
+		this.iCommonPlaySpeed = new CItemInteger(CLangManager.LangInstance.GetString("MOD_SONGSPEED"), 50, 400, OpenTaiko.ConfigIni.nSongSpeed,
 			CLangManager.LangInstance.GetString("SETTINGS_MOD_SONGSPEED_DESC"));
 		this.list項目リスト.Add(this.iCommonPlaySpeed);
 

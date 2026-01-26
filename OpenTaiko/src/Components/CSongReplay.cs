@@ -275,7 +275,7 @@ class CSongReplay {
 		ScoreRank = (byte)SRank;
 		// Scroll speed value (as on ConfigIni, 9 is x1)
 		ScrollSpeedValue = OpenTaiko.ConfigIni.nScrollSpeed[actualPlayer];
-		// Song speed value (as on ConfigIni, 20 is x1)
+		// Song speed value (as on ConfigIni, 100 is x1)
 		SongSpeedValue = OpenTaiko.ConfigIni.nSongSpeed;
 		// Just strictess adjust mod value (as on ConfigIni, between -2 for lenient and 2 for rigorous)
 		JudgeStrictnessAdjust = OpenTaiko.ConfigIni.nTimingZones[actualPlayer];

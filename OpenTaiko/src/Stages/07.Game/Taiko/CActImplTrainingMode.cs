@@ -163,16 +163,16 @@ class CActImplTrainingMode : CActivity {
 			}
 			if (OpenTaiko.ConfigIni.KeyAssign.KeyIsPressed(OpenTaiko.ConfigIni.KeyAssign.Drums.TrainingDecreaseSongSpeed)) {
 				if (this.bTrainingPAUSE) {
-					if (OpenTaiko.ConfigIni.nSongSpeed > 6) {
-						OpenTaiko.ConfigIni.nSongSpeed = OpenTaiko.ConfigIni.nSongSpeed - 1;
+					if (OpenTaiko.ConfigIni.nSongSpeed > CConfigIni.MinSongSpeed) {
+						--OpenTaiko.ConfigIni.nSongSpeed;
 						this.tMatchWithTheChartDisplayPosition(false);
 					}
 				}
 			}
 			if (OpenTaiko.ConfigIni.KeyAssign.KeyIsPressed(OpenTaiko.ConfigIni.KeyAssign.Drums.TrainingIncreaseSongSpeed)) {
 				if (this.bTrainingPAUSE) {
-					if (OpenTaiko.ConfigIni.nSongSpeed < 399) {
-						OpenTaiko.ConfigIni.nSongSpeed = OpenTaiko.ConfigIni.nSongSpeed + 1;
+					if (OpenTaiko.ConfigIni.nSongSpeed < CConfigIni.MaxSongSpeed) {
+						++OpenTaiko.ConfigIni.nSongSpeed;
 						this.tMatchWithTheChartDisplayPosition(false);
 					}
 				}
@@ -308,7 +308,7 @@ class CActImplTrainingMode : CActivity {
 		nQueuedJumpToMeasure = -1;
 	}
 
-	// 20 = 100% speed, 19 = 95% etc
+	// 100 = 100% speed, 95 = 95% etc
 	public void SetSongSpeed(int newValue)
 	{
 		tPausePlay();
@@ -360,24 +360,12 @@ class CActImplTrainingMode : CActivity {
 				x += OpenTaiko.Skin.Game_Training_BigNumber_Width - 2;
 			}
 
-			var PlaySpdtmp = OpenTaiko.ConfigIni.SongPlaybackSpeed * 10.0d;
-			PlaySpdtmp = Math.Round(PlaySpdtmp, MidpointRounding.AwayFromZero);
-
-			var playSpd = PlaySpdtmp / 10.0d;
-			var playSpdI = playSpd - (int)playSpd;
-			var playSpdStr = Decimal.Round((decimal)playSpdI, 1, MidpointRounding.AwayFromZero).ToString();
-			var decimalStr = (playSpdStr == "0") ? "0" : playSpdStr[2].ToString();
-			string speedStr = Double.Round(OpenTaiko.ConfigIni.SongPlaybackSpeed * 100.0).ToString();
-			OpenTaiko.Tx.Tokkun_BigNumber.t2D描画(OpenTaiko.Skin.Game_Training_SpeedDisplay_XY[0],
-				OpenTaiko.Skin.Game_Training_SpeedDisplay_XY[1],
-				new Rectangle(OpenTaiko.Skin.Game_Training_BigNumber_Width * int.Parse(speedStr),
-				0, OpenTaiko.Skin.Game_Training_BigNumber_Width,
-				OpenTaiko.Tx.Tokkun_BigNumber.szTextureSize.Height));
+			double playSpeedDecimal = Math.Round(OpenTaiko.ConfigIni.SongPlaybackSpeed, MidpointRounding.AwayFromZero);
+			string speedStr = OpenTaiko.ConfigIni.nSongSpeed.ToString();
 
 			x = OpenTaiko.Skin.Game_Training_SpeedDisplay_XY[0] - 25;
 
-			subtractVal = OpenTaiko.Skin.Game_Training_BigNumber_Width * (((int)playSpd).ToString().Length - 1);
-
+			subtractVal = OpenTaiko.Skin.Game_Training_BigNumber_Width * (((int)playSpeedDecimal).ToString().Length - 1);
 			foreach (char c in speedStr) {
 				var currentNum = int.Parse(c.ToString());
 				OpenTaiko.Tx.Tokkun_BigNumber.t2D描画(x - subtractVal,

@@ -38,17 +38,7 @@ internal class CActPlayOption : CActivity {
 		txSpeed[15] = OptionTypeTx("4.0", Color.White, Color.Black);
 
 		#endregion
-
-		for (int i = 0; i < txSongSpeed.Length; i++) {
-			Color _c = Color.White;
-
-			if (i < 5)
-				_c = Color.LimeGreen;
-			else if (i > 5)
-				_c = Color.Red;
-
-			txSongSpeed[i] = OptionTypeTx((0.5f + i * 0.1f).ToString("n1"), _c, Color.Black);
-		}
+		UpdateSongSpeedTexture();
 
 		txSwitch[0] = OptionTypeTx(CLangManager.LangInstance.GetString("MOD_SWITCH_OFF"), Color.White, Color.Black);
 		txSwitch[1] = OptionTypeTx(CLangManager.LangInstance.GetString("MOD_SWITCH_ON"), Color.White, Color.Black);
@@ -156,7 +146,7 @@ internal class CActPlayOption : CActivity {
 			txGameType[nGameType],
 			txGameMode[nGameMode],
 			txSwitch[nAutoMode],
-			txSongSpeed[nSongSpeed],
+			txSongSpeed[0],
 			txOtoiro[nOtoiro],
 			txFunMods[nFunMods],
 		};
@@ -367,8 +357,11 @@ internal class CActPlayOption : CActivity {
 	public CHitSounds hsInfo;
 	public int nOtoiro = 0;
 
-	public CTexture[] txSongSpeed = new CTexture[16];
-	public int nSongSpeed = 5;
+	public CTexture[] txSongSpeed = new CTexture[1];
+	public int nSongSpeed = CConfigIni.DefaultSongSpeed;
+	// This is cursed, texture_ contains all the options in one list, we don't want to store 400 textures for speed
+	// so just special case this index to always return index 0
+	public const int nSongSpeedTextureIndex = 9;
 
 	public CTexture[] txGameType = new CTexture[2];
 	public int nGameType = 0;
@@ -427,7 +420,8 @@ internal class CActPlayOption : CActivity {
 				else nAutoMode = 0;
 				break;
 			case 9:
-				ShiftVal(left, ref nSongSpeed, txSongSpeed.Length - 1, 0);
+				ShiftVal(left, ref nSongSpeed, CConfigIni.MaxSongSpeed, CConfigIni.MinSongSpeed);
+				UpdateSongSpeedTexture();
 				break;
 			case 10:
 				ShiftVal(left, ref nOtoiro, txOtoiro.Length - 1, 0);
@@ -541,7 +535,7 @@ internal class CActPlayOption : CActivity {
 
 		#region [ Song speed ]
 
-		nSongSpeed = Math.Max(0, Math.Min(txSongSpeed.Length - 1, (OpenTaiko.ConfigIni.nSongSpeed / 2) - 5));
+		nSongSpeed = Math.Clamp(OpenTaiko.ConfigIni.nSongSpeed, CConfigIni.MinSongSpeed, CConfigIni.MaxSongSpeed);
 
 		#endregion
 
@@ -647,10 +641,19 @@ internal class CActPlayOption : CActivity {
 
 		#region [ Song speed ]
 
-		OpenTaiko.ConfigIni.nSongSpeed = (nSongSpeed + 5) * 2;
+		OpenTaiko.ConfigIni.nSongSpeed = nSongSpeed;
 
 		#endregion
 	}
+
+	// [Divergence]
+	void UpdateSongSpeedTexture() {
+		Color color = nSongSpeed > CConfigIni.DefaultSongSpeed ? Color.Red
+			: nSongSpeed < CConfigIni.DefaultSongSpeed ? Color.LightGreen
+			: Color.White;
+		txSongSpeed[0] = OptionTypeTx(CConfigIni.SongPlaybackSpeedToString(nSongSpeed), color, Color.Black);
+	}
+	// [End Divergence]
 
 	#region [ Balancing functions ]
 
@@ -663,7 +666,7 @@ internal class CActPlayOption : CActivity {
 	}
 
 	public float tGetSongSpeedFactor(EBalancingType ebt = EBalancingType.SCORE, bool isMenu = false, int actual = 0) {
-		var _compare = ((isMenu) ? (nSongSpeed + 5) * 2 : OpenTaiko.ConfigIni.nSongSpeed) / 20f;
+		var _compare = nSongSpeed / OpenTaiko.ConfigIni.nSongSpeed;
 
 		if (ebt == EBalancingType.SCORE || _compare <= 1f)
 			return Math.Min(1f, (float)Math.Pow(_compare, 1.3));

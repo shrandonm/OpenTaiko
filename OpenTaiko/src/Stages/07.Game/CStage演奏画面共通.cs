@@ -3915,7 +3915,7 @@ internal abstract class CStage演奏画面共通 : CStage {
 		}
 		#region [ PAUSEしていたサウンドを一斉に再生再開する(ただしタイマを止めているので、ここではまだ再生開始しない) ]
 
-		if (!(OpenTaiko.ConfigIni.bNoAudioIfNot1xSpeed && OpenTaiko.ConfigIni.nSongSpeed != 20))
+		if (!(OpenTaiko.ConfigIni.bNoAudioIfNot1xSpeed && OpenTaiko.ConfigIni.nSongSpeed != CConfigIni.DefaultSongSpeed))
 			foreach (CSound cs in pausedCSound) {
 				cs.tPlaySound();
 			}

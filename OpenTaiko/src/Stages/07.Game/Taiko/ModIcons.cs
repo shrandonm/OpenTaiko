@@ -106,9 +106,9 @@ class ModIcons {
 	}
 
 	static private void tDisplaySongSpeedIcon(int x, int y, int player) {
-		if (OpenTaiko.ConfigIni.nSongSpeed > 20)
+		if (OpenTaiko.ConfigIni.nSongSpeed > CConfigIni.DefaultSongSpeed)
 			OpenTaiko.Tx.Mod_SongSpeed[1]?.t2D描画(x, y);
-		else if (OpenTaiko.ConfigIni.nSongSpeed < 20)
+		else if (OpenTaiko.ConfigIni.nSongSpeed < CConfigIni.DefaultSongSpeed)
 			OpenTaiko.Tx.Mod_SongSpeed[0]?.t2D描画(x, y);
 		else
 			OpenTaiko.Tx.Mod_None?.t2D描画(x, y);
@@ -146,7 +146,7 @@ class ModIcons {
 		if (OpenTaiko.ConfigIni.nFunMods[actual] != EFunMods.None) return false;
 		if (OpenTaiko.ConfigIni.bJust[actual] != 0) return false;
 		if (OpenTaiko.ConfigIni.nTimingZones[actual] != 2) return false;
-		if (OpenTaiko.ConfigIni.nSongSpeed != 20) return false;
+		if (OpenTaiko.ConfigIni.nSongSpeed != CConfigIni.DefaultSongSpeed) return false;
 		if (OpenTaiko.ConfigIni.eRandom[actual] != ERandomMode.Off) return false;
 		if (OpenTaiko.ConfigIni.eSTEALTH[actual] != EStealthMode.Off) return false;
 		if (OpenTaiko.ConfigIni.nScrollSpeed[actual] != 9) return false;
