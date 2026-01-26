@@ -168,8 +168,7 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				int scrollSpeedIndex = Array.IndexOf(Speeds, speed);
 				OpenTaiko.ConfigIni.nScrollSpeed[OpenTaiko.SaveFile] = ScrollSpeeds[scrollSpeedIndex];
-				const int songSpeedInterval = 5;
-				trainingMode.SetSongSpeed(speed / songSpeedInterval);
+				trainingMode.SetSongSpeed(speed);
 				JumpToStartOfBookmark(bookmark);
 			}
 		}
