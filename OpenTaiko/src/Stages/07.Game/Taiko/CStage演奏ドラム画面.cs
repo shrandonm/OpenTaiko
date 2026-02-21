@@ -204,11 +204,18 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 			this.soundAdlib[i] = OpenTaiko.SoundManager.tCreateSound(hs.adlib[actual], ESoundGroup.SoundEffect);
 			this.soundClap[i] = OpenTaiko.SoundManager.tCreateSound(hs.clap[actual], ESoundGroup.SoundEffect);
 
+			// [Divergence] Perfect hit sound
+			this.soundPerfect[i] = OpenTaiko.SoundManager.tCreateSound(hs.perfect[actual], ESoundGroup.SoundEffect);
+			// [End divergence]
+
 			int _panning = OpenTaiko.ConfigIni.nPanning[OpenTaiko.ConfigIni.nPlayerCount - 1][i];
 			if (this.soundRed[i] != null) this.soundRed[i].SoundPosition = _panning;
 			if (this.soundBlue[i] != null) this.soundBlue[i].SoundPosition = _panning;
 			if (this.soundAdlib[i] != null) this.soundAdlib[i].SoundPosition = _panning;
 			if (this.soundClap[i] != null) this.soundClap[i].SoundPosition = _panning;
+			// [Divergence] Perfect hit sound
+			if (this.soundPerfect[i] != null) this.soundPerfect[i].SoundPosition = _panning;
+			// [End divergence]
 		}
 	}
 
@@ -739,14 +746,6 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 		{
 			OpenTaiko.ShrandyExtension.OnNoteHit(chipNoHit, e判定, nPad, (double)msHitTjaTime);
 			
-		}
-		// [End Divergence]
-
-		// Visual and sound effects
-		// [Divergence]
-		if (chipNoHit != null && chipNoHit.nLag == 0 && OpenTaiko.Skin.soundPerfectTiming != null)
-		{
-			OpenTaiko.Skin.soundPerfectTiming.tPlay();
 		}
 		// [End Divergence]
 

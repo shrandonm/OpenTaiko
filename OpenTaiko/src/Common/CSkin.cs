@@ -326,7 +326,6 @@ internal class CSkin : IDisposable {
 	public CSystemSound soundPon = null;
 	public CSystemSound soundGauge = null;
 	public CSystemSound soundScoreDon = null;
-	public CSystemSound soundPerfectTiming = null;
 	public CSystemSound soundChallengeVoice = null;
 	public CSystemSound soundDanSelectStart = null;
 	public CSystemSound soundDanSongSelectCheck = null;
@@ -695,7 +694,6 @@ internal class CSkin : IDisposable {
 		this.soundPon = new CSystemSound(@$"Sounds{System.IO.Path.DirectorySeparatorChar}Pon.ogg", false, false, false, ESoundGroup.SoundEffect);
 		this.soundGauge = new CSystemSound(@$"Sounds{System.IO.Path.DirectorySeparatorChar}Gauge.ogg", false, false, false, ESoundGroup.SoundEffect);
 		this.soundScoreDon = new CSystemSound(@$"Sounds{System.IO.Path.DirectorySeparatorChar}ScoreDon.ogg", false, false, false, ESoundGroup.SoundEffect);
-		this.soundPerfectTiming = new CSystemSound(@$"Sounds{System.IO.Path.DirectorySeparatorChar}PerfectTiming.ogg", false, false, false, ESoundGroup.SoundEffect);
 
 		this.soundDanSongSelectIn = new CSystemSound(@$"Sounds{System.IO.Path.DirectorySeparatorChar}Dan{System.IO.Path.DirectorySeparatorChar}Dan_In.ogg", false, false, false, ESoundGroup.SoundEffect);
 

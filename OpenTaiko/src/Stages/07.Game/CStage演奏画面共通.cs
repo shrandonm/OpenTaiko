@@ -676,7 +676,10 @@ internal abstract class CStage演奏画面共通 : CStage {
 	protected CSound[] soundBlue = new CSound[5];
 	protected CSound[] soundAdlib = new CSound[5];
 	protected CSound[] soundClap = new CSound[5];
-	public bool isMultiPlay; // 2016.08.21 kairera0467 表示だけ。
+	// [Divergence] Perfect hit sound
+    protected CSound[] soundPerfect = new CSound[5];
+	// [End Divergence]
+    public bool isMultiPlay; // 2016.08.21 kairera0467 表示だけ。
 	protected Stopwatch sw;     // 2011.6.13 最適化検討用のストップウォッチ
 	public int ListDan_Number;
 	private bool IsDanFailed;
@@ -1053,6 +1056,12 @@ internal abstract class CStage演奏画面共通 : CStage {
 		sound?.PlayStart();
 	}
 
+	// [Divergence] Perfect hit sound
+	protected void PlayPerfectHitSound(int iPlayer) {
+		this.soundPerfect[iPlayer]?.PlayStart();
+	}
+	// [End divergence]
+
 	protected void StartHitNoteLaneFlash(int iPlayer, NotesManager.EInputType input, EGameType gt) {
 		this.actTaikoLaneFlash.PlayerLane[iPlayer].Start(NotesManager.InputToLane(input), gt);
 	}
@@ -1343,6 +1352,13 @@ internal abstract class CStage演奏画面共通 : CStage {
 					this.actJudgeString.Start(nPlayer, eJudgeResult);
 					bool isBigInput = nNowInput is NotesManager.EInputType.RedBig or NotesManager.EInputType.BlueBig || !OpenTaiko.ConfigIni.bJudgeBigNotes;
 					this.PlayHitNoteSound(nPlayer, nNowInput);
+
+					// [Divergence] Perfect hit sound
+					if (pChip != null && pChip.nLag == 0 && OpenTaiko.ConfigIni.bEnablePerfectHitSound)
+					{
+						this.PlayPerfectHitSound(nPlayer);
+					}
+					// [End divergence]
 					this.StartHitNoteLaneFlash(nPlayer, nNowInput, gt);
 					OpenTaiko.stageGameScreen.actLaneTaiko.Start(pChip, gt, eJudgeResult, isBigInput, nPlayer);
 					OpenTaiko.stageGameScreen.actChipFireD.Start(pChip, gt, eJudgeResult, isBigInput, nPlayer);

@@ -1021,7 +1021,7 @@ internal class CConfigIni : INotifyPropertyChanged {
 	public const int MaxSongSpeed = DefaultSongSpeed * 4;
 	public int nSongSpeed;
 
-	// [Divergence]
+	// [Divergence] Song speed
 	public static string SongPlaybackSpeedToString(float nSpeed)
 	{
 		return (nSpeed / 100.0f).ToString("n2");
@@ -1186,6 +1186,7 @@ internal class CConfigIni : INotifyPropertyChanged {
 	public EGame eGameMode;
 	// [Divergence] Tokkun (training mode) auto reset threshold
 	public int TokkunAutoSkipBackErrorThreshold = 75;
+	// [End divergence]
 	public int TokkunSkipMeasures;
 	public int TokkunMashInterval;
 	public bool bSuperHard = false;
@@ -1193,6 +1194,10 @@ internal class CConfigIni : INotifyPropertyChanged {
 	public int[] bJust = new int[5] { 0, 0, 0, 0, 0 };
 
 	public int[] nHitSounds = new int[5] { 0, 0, 0, 0, 0 };
+
+	// [Divergence] Perfect hit sound
+	public bool bEnablePerfectHitSound = true;
+	// [End divergence]
 
 	public int[][] nPanning = new int[5][] {
 		new int[1] { 0 },
@@ -2363,9 +2368,10 @@ internal class CConfigIni : INotifyPropertyChanged {
 		sw.WriteLine("; 特訓モード時にPgUp/PgDnで何小節飛ばすか");
 		sw.WriteLine("TokkunSkipMeasures={0}", this.TokkunSkipMeasures);
 		sw.WriteLine();
-		// [Divergence]
+		// [Divergence] Auto skip back
 		sw.WriteLine("TokkunAutoSkipBackErrorThreshold={0}", this.TokkunAutoSkipBackErrorThreshold);
 		sw.WriteLine();
+		// [End divergence]
 		sw.WriteLine("; 特訓モード時にジャンプポイントに飛ばすための時間(ms)");
 		sw.WriteLine("; 指定ms以内に5回縁を叩きましょう");
 		sw.WriteLine("{1}={0}", this.TokkunMashInterval, nameof(this.TokkunMashInterval));
@@ -2381,6 +2387,9 @@ internal class CConfigIni : INotifyPropertyChanged {
 		sw.WriteLine("HitSounds2P={0}", this.nHitSounds[1]);
 		sw.WriteLine("HitSounds3P={0}", this.nHitSounds[2]);
 		sw.WriteLine("HitSounds4P={0}", this.nHitSounds[3]);
+		// [Divergence] Perfect hit sound
+		sw.WriteLine($"EnablePerfectHitSound={this.bEnablePerfectHitSound}");
+		// [End divergence]
 		sw.WriteLine();
 		sw.WriteLine("; 判定数の表示(0:OFF, 1:ON)");
 		sw.WriteLine("JudgeCountDisplay={0}", this.bJudgeCountDisplay ? 1 : 0);
@@ -3307,11 +3316,17 @@ internal class CConfigIni : INotifyPropertyChanged {
 				this.TokkunSkipMeasures =
 					CConversion.ParseIntInRange(value, 0, 9999, this.TokkunSkipMeasures);
 				break;
-			// [Divergence]
+			// [Divergence] Auto skip back
 			case "TokkunAutoSkipBackErrorThreshold":
 				this.TokkunAutoSkipBackErrorThreshold =
 					CConversion.ParseIntInRange(value, 0, 9999, this.TokkunAutoSkipBackErrorThreshold);
 				break;
+			// [End divergence]
+			// [Divergence] Perfect hit sound
+			case "EnablePerfectHitSound":
+				this.bEnablePerfectHitSound = CConversion.bONorOFF(value[0]);
+				break;
+			// [End divergence]
 			case nameof(this.TokkunMashInterval):
 				this.TokkunMashInterval =
 					CConversion.ParseIntInRange(value, 0, 9999, this.TokkunMashInterval);

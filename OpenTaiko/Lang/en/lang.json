@@ -208,8 +208,14 @@
 		// [Divergence] Training mode strings
 		"SETTINGS_TRAINING_AUTO_SKIP_BACK_THRESHOLD": "Auto skip back error threshold",
 		"SETTINGS_TRAINING_AUTO_SKIP_BACK_THRESHOLD_DESC": "If the hit error is greater than this value (ms),\nskip backwards by 2 measures\nor to the previous bookmark (if any).\n0 = disabled",
+		// [End divergence]
 		"SETTINGS_TRAINING_JUMPINTERVAL": "Measure Jump Time Interval",
 		"SETTINGS_TRAINING_JUMPINTERVAL_DESC": "The amount of time in milliseconds needed to\nrepeatedly hit the Left/Right Blue keys in\norder to jump to a bookmarked measure in\nTraining Mode.",
+
+		// [Divergence] Perfect hit sound
+		"SETTINGS_ENABLE_PERFECT_HIT_SOUND": "Enable perfect hit sound",
+		"SETTINGS_ENABLE_PERFECT_HIT_SOUND_DESC": "Plays a unique sound when you hit\na note perfectly (<1ms error)",
+		// [End divergence]
 
 		// Settings - Gameplay - Unlockables
 		"SETTINGS_GAME_IGNORESONGUNLOCKABLES": "Ignore Song Unlockables",

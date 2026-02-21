@@ -24,6 +24,10 @@ class CHitSounds {
 		adlib[player] = fileExtension("Adlib");
 		clap[player] = fileExtension("clap");
 
+		// [Divergence] Perfect hit sound
+		perfect[player] = $@"Global{Path.DirectorySeparatorChar}HitSounds{Path.DirectorySeparatorChar}PerfectTiming.ogg";
+		// [End divergence]
+
 		return true;
 	}
 
@@ -33,6 +37,10 @@ class CHitSounds {
 	public string[] ka = new string[5];
 	public string[] adlib = new string[5];
 	public string[] clap = new string[5];
+
+	// [Divergence] Perfect hit sound
+	public string[] perfect = new string[5];
+	// [End divergence]
 
 	#region [private]
 
