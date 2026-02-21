@@ -1,6 +1,4 @@
 Todo:
-
-- Make perfect hit sound a setting
 - Add graphs breaking down accuracy
 - Simplify training tool UI
 - Track score per speed
@@ -22,3 +20,4 @@ Done:
 - Add note visualizer
 - Move song speed override out of training tool, maybe build a song select tool
 - All don mode
+- Make perfect hit sound a setting
