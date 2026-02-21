@@ -814,7 +814,7 @@ class TextureLoader {
 			Mod_SongSpeed[i] = TxC(GAME + MODICONS + @$"SongSpeed{Path.DirectorySeparatorChar}" + i.ToString() + @$".png");
 		}
 
-		Mod_Fun = new CTexture[3];
+		Mod_Fun = new CTexture[(int)EFunMods.Total];
 		for (int i = 0; i < Mod_Fun.Length; i++) {
 			Mod_Fun[i] = TxC(GAME + MODICONS + @$"Fun{Path.DirectorySeparatorChar}" + i.ToString() + @$".png");
 		}

@@ -688,6 +688,27 @@ internal class CTja : CActivity {
 					chip.dbSCROLL *= (n + 50) / (double)100;
 				}
 				break;
+			case EFunMods.ForceAllDon:
+				foreach (var chip in this.listChip)
+				{
+					var noteType = NotesManager.GetNoteType(chip.nChannelNo);
+					switch (noteType)
+					{
+						case NotesManager.ENoteType.Ka:
+							chip.nChannelNo = NotesManager.ToChannelNo(NotesManager.ENoteType.Don);
+							break;
+						case NotesManager.ENoteType.KaBig:
+							chip.nChannelNo = NotesManager.ToChannelNo(NotesManager.ENoteType.DonBig);
+							break;
+						case NotesManager.ENoteType.KaHand:
+							chip.nChannelNo = NotesManager.ToChannelNo(NotesManager.ENoteType.DonHand);
+							break;
+						case NotesManager.ENoteType.Kadon:
+							chip.nChannelNo = NotesManager.ToChannelNo(NotesManager.ENoteType.Don);
+							break;
+					}
+				}
+				break;
 			case EFunMods.None:
 			default:
 				break;

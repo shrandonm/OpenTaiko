@@ -24,6 +24,7 @@ class CSongReplay {
 	 * - 6 (64) : Minesweeper
 	 * - 7 (128) : Just (Ok => Bad)
 	 * - 8 (256) : Safe (Bad => Ok)
+	 * - 9 (512) : Force all notes to don
 	 */
 	[Flags]
 	public enum EModFlag {
@@ -36,7 +37,8 @@ class CSongReplay {
 		Avalanche = 1 << 5,
 		Minesweeper = 1 << 6,
 		Just = 1 << 7,
-		Safe = 1 << 8
+		Safe = 1 << 8,
+		ForceAllDon = 1 << 9,
 	}
 
 	public CSongReplay() {
@@ -291,6 +293,7 @@ class CSongReplay {
 		 * - 6 (64) : Minesweeper
 		 * - 7 (128) : Just (Ok => Bad)
 		 * - 8 (256) : Safe (Bad => Ok)
+		 * - 9 (512) : Force all notes to don
 		 */
 		ModFlags = (int)EModFlag.None;
 		if (OpenTaiko.ConfigIni.eRandom[actualPlayer] == ERandomMode.Mirror) ModFlags |= (int)EModFlag.Mirror;
@@ -301,6 +304,7 @@ class CSongReplay {
 		if (OpenTaiko.ConfigIni.eSTEALTH[actualPlayer] == EStealthMode.Stealth) ModFlags |= (int)EModFlag.PerfectMemory;
 		if (OpenTaiko.ConfigIni.nFunMods[actualPlayer] == EFunMods.Avalanche) ModFlags |= (int)EModFlag.Avalanche;
 		if (OpenTaiko.ConfigIni.nFunMods[actualPlayer] == EFunMods.Minesweeper) ModFlags |= (int)EModFlag.Minesweeper;
+		if (OpenTaiko.ConfigIni.nFunMods[actualPlayer] == EFunMods.ForceAllDon) ModFlags |= (int)EModFlag.ForceAllDon;
 		if (OpenTaiko.ConfigIni.bJust[actualPlayer] == 1) ModFlags |= (int)EModFlag.Just;
 		if (OpenTaiko.ConfigIni.bJust[actualPlayer] == 2) ModFlags |= (int)EModFlag.Safe;
 		/* Gauge type
@@ -450,6 +454,7 @@ class CSongReplay {
 	 * - 6 (64) : Minesweeper
 	 * - 7 (128) : Just (Ok => Bad)
 	 * - 8 (256) : Safe (Bad => Ok)
+	 * - 9 (512) : Force all notes to don
 	 */
 	public int ModFlags;
 	/* Gauge type

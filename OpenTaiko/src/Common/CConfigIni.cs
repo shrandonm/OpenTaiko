@@ -2294,7 +2294,7 @@ internal class CConfigIni : INotifyPropertyChanged {
 		sw.WriteLine("Gametype5P={0}", (int)this.nGameType[4]);
 		sw.WriteLine();
 		sw.WriteLine(
-			"; Fun Mods (0 : None, 1 : Avalanche (random scroll speed per note/chip), 2 : Minesweeper (replace randomly notes by bombs))");
+			"; Fun Mods (0 : None, 1 : Avalanche (random scroll speed per note/chip), 2 : Minesweeper (replace randomly notes by bombs), 3 : Force All Notes To Don)");
 		sw.WriteLine("FunMods1P={0}", (int)this.nFunMods[0]);
 		sw.WriteLine("FunMods2P={0}", (int)this.nFunMods[1]);
 		sw.WriteLine("FunMods3P={0}", (int)this.nFunMods[2]);

@@ -640,7 +640,8 @@
 
 		"MOD_FUN": "Fun Mods",
 		"MOD_FUN_AVALANCHE": "Avalanche",
-		"MOD_FUN_MINESWEEPER": "Minesweeper"
+		"MOD_FUN_MINESWEEPER": "Minesweeper",
+		"MOD_FUN_FORCE_DON": "All Don"
 	},
 	// In the case that a key is missing, this message will display, with the name of the missing/unknown key.
 	"InvalidKey": "KEY NOT FOUND: {0}",

@@ -64,6 +64,7 @@ internal class CActPlayOption : CActivity {
 		txFunMods[0] = OptionTypeTx(CLangManager.LangInstance.GetString("MOD_SWITCH_OFF"), Color.White, Color.Black);
 		txFunMods[1] = OptionTypeTx(CLangManager.LangInstance.GetString("MOD_FUN_AVALANCHE"), Color.White, Color.Black);
 		txFunMods[2] = OptionTypeTx(CLangManager.LangInstance.GetString("MOD_FUN_MINESWEEPER"), Color.White, Color.Black);
+		txFunMods[3] = OptionTypeTx(CLangManager.LangInstance.GetString("MOD_FUN_FORCE_DON"), Color.White, Color.Black);
 
 		txNone = OptionTypeTx(CLangManager.LangInstance.GetString("MOD_BLANK"), Color.White, Color.Black);
 
@@ -366,7 +367,7 @@ internal class CActPlayOption : CActivity {
 	public CTexture[] txGameType = new CTexture[2];
 	public int nGameType = 0;
 
-	public CTexture[] txFunMods = new CTexture[3];
+	public CTexture[] txFunMods = new CTexture[(int)EFunMods.Total];
 	public int nFunMods = 0;
 
 	public CTexture[] txModMults = new CTexture[2];
