@@ -4255,8 +4255,10 @@ internal class CTja : CActivity {
 	public void UpdateScrolledChipPosition(CChip chip, CBPM nowBpmPoint, double msTjaNowTime, double th16NowBeat, double scrollRate) {
 		CChip velocityRefChip = NotesManager.GetVelocityRefChip(chip);
 
-		double msDTime = chip.db発声時刻ms - msTjaNowTime;
-		double th16DBeat = chip.fBMSCROLLTime - th16NowBeat;
+		// [Divergence] Add visual offset
+		double msDTime = chip.db発声時刻ms - msTjaNowTime + OpenTaiko.ConfigIni.nVisualOffsetMs;
+		double th16DBeat = chip.fBMSCROLLTime - th16NowBeat + OpenTaiko.ConfigIni.nVisualOffsetMs;
+		// [End Divergence]
 
 		bool forceNMScroll = false;
 		EScrollMode scrollModeForced = forceNMScroll ? EScrollMode.Normal : velocityRefChip.eScrollMode;
