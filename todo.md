@@ -1,4 +1,5 @@
 Todo:
+- Add perfect hit window, just change animation of 'Good' text, don't bother making it a new hit type
 - Add graphs breaking down accuracy
 - Simplify training tool UI
 - Track score per speed
