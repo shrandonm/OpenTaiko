@@ -196,7 +196,7 @@ class NotesManager {
 				or (ENoteType.Po, EGameType.Konga);
 	public static bool IsAcceptBlue(ENoteType nt, EGameType gt)
 		=> IsADLIB(nt) || IsMine(nt) || IsSwapNote(nt, gt) || IsYellowRollKonga(nt, gt) || IsPinkRollKonga(nt, gt) || IsSmallRollTaiko(nt, gt) || IsBigRollTaiko(nt, gt)
-			|| (IsGenericBalloon(nt) && gt is EGameType.Konga)
+			|| IsGenericBalloon(nt)
 			|| (nt, gt) is (ENoteType.Ka or ENoteType.KaBig or ENoteType.KaHand, EGameType.Taiko)
 				or (ENoteType.Pa, EGameType.Konga);
 	public static bool IsAcceptClap(ENoteType nt, EGameType gt)
