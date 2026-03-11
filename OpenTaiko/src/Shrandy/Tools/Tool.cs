@@ -9,22 +9,30 @@ namespace OpenTaiko.Shrandy
 {
 	internal class Tool
 	{
-		public bool Enabled { get; private set; } = false;
-
-		protected SlimDXKeys.Key m_EnableHotkey = SlimDXKeys.Key.Unknown;
-		protected string m_ToolName = "Tool";
+		public string ToolName = "Tool";
+		public bool Enabled { get; set; } = false;
+		private SlimDXKeys.Key m_ModifierHotkey = SlimDXKeys.Key.LeftShift;
+		private SlimDXKeys.Key m_Hotkey = SlimDXKeys.Key.Unknown;
 
 		private MicroStopwatch m_DrawTime = new();
 
 		public Tool(string toolName, SlimDXKeys.Key enableHotkey)
 		{
-			m_ToolName = toolName;
-			m_EnableHotkey = enableHotkey;
+			ToolName = toolName;
+			m_Hotkey = enableHotkey;
+		}
+
+		public string GetHotkeyString()
+		{
+			string modifier = m_ModifierHotkey.ToString().Replace("Left", "");
+			return $"{modifier}+{m_Hotkey}";
 		}
 
 		public void UpdateEnabledState()
 		{
-			if (OpenTaiko.InputManager != null && OpenTaiko.InputManager.Keyboard.KeyPressed((int)m_EnableHotkey))
+			if (OpenTaiko.InputManager != null
+				&& OpenTaiko.InputManager.Keyboard.KeyPressing((int)m_ModifierHotkey)
+				&& OpenTaiko.InputManager.Keyboard.KeyPressed((int)m_Hotkey))
 			{
 				Enabled = !Enabled;
 			}
@@ -52,7 +60,8 @@ namespace OpenTaiko.Shrandy
 
 			ImGui.SetNextWindowPos(new System.Numerics.Vector2(0, 0), ImGuiCond.FirstUseEver);
 			ImGui.SetNextWindowSize(new System.Numerics.Vector2(400, 300), ImGuiCond.FirstUseEver);
-			if (ImGui.Begin(m_ToolName))
+			bool open = Enabled;
+			if (ImGui.Begin(ToolName, ref open))
 			{
 				m_DrawTime.Restart();
 				Draw();
@@ -63,6 +72,7 @@ namespace OpenTaiko.Shrandy
 				DrawProfilingStats();
 
 				ImGui.End();
+				Enabled = open;
 			}
 		}
 
