@@ -260,7 +260,7 @@ internal class CStageTitle : CStage {
 				}
 
 
-				if (OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.Decide)
+				if (OpenTaiko.Pad.IsPressingDecide()
 					|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LRed)
 					|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RRed)
 					|| OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.Return)) {
