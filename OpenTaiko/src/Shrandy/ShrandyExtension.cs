@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ImGuiNET;
 
 namespace OpenTaiko.Shrandy
 {
@@ -107,6 +108,20 @@ namespace OpenTaiko.Shrandy
 					tool.DrawWindow();
 				}
 			}
+		}
+
+		public bool IsGameInputAllowed()
+		{
+			if (ImGui.IsPopupOpen("", ImGuiPopupFlags.AnyPopup))
+			{
+				return false;
+			}
+			else if (m_Tools.Exists(x => x.IsBlockingInput()))
+			{
+				return false;
+			}
+
+			return true;
 		}
 
 		private static Hand GetHandFromPad(EPad pad)

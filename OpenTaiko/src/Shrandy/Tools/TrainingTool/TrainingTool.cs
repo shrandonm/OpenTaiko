@@ -340,7 +340,7 @@ namespace OpenTaiko.Shrandy.Tools
 					ImGui.BeginDisabled();
 				}
 
-				if (ImGui.Button("Create/Update"))
+				if (ImGui.Button("Create/Update") || ImGui.IsKeyPressed(ImGuiKey.Enter))
 				{
 					int startMeasure = Math.Max(0, m_StartMeasureInput);
 					int endMeasure = Math.Max(startMeasure, m_EndMeasureInput);

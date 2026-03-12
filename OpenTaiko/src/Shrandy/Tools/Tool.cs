@@ -90,5 +90,10 @@ namespace OpenTaiko.Shrandy
 			ImGui.SameLine();
 			ImGui.Text($"Draw time: {m_DrawTime.ElapsedMicroseconds / 1000.0}ms");
 		}
+
+		public virtual bool IsBlockingInput()
+		{
+			return false;
+		}
 	}
 }

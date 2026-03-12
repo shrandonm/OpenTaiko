@@ -876,6 +876,13 @@ internal class CConfigIni : INotifyPropertyChanged {
 
 		public bool KeyIsPressed(STKEYASSIGN[] pad) {
 			if (OpenTaiko.InputManager == null) return false; // Input initialisation failed/not reached
+
+			// [Divergence] ShrandyExtension input blocking
+			if (!OpenTaiko.ShrandyExtension.IsGameInputAllowed())
+			{
+				return false;
+			}
+			// [End Divergence]
 			return OpenTaiko.InputManager.Keyboard.KeyPressed(pad.ToList().ConvertAll<int>(key => key.Code));
 		}
 
