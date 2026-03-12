@@ -20,14 +20,12 @@ namespace OpenTaiko.Shrandy.Tools
 		private bool m_SaveRequested = false;
 		private bool m_WaitingForBookmarkRestart = false;
 
+		private const string BookmarkPopupName = "Edit Bookmark";
 		private string m_BookmarkNameInput = "";
 		private int m_StartMeasureInput;
 		private int m_EndMeasureInput;
 
-		const int RecentStatCount = 10;
-		readonly int[] Speeds = { 100, 95, 90, 85, 80, 70, 50 };
-		// Scroll speeds start at 9. They do (speed + 1) / 10 to get 1.0, 1.1, 1.2 etc
-		readonly int[] ScrollSpeeds = { 9, 9, 10, 10, 11, 12, 14 };
+		private int m_SongSpeed = 100;
 
 		public TrainingTool(string toolName, Key enableHotkey) : base(toolName, enableHotkey)
 		{
@@ -54,18 +52,59 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 		}
 
+		private void DrawSpeedControls()
+		{
+			ImGui.Text($"Current BPM: {(int)Math.Round(OpenTaiko.GetTJA(0)?.BPM * (m_SongSpeed * 0.01f) ?? 0)}");
+			int newSongSpeed = m_SongSpeed;
+			ImGui.InputInt("Song Speed % (50-400)", ref newSongSpeed, 1, 10);
+			newSongSpeed = Math.Clamp(newSongSpeed, 50, 400);
+
+			if (newSongSpeed != m_SongSpeed)
+			{
+				SetSongSpeed(newSongSpeed);
+			}
+
+			float scrollSpeed = Utilities.SpeedConversions.GetActualScrollSpeed(OpenTaiko.ConfigIni.nScrollSpeed[OpenTaiko.SaveFile]);
+			ImGui.InputFloat("Scroll Speed", ref scrollSpeed, 0.1f);
+			OpenTaiko.ConfigIni.nScrollSpeed[OpenTaiko.SaveFile] = Utilities.SpeedConversions.GetScrollSpeedIntValue(scrollSpeed);
+		}
+
 		protected override void Draw()
 		{
 			base.Draw();
 
 			if (OpenTaiko.stageGameScreen.actTokkun != null && OpenTaiko.ConfigIni.bTokkunMode)
 			{
+				DrawSpeedControls();
 				DrawBookmarks();
+				DrawNewBookmarkPopup();
+			}
+		}
+
+		private void SetSongSpeed(int newSpeed)
+		{
+			m_SongSpeed = newSpeed;
+			OpenTaiko.stageGameScreen.actTokkun.SetSongSpeed(newSpeed);
+
+			if (m_ActiveBookmarkInstance != null)
+			{
+				m_ActiveBookmarkInstance.Speed = newSpeed;
+				RestartBookmark();
+			}
+			else
+			{
+				OpenTaiko.stageGameScreen.actTokkun.QueueAutoSkipBack();
 			}
 		}
 
 		private void Cleanup()
 		{
+			StopActiveBookmark();
+		}
+
+		private void StopActiveBookmark()
+		{
+			m_ActiveBookmarkInstance = null;
 		}
 
 		public override void OnStageChanged(CStage stage)
@@ -168,15 +207,17 @@ namespace OpenTaiko.Shrandy.Tools
 			RequestSave();
 		}
 
-		private void SelectBookmark(Bookmark bookmark, int speed)
+		private int GetScrollSpeedIndex(int songSpeed)
 		{
-			m_ActiveBookmarkInstance = CreateBookmarkInstance(bookmark, speed);
+			return 0;
+		}
+
+		private void SelectBookmark(Bookmark bookmark)
+		{
+			m_ActiveBookmarkInstance = CreateBookmarkInstance(bookmark, m_SongSpeed);
 			CActImplTrainingMode trainingMode = OpenTaiko.stageGameScreen.actTokkun;
 			if (trainingMode != null)
 			{
-				int scrollSpeedIndex = Array.IndexOf(Speeds, speed);
-				OpenTaiko.ConfigIni.nScrollSpeed[OpenTaiko.SaveFile] = ScrollSpeeds[scrollSpeedIndex];
-				trainingMode.SetSongSpeed(speed);
 				JumpToStartOfBookmark(bookmark);
 			}
 		}
@@ -221,7 +262,7 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			if (m_ActiveBookmarkInstance != null)
 			{
-				BookmarkInstance newInstance = CreateBookmarkInstance(m_ActiveBookmarkInstance.Bookmark, m_ActiveBookmarkInstance.Speed);
+				BookmarkInstance newInstance = CreateBookmarkInstance(m_ActiveBookmarkInstance.Bookmark, m_SongSpeed);
 				m_ActiveBookmarkInstance = newInstance;
 				JumpToStartOfBookmark(newInstance.Bookmark);
 			}
@@ -229,18 +270,6 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private void OnSaveLoaded(SaveData saveData)
 		{
-			foreach (var kvp in saveData.History)
-			{
-				if (kvp.Value == null)
-				{
-					continue;
-				}
-
-				foreach (BookmarkInstance instance in kvp.Value)
-				{
-					instance.Bookmark = saveData.Bookmarks.Find(x => x.Name == instance.BookmarkName);
-				}
-			}
 		}
 
 		private void DeleteBookmark(Bookmark bookmark)
@@ -274,37 +303,106 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private void DrawBookmarks()
 		{
-			ImGui.Text("Bookmark Management");
+			DrawBookmarkTable(m_SongSpeed);
+			DrawCreateNewBookmarkButton();
+		}
 
-			if (ImGui.CollapsingHeader("Create Bookmark"))
+		private void DrawCreateNewBookmarkButton()
+		{
+			if (ImGui.Button("Create new bookmark"))
 			{
-				ImGui.Indent();
-				ImGui.InputText("Bookmark Name", ref m_BookmarkNameInput, 256);
-				ImGui.InputInt("Start Measure", ref m_StartMeasureInput);
-				ImGui.InputInt("End Measure", ref m_EndMeasureInput);
-				if (ImGui.Button("Create bookmark"))
-				{
-					CreateBookmark(m_BookmarkNameInput, m_StartMeasureInput, m_EndMeasureInput);
-				}
-				ImGui.Unindent();
-			}
-
-			ImGui.Separator();
-			ImGui.Text("Bookmarks");
-			for (int i = m_SaveData.Bookmarks.Count - 1; i >= 0; --i)
-			{
-				DrawBookmarkTabs(m_SaveData.Bookmarks[i]);
+				m_BookmarkNameInput = "";
+				int currentMeasure = OpenTaiko.stageGameScreen?.actTokkun?.nCurrentMeasure ?? 0;
+				m_StartMeasureInput = currentMeasure;
+				m_EndMeasureInput = currentMeasure;
+				ImGui.OpenPopup(BookmarkPopupName);
 			}
 		}
 
-		private System.Numerics.Vector4 GetPerformanceColour(float percent)
+		private void DrawNewBookmarkPopup()
+		{
+			bool createPopupOpen = true;
+			if (ImGui.BeginPopupModal(BookmarkPopupName, ref createPopupOpen, ImGuiWindowFlags.AlwaysAutoResize))
+			{
+				bool existingBookmark = m_SaveData.Bookmarks.Exists(x => x.Name == m_BookmarkNameInput);
+
+				if (ImGui.IsWindowAppearing())
+				{
+					ImGui.SetKeyboardFocusHere();
+				}
+				ImGui.InputText("Bookmark Name", ref m_BookmarkNameInput, 256);
+				ImGui.InputInt("Start Measure", ref m_StartMeasureInput);
+				ImGui.InputInt("End Measure", ref m_EndMeasureInput);
+
+				bool canCreate = !string.IsNullOrWhiteSpace(m_BookmarkNameInput);
+				if (!canCreate)
+				{
+					ImGui.BeginDisabled();
+				}
+
+				if (ImGui.Button("Create/Update"))
+				{
+					int startMeasure = Math.Max(0, m_StartMeasureInput);
+					int endMeasure = Math.Max(startMeasure, m_EndMeasureInput);
+					CreateBookmark(m_BookmarkNameInput.Trim(), startMeasure, endMeasure);
+					ImGui.CloseCurrentPopup();
+				}
+
+				if (!canCreate)
+				{
+					ImGui.EndDisabled();
+				}
+
+				if (!existingBookmark)
+				{
+					ImGui.BeginDisabled();
+				}
+				Bookmark bookmark = m_SaveData.Bookmarks.Find(x => x.Name == m_BookmarkNameInput);
+				ImGui.SameLine();
+				if (ImGui.Button("Delete"))
+				{
+					DeleteBookmark(bookmark);
+					ImGui.CloseCurrentPopup();
+				}
+				ImGui.SameLine();
+				if (ImGui.Button("Reset stats"))
+				{
+					ResetStats(bookmark, m_SongSpeed);
+					ImGui.CloseCurrentPopup();
+				}
+				if (!existingBookmark)
+				{
+					ImGui.EndDisabled();
+				}
+
+				ImGui.SameLine();
+				if (ImGui.Button("Cancel"))
+				{
+					ImGui.CloseCurrentPopup();
+				}
+
+				if (!createPopupOpen)
+				{
+					ImGui.CloseCurrentPopup();
+				}
+
+				ImGui.EndPopup();
+			}
+		}
+
+		private void ResetStats(Bookmark bookmark, int speed)
+		{
+			m_SaveData.DeleteHistory(bookmark, speed);
+			RequestSave();
+		}
+
+		private System.Numerics.Vector4 GetPerformanceColour(float percent, float min)
 		{
 			if (percent == 0.0f)
 			{
 				return new(0.75f);
 			}
-			const float min = 0.80f;
-			const float mid = (1.0f + min) / 2.0f;
+			float mid = (1.0f + min) / 2.0f;
 
 			percent = Math.Clamp(percent, min, 1.0f);
 			if (percent < mid)
@@ -325,132 +423,82 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 		}
 
-		private bool DrawBookmarkHeader(Bookmark bookmark)
+		private void DrawColumnStat(int columnIndex, int count, int total, float min, bool showCount)
 		{
-			AggregateNoteStats recentStats = m_SaveData.GetAggregateStats(new BookmarkKey(bookmark.Name, 100), RecentStatCount);
-
-			int totalNotes = recentStats.CombinedNoteStats.TotalNotes;
-			string headerText = $"{StringHelpers.GetPercentString(recentStats.CombinedNoteStats.GoodCount, totalNotes)} {bookmark.Name}";
-			var performanceColour = GetPerformanceColour(StringHelpers.GetPercent(recentStats.CombinedNoteStats.GoodCount, totalNotes));
-
-			ImGui.PushStyleColor(ImGuiCol.Text, performanceColour);
-			bool headerExpanded = ImGui.CollapsingHeader($"{headerText}###{bookmark.Name}");
-			ImGui.PopStyleColor();
-
-			return headerExpanded;
-		}
-
-		private void DrawBookmarkTab(Bookmark bookmark, int speed)
-		{
-			BookmarkKey key = new BookmarkKey(bookmark.Name, speed);
-			AggregateNoteStats stats = m_SaveData.GetAggregateStats(key, RecentStatCount);
-			var performanceColour = GetPerformanceColour(stats.CombinedNoteStats.GetGoodPercent());
-
-			ImGui.PushStyleColor(ImGuiCol.Text, performanceColour);
-			bool isTabActive = ImGui.BeginTabItem($"{speed}% ({stats.CombinedNoteStats.GetGoodPercentString()})###{key.Key}");
-			ImGui.PopStyleColor();
-
-			if (isTabActive)
+			float percent = StringHelpers.GetPercent(count, total);
+			using (var scopedColour = new ImGuiHelpers.ScopedStyleColor(ImGuiCol.Text, GetPerformanceColour(percent, min)))
 			{
-				DrawBookmark(bookmark, speed);
-				ImGui.EndTabItem();
+				ImGui.TableSetColumnIndex(columnIndex);
+				ImGui.Text($"{count} ({StringHelpers.GetPercentString(percent)}%)");
 			}
 		}
 
-		private void DrawBookmarkTabs(Bookmark bookmark)
+		private void DrawBookmarkTable(int speed)
 		{
-			ImGui.PushID(bookmark.Name);
-
-			if (DrawBookmarkHeader(bookmark))
+			bool requestingBookmarkPopup = false;
+			if (ImGui.BeginTable("StatsTable", 6, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg))
 			{
-				ImGui.Text($"Measures {bookmark.StartMeasure} to {bookmark.EndMeasure}");
-				ImGui.BeginTabBar(bookmark.Name);
-
-				foreach (int speed in Speeds)
-				{
-					DrawBookmarkTab(bookmark, speed);
-				}
-
-				ImGui.EndTabBar();
-			}
-			ImGui.PopID();
-		}
-
-		private void ResetStats(Bookmark bookmark, int speed)
-		{
-			m_SaveData.DeleteHistory(bookmark, speed);
-			RequestSave();
-		}
-
-		private void DrawBookmark(Bookmark bookmark, int speed)
-		{
-			ImGui.Indent();
-			if (ImGui.Button("Go"))
-			{
-				SelectBookmark(bookmark, speed);
-			}
-			ImGui.SameLine();
-			if (ImGui.Button("Delete Bookmark"))
-			{
-				DeleteBookmark(bookmark);
-			}
-			ImGui.SameLine();
-			if (ImGui.Button("Reset stats"))
-			{
-				ResetStats(bookmark, speed);
-			}
-
-			BookmarkKey key = new BookmarkKey(bookmark.Name, speed);
-			AggregateNoteStats recentStats = m_SaveData.GetAggregateStats(key, RecentStatCount);
-			AggregateNoteStats allTimeStats = m_SaveData.GetAggregateStats(key, int.MaxValue);
-			DrawBookmarkStats(bookmark, recentStats, allTimeStats);
-			ImGui.Separator();
-			DrawGraph(m_SaveData.GetBookmarkEntryList(key));
-
-			ImGui.Unindent();
-		}
-
-		private void DrawBookmarkStats(Bookmark bookmark, AggregateNoteStats statsA, AggregateNoteStats statsB)
-		{
-			if (ImGui.BeginTable("StatsTable", 2, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg))
-			{
-				ImGui.TableSetupColumn($"Last {RecentStatCount} runs", ImGuiTableColumnFlags.WidthStretch);
-				ImGui.TableSetupColumn("All Time", ImGuiTableColumnFlags.WidthStretch);
+				ImGui.TableSetupColumn($"Bookmark", ImGuiTableColumnFlags.WidthStretch);
+				ImGui.TableSetupColumn($"Measures", ImGuiTableColumnFlags.WidthStretch);
+				ImGui.TableSetupColumn("Play Count", ImGuiTableColumnFlags.WidthStretch);
+				ImGui.TableSetupColumn("DFC Count", ImGuiTableColumnFlags.WidthStretch);
+				ImGui.TableSetupColumn("FC Count", ImGuiTableColumnFlags.WidthStretch);
+				ImGui.TableSetupColumn("Good%", ImGuiTableColumnFlags.WidthStretch);
 				ImGui.TableHeadersRow();
 
-				ImGui.TableNextRow();
+				for (int i = m_SaveData.Bookmarks.Count - 1; i >= 0; --i)
+				{
+					ImGui.PushID(i);
+					Bookmark bookmark = m_SaveData.Bookmarks[i];
+					AggregateNoteStats stats = m_SaveData.GetAggregateStats(new BookmarkKey(bookmark.Name, speed));
+					bool isActiveBookmark = m_ActiveBookmarkInstance != null && m_ActiveBookmarkInstance.Bookmark == bookmark;
 
-				ImGui.TableSetColumnIndex(0);
-				statsA.Draw();
-				ImGui.TableSetColumnIndex(1);
-				statsB.Draw();
+					ImGui.TableNextRow();
+					ImGui.TableSetColumnIndex(0);
+
+					if (isActiveBookmark)
+					{
+						ImGui.PushStyleColor(ImGuiCol.Text, Utilities.ColourHelper.GetKaImGuiColour());
+					}
+
+					if (ImGui.Button(bookmark.Name))
+					{
+						SelectBookmark(bookmark);
+					}
+
+					if (isActiveBookmark)
+					{
+						ImGui.PopStyleColor();
+					}
+
+					ImGui.TableSetColumnIndex(1);
+					ImGui.Text($"{bookmark.StartMeasure} - {bookmark.EndMeasure}");
+					ImGui.SameLine();
+					if (ImGui.Button("Edit"))
+					{
+						m_BookmarkNameInput = bookmark.Name;
+						m_StartMeasureInput = bookmark.StartMeasure;
+						m_EndMeasureInput = bookmark.EndMeasure;
+						requestingBookmarkPopup = true;
+					}
+
+					ImGui.TableSetColumnIndex(2);
+					ImGui.Text($"{stats.TotalRuns}");
+
+					DrawColumnStat(3, stats.DFCCount, stats.TotalRuns, min: 0.0f, showCount: true);
+					DrawColumnStat(4, stats.FCCount, stats.TotalRuns, min: 0.5f, showCount: true);
+					DrawColumnStat(5, stats.CombinedNoteStats.GoodCount, stats.CombinedNoteStats.TotalNotes, min: 0.5f, showCount: false);
+
+					ImGui.PopID();
+				}
 
 				ImGui.EndTable();
 			}
-		}
 
-		private void DrawGraph(List<BookmarkInstance> instances)
-		{
-			if (instances.Count == 0)
+			if (requestingBookmarkPopup)
 			{
-				return;
+				ImGui.OpenPopup(BookmarkPopupName);
 			}
-			List<float> goodPercentages = new(instances.Count);
-			foreach (BookmarkInstance instance in instances)
-			{
-				goodPercentages.Add(StringHelpers.GetPercent(instance.NoteStats.GoodCount, instance.NoteStats.TotalNotes));
-			}
-
-
-			ImGui.Text("Good percentage over time");
-			ImGui.Text("100%%");
-			ImGui.PlotLines("", ref goodPercentages.ToArray()[0], goodPercentages.Count,
-				values_offset: 0,
-				overlay_text: string.Empty,
-				scale_min: 0.0f,
-				scale_max: 1.0f,
-				new System.Numerics.Vector2(0, 120.0f));
-			ImGui.Text("0%%");
 		}
 	}
 }

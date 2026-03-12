@@ -12,7 +12,7 @@ namespace OpenTaiko.Shrandy.Tools
 		public string BookmarkName { get; set; } = "";
 		public long TimestampUtc { get; set; }
 		public NoteStats NoteStats { get; set; } = new();
-		public int Speed { get; set; }
+		public int Speed { private get; set; }
 
 		[JsonIgnore]
 		public Bookmark Bookmark { get; set; }

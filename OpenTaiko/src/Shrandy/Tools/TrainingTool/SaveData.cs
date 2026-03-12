@@ -12,53 +12,30 @@ namespace OpenTaiko.Shrandy.Tools
 	{
 		public string SongName { get; set; } = "";
 		public List<Bookmark> Bookmarks { get; set; } = new();
-		public Dictionary<BookmarkKey, List<BookmarkInstance>> History { get; set; } = new();
-		private const int HistoryLimit = int.MaxValue;
+		public Dictionary<BookmarkKey, AggregateNoteStats> History { get; set; } = new();
 
-		public AggregateNoteStats GetAggregateStats(BookmarkKey key, int amount)
+		public AggregateNoteStats GetAggregateStats(BookmarkKey key)
 		{
-			AggregateNoteStats aggregate = new();
-			List<BookmarkInstance> instances = GetBookmarkEntryList(key);
-			amount = Math.Min(amount, instances.Count);
-			foreach (BookmarkInstance instance in instances[^amount..])
+			if (!History.ContainsKey(key))
 			{
-				aggregate.TotalRuns++;
-				aggregate.CombinedNoteStats += instance.NoteStats;
-				if (instance.NoteStats.IsDFC)
-				{
-					aggregate.DFCCount++;
-				}
-				if (instance.NoteStats.IsFC)
-				{
-					aggregate.FCCount++;
-				}
+				History.Add(key, new());
 			}
-			return aggregate;
+			return History[key];
 		}
 
 		public void AddToHistory(BookmarkInstance bookmarkInstance)
 		{
-			List<BookmarkInstance> bookmarkEntries = GetBookmarkEntryList(bookmarkInstance.GetBookmarkKey());
-			if (bookmarkEntries.Count >= HistoryLimit)
+			AggregateNoteStats aggregateNoteStats = GetAggregateStats(bookmarkInstance.GetBookmarkKey());
+			aggregateNoteStats.CombinedNoteStats += bookmarkInstance.NoteStats;
+			aggregateNoteStats.TotalRuns++;
+			if (bookmarkInstance.NoteStats.IsDFC)
 			{
-				bookmarkEntries.RemoveAt(0);
+				aggregateNoteStats.DFCCount++;
 			}
-			bookmarkEntries.Add(bookmarkInstance);
-		}
-
-		public List<BookmarkInstance> GetBookmarkEntryList(BookmarkKey bookmarkKey)
-		{
-			if (!History.ContainsKey(bookmarkKey))
+			if (bookmarkInstance.NoteStats.IsFC)
 			{
-				History.Add(bookmarkKey, new());
+				aggregateNoteStats.FCCount++;
 			}
-
-			if (History[bookmarkKey] == null)
-			{
-				History[bookmarkKey] = new();
-			}
-
-			return History[bookmarkKey];
 		}
 
 		public void DeleteBookmark(Bookmark bookmark)
@@ -98,7 +75,14 @@ namespace OpenTaiko.Shrandy.Tools
 			if (File.Exists(path))
 			{
 				string json = File.ReadAllText(path);
-				return JsonSerializer.Deserialize<SaveData>(json);
+				try
+				{
+					return JsonSerializer.Deserialize<SaveData>(json);
+				}
+				catch
+				{
+					return null;
+				}
 			}
 			return null;
 		}

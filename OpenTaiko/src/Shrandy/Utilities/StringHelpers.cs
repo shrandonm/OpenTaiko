@@ -15,7 +15,12 @@ namespace OpenTaiko.Shrandy
 
 		public static string GetPercentString(int amount, int total)
 		{
-			return $"{GetPercent(amount, total) * 100.0f:F2}%";
+			return GetPercentString(GetPercent(amount, total));
+		}
+
+		public static string GetPercentString(float percent)
+		{
+			return $"{percent * 100.0f:F2}%";
 		}
 
 	}
