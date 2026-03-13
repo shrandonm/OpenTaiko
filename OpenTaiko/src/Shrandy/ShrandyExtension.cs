@@ -78,6 +78,14 @@ namespace OpenTaiko.Shrandy
 		{
 		}
 
+		public void OnNoteMiss(CChip? chip)
+		{
+			foreach (Tool tool in m_Tools)
+			{
+				tool.OnNoteMiss(chip);
+			}
+		}
+
 		public void OnNoteHit(CChip? chip, ENoteJudge judgeResult, EPad pad, double hitTjaTimeMs)
 		{
 			HitParams hitParams = new()

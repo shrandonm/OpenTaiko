@@ -1572,6 +1572,7 @@ internal abstract class CStage演奏画面共通 : CStage {
 
 					if (pChip != null) {
 					if (!bBombHit) {
+						OpenTaiko.ShrandyExtension.OnNoteMiss(pChip);
 						if (OpenTaiko.stageSongSelect.nChoosenSongDifficulty[0] == (int)Difficulty.Dan)
 							this.DanSongScore[actDan.NowShowingNumber].nMiss++;
 

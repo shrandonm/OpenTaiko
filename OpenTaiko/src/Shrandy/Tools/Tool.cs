@@ -38,6 +38,10 @@ namespace OpenTaiko.Shrandy
 			}
 		}
 
+		public virtual void OnNoteMiss(CChip? chip)
+		{
+		}
+
 		public virtual void OnNoteHit(HitParams hitParams)
 		{
 		}

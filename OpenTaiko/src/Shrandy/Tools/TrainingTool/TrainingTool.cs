@@ -22,7 +22,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private Mode m_Mode = Mode.None;
 
-		private int m_AutoRewindErrorThreshold = 0;
+		private int m_AutoRewindErrorThreshold = 50;
 		private int m_LastSuccessfulMeasure = 0;
 		private List<int> m_MeasureFailCounts = new();
 
@@ -219,21 +219,23 @@ namespace OpenTaiko.Shrandy.Tools
 				m_ActiveBookmarkInstance.NoteStats.OnNoteHit(hitParams);
 			}
 
-			if (m_Mode == Mode.AutoRewind && hitParams.Chip != null && m_AutoRewindErrorThreshold > 0)
-			{
-				TryAutoSkipBack(hitParams);
-			}
-		}
-
-		private void TryAutoSkipBack(HitParams hitParams)
-		{
-			int absDelta = Math.Abs(hitParams.Chip.nLag);
-			if (absDelta > m_AutoRewindErrorThreshold || hitParams.JudgeResult == ENoteJudge.Miss)
+			if (m_Mode == Mode.AutoRewind
+				&& m_AutoRewindErrorThreshold > 0
+				&& hitParams.Chip != null
+				&& Math.Abs(hitParams.Chip.nLag) > m_AutoRewindErrorThreshold)
 			{
 				OnMistakeMade();
 			}
 		}
 
+		public override void OnNoteMiss(CChip? chip)
+		{
+			if (m_Mode == Mode.AutoRewind)
+			{
+				OnMistakeMade();
+			}
+		}
+		
 		private bool IsNoteWithinBookmarkRange(HitParams hitParams, Bookmark bookmark)
 		{
 			int startNoteIndex = OpenTaiko.TJA.GetListChipIndexOfMeasure(bookmark.StartMeasure);
