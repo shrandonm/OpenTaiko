@@ -214,7 +214,7 @@ internal class CStageTitle : CStage {
 					}
 				}
 
-				if (OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RightChange) || OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.RightArrow)) {
+				if (OpenTaiko.Pad.IsPressingRightChange() || OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.RightArrow)) {
 					if (bプレイヤーエントリー && !bプレイヤーエントリー決定 && this.ctSaveLoaded.IsEnded) {
 						if (n現在の選択行プレイヤーエントリー + 1 <= 2) {
 							OpenTaiko.Skin.soundChangeSFX.tPlay();
@@ -237,7 +237,7 @@ internal class CStageTitle : CStage {
 					}
 				}
 
-				if (OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LeftChange) || OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.LeftArrow)) {
+				if (OpenTaiko.Pad.IsPressingLeftChange() || OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.LeftArrow)) {
 					if (bプレイヤーエントリー && !bプレイヤーエントリー決定 && this.ctSaveLoaded.IsEnded) {
 						if (n現在の選択行プレイヤーエントリー - 1 >= 0) {
 							OpenTaiko.Skin.soundChangeSFX.tPlay();

@@ -1191,9 +1191,6 @@ internal class CConfigIni : INotifyPropertyChanged {
 	public int nDefaultSongSort;
 	public int nRecentlyPlayedMax;
 	public EGame eGameMode;
-	// [Divergence] Tokkun (training mode) auto reset threshold
-	public int TokkunAutoSkipBackErrorThreshold = 75;
-	// [End divergence]
 	public int TokkunSkipMeasures;
 	public int TokkunMashInterval;
 	public bool bSuperHard = false;
@@ -2375,10 +2372,6 @@ internal class CConfigIni : INotifyPropertyChanged {
 		sw.WriteLine("; 特訓モード時にPgUp/PgDnで何小節飛ばすか");
 		sw.WriteLine("TokkunSkipMeasures={0}", this.TokkunSkipMeasures);
 		sw.WriteLine();
-		// [Divergence] Auto skip back
-		sw.WriteLine("TokkunAutoSkipBackErrorThreshold={0}", this.TokkunAutoSkipBackErrorThreshold);
-		sw.WriteLine();
-		// [End divergence]
 		sw.WriteLine("; 特訓モード時にジャンプポイントに飛ばすための時間(ms)");
 		sw.WriteLine("; 指定ms以内に5回縁を叩きましょう");
 		sw.WriteLine("{1}={0}", this.TokkunMashInterval, nameof(this.TokkunMashInterval));
@@ -3323,12 +3316,6 @@ internal class CConfigIni : INotifyPropertyChanged {
 				this.TokkunSkipMeasures =
 					CConversion.ParseIntInRange(value, 0, 9999, this.TokkunSkipMeasures);
 				break;
-			// [Divergence] Auto skip back
-			case "TokkunAutoSkipBackErrorThreshold":
-				this.TokkunAutoSkipBackErrorThreshold =
-					CConversion.ParseIntInRange(value, 0, 9999, this.TokkunAutoSkipBackErrorThreshold);
-				break;
-			// [End divergence]
 			// [Divergence] Perfect hit sound
 			case "EnablePerfectHitSound":
 				this.bEnablePerfectHitSound = CConversion.bONorOFF(value[0]);

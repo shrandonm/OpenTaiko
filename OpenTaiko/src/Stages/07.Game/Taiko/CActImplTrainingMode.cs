@@ -278,20 +278,6 @@ class CActImplTrainingMode : CActivity {
 		}
 	}
 
-	public void QueueAutoSkipBack()
-	{
-		int bookmarkMeasure = GetBookmarkMeasureBefore(this.nCurrentMeasure + 1);
-		if (bookmarkMeasure != -1)
-		{
-			QueueJumpToMeasure(bookmarkMeasure);
-		}
-		else
-		{
-			const int autoSkipMeasureCount = 2;
-			QueueJumpToMeasure(Math.Max(0, this.nCurrentMeasure - autoSkipMeasureCount));
-		}
-	}
-
 	public void QueueJumpToMeasure(int measure)
 	{
 		tPausePlay();

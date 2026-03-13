@@ -418,12 +418,6 @@ internal class CActConfigList : CActivity {
 			CLangManager.LangInstance.GetString("SETTINGS_TRAINING_SKIPCOUNT_DESC"));
 		this.list項目リスト.Add(TokkunSkipCount);
 
-		// [Divergence] TokkunAutoSkipBackErrorThreshold
-		this.TokkunAutoSkipBackErrorThreshold = new CItemInteger(CLangManager.LangInstance.GetString("SETTINGS_TRAINING_AUTO_SKIP_BACK_THRESHOLD"), 0, 250, OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold,
-			CLangManager.LangInstance.GetString("SETTINGS_TRAINING_AUTO_SKIP_BACK_THRESHOLD_DESC"));
-		this.list項目リスト.Add(TokkunAutoSkipBackErrorThreshold);
-		// [End divergence]
-
 		// [Divergence] Perfect hit sound
 		this.iEnablePerfectHitSound = new CItemToggle(CLangManager.LangInstance.GetString("SETTINGS_ENABLE_PERFECT_HIT_SOUND"), OpenTaiko.ConfigIni.bEnablePerfectHitSound,
 			CLangManager.LangInstance.GetString("SETTINGS_ENABLE_PERFECT_HIT_SOUND_DESC"));
@@ -1640,9 +1634,6 @@ internal class CActConfigList : CActivity {
 	CItemToggle FastRender;
 	CItemToggle ASyncTextureLoad;
 	CItemInteger MusicPreTimeMs;
-	// [Divergence] Auto skip back
-	CItemInteger TokkunAutoSkipBackErrorThreshold;
-	// [End divergence]
 	CItemInteger TokkunSkipCount;
 	CItemInteger TokkunMashInterval;
 
@@ -1791,11 +1782,8 @@ internal class CActConfigList : CActivity {
 		OpenTaiko.ConfigIni.bJudgeBigNotes = this.iTaikoBigNotesJudge.bON;
 		OpenTaiko.ConfigIni.bForceNormalGauge = this.iTaikoForceNormalGauge.bON;
 
-		// [Divergence] TokkunAutoSkipBackErrorThreshold
-		OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold = this.TokkunAutoSkipBackErrorThreshold.n現在の値;
 		OpenTaiko.ConfigIni.TokkunSkipMeasures = this.TokkunSkipCount.n現在の値;
 		OpenTaiko.ConfigIni.TokkunMashInterval = this.TokkunMashInterval.n現在の値;
-		// [End divergence]
 
 		// [Divergence] Perfect hit sound
 		OpenTaiko.ConfigIni.bEnablePerfectHitSound = this.iEnablePerfectHitSound.bON;

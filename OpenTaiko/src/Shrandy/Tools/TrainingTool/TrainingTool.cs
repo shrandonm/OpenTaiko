@@ -7,11 +7,25 @@ using ImGuiNET;
 using SlimDXKeys;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Numerics;
 
 namespace OpenTaiko.Shrandy.Tools
 {
 	internal class TrainingTool : Tool
 	{
+		private enum Mode
+		{
+			None,
+			AutoRewind,
+			Bookmark,
+		}
+
+		private Mode m_Mode = Mode.None;
+
+		private int m_AutoRewindErrorThreshold = 0;
+		private int m_LastSuccessfulMeasure = 0;
+		private List<int> m_MeasureFailCounts = new();
+
 		private SaveData m_SaveData = new();
 		private MeasureListener m_MeasureListener = new();
 		private BookmarkInstance? m_ActiveBookmarkInstance;
@@ -52,6 +66,33 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 		}
 
+		private void SetMode(Mode newMode)
+		{
+			ResetBookmarkState();
+			m_LastSuccessfulMeasure = 0;
+			if (newMode == Mode.AutoRewind)
+			{
+				m_MeasureFailCounts = new(Enumerable.Repeat(0, OpenTaiko.stageGameScreen.actTokkun.nMeasureCount).ToArray());
+			}
+			else
+			{
+				m_MeasureFailCounts.Clear();
+			}
+
+			if (newMode != Mode.None)
+			{
+				OpenTaiko.stageGameScreen.actTokkun.QueueJumpToMeasure(0);
+			}
+
+			m_Mode = newMode;
+		}
+
+		private void ResetBookmarkState()
+		{
+			m_ActiveBookmarkInstance = null;
+			m_WaitingForBookmarkRestart = false;
+		}
+
 		private void DrawSpeedControls()
 		{
 			ImGui.Text($"Current BPM: {(int)Math.Round(OpenTaiko.GetTJA(0)?.BPM * (m_SongSpeed * 0.01f) ?? 0)}");
@@ -76,8 +117,49 @@ namespace OpenTaiko.Shrandy.Tools
 			if (OpenTaiko.stageGameScreen.actTokkun != null && OpenTaiko.ConfigIni.bTokkunMode)
 			{
 				DrawSpeedControls();
-				DrawBookmarks();
-				DrawNewBookmarkPopup();
+
+				int modeInt = (int)m_Mode;
+				if (ImGui.Combo("Mode", ref modeInt, Enum.GetNames(typeof(Mode)), Enum.GetValues(typeof(Mode)).Length))
+				{
+					SetMode((Mode)modeInt);
+				}
+
+				switch (m_Mode)
+				{
+					case Mode.AutoRewind:
+						DrawAutoRewind();
+						break;
+					case Mode.Bookmark:
+						DrawBookmarks();
+						DrawNewBookmarkPopup();
+						break;
+					default:
+						break;
+				}
+			}
+		}
+
+		private void DrawAutoRewind()
+		{
+			ImGui.SeparatorText("Auto Rewind Mode");
+			ImGui.InputInt("Auto rewind error (ms)", ref m_AutoRewindErrorThreshold);
+			ImGui.Text($"Last successful measure: {m_LastSuccessfulMeasure}");
+			if (ImGui.Button("Restart"))
+			{
+				SetMode(Mode.AutoRewind);
+			}
+
+			if (m_MeasureFailCounts.Count > 0)
+			{
+				float[] values = m_MeasureFailCounts.Select(value => (float)value).ToArray();
+				float maxValue = values.Max();
+				float scaleMax = Math.Max(1.0f, maxValue);
+				ImGui.Text("Measure failure count");
+				ImGui.PlotHistogram("", ref values[0], values.Length, 0, null, 0.0f, scaleMax, new Vector2(0, 80));
+			}
+			else
+			{
+				ImGui.Text("Fail counts per measure: (no data)");
 			}
 		}
 
@@ -93,18 +175,8 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 			else
 			{
-				OpenTaiko.stageGameScreen.actTokkun.QueueAutoSkipBack();
+				OpenTaiko.stageGameScreen.actTokkun.QueueJumpToMeasure(0);
 			}
-		}
-
-		private void Cleanup()
-		{
-			StopActiveBookmark();
-		}
-
-		private void StopActiveBookmark()
-		{
-			m_ActiveBookmarkInstance = null;
 		}
 
 		public override void OnStageChanged(CStage stage)
@@ -128,7 +200,7 @@ namespace OpenTaiko.Shrandy.Tools
 			else
 			{
 				m_MeasureListener.OnMeasureCompleted -= OnMeasureCompleted;
-				m_WaitingForBookmarkRestart = false;
+				SetMode(Mode.None);
 			}
 		}
 
@@ -147,7 +219,7 @@ namespace OpenTaiko.Shrandy.Tools
 				m_ActiveBookmarkInstance.NoteStats.OnNoteHit(hitParams);
 			}
 
-			if (hitParams.Chip != null && OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold > 0)
+			if (m_Mode == Mode.AutoRewind && hitParams.Chip != null && m_AutoRewindErrorThreshold > 0)
 			{
 				TryAutoSkipBack(hitParams);
 			}
@@ -156,7 +228,7 @@ namespace OpenTaiko.Shrandy.Tools
 		private void TryAutoSkipBack(HitParams hitParams)
 		{
 			int absDelta = Math.Abs(hitParams.Chip.nLag);
-			if (absDelta > OpenTaiko.ConfigIni.TokkunAutoSkipBackErrorThreshold || hitParams.JudgeResult == ENoteJudge.Miss)
+			if (absDelta > m_AutoRewindErrorThreshold || hitParams.JudgeResult == ENoteJudge.Miss)
 			{
 				OnMistakeMade();
 			}
@@ -173,9 +245,10 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private void OnMistakeMade()
 		{
-			if (m_ActiveBookmarkInstance == null)
+			if (m_Mode == Mode.AutoRewind)
 			{
-				OpenTaiko.stageGameScreen.actTokkun.QueueAutoSkipBack();
+				m_MeasureFailCounts[OpenTaiko.stageGameScreen.actTokkun.nCurrentMeasure]++;
+				OpenTaiko.stageGameScreen.actTokkun.QueueJumpToMeasure(m_LastSuccessfulMeasure + 1);
 			}
 		}
 
@@ -237,6 +310,11 @@ namespace OpenTaiko.Shrandy.Tools
 			if (m_ActiveBookmarkInstance != null && m_ActiveBookmarkInstance.Bookmark.EndMeasure == measure)
 			{
 				CompleteBookmark(m_ActiveBookmarkInstance);
+			}
+
+			if (m_Mode == Mode.AutoRewind && measure > m_LastSuccessfulMeasure)
+			{
+				m_LastSuccessfulMeasure = measure;
 			}
 		}
 
@@ -303,6 +381,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private void DrawBookmarks()
 		{
+			ImGui.SeparatorText("Bookmark Mode");
 			DrawBookmarkTable(m_SongSpeed);
 			DrawCreateNewBookmarkButton();
 		}
