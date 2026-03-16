@@ -23,5 +23,18 @@ namespace OpenTaiko.Shrandy
 			return $"{percent * 100.0f:F2}%";
 		}
 
+		public static string GetTimeSinceString(DateTime timestamp)
+		{
+			TimeSpan timeSince = DateTime.Now - timestamp;
+
+			if (timeSince.TotalSeconds < 60)
+				return $"<1m ago";
+			else if (timeSince.TotalMinutes < 60)
+				return $"{(int)timeSince.TotalMinutes}m ago";
+			else if (timeSince.TotalHours < 24)
+				return $"{(int)timeSince.TotalHours}h ago";
+			else
+				return $"{(int)timeSince.TotalDays}d ago";
+		}
 	}
 }

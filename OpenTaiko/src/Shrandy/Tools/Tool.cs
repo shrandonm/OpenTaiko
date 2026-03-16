@@ -50,6 +50,10 @@ namespace OpenTaiko.Shrandy
 		{
 		}
 
+		public virtual void OnResultsActivate(CStage結果 resultsScreen)
+		{
+		}
+
 		public virtual void OnTrainingModeResumePlay()
 		{
 		}
