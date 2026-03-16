@@ -71,6 +71,17 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			TimeSpan elapsed = DateTime.Now - m_SessionStartTime;
 			ImGui.Text($"Time Since Session Start: {elapsed:hh\\:mm\\:ss}");
+			ImGui.SameLine();
+			if (ImGui.Button("Reset Session Stats"))
+			{
+				ResetSessionStats();
+			}
+		}
+
+		private void ResetSessionStats()
+		{
+			m_SongCountAtStartOfSession = m_SaveData.SongEntries.Count;
+			m_SessionStartTime = DateTime.Now;
 		}
 
 		private int GetSessionSongCount()
