@@ -12,6 +12,6 @@ namespace OpenTaiko.Shrandy
 		public int Rolls { get; set; }
 		public int MaxCombo { get; set; }
 		public int DurationMs { get; set; }
-		public int BadgeIndex { get; set; }
+		public int ScoreRank { get; set; }
 	}
 }

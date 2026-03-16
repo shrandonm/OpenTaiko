@@ -35,7 +35,8 @@ namespace OpenTaiko.Shrandy.Tools
 					Bads = 10,
 					Rolls = 20,
 					MaxCombo = 350,
-					DurationMs = 120000
+					DurationMs = 120000,
+					ScoreRank = i % 5,
 				});
 			}
 		}
@@ -51,6 +52,8 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			base.Draw();
 
+
+			ImGui.Text($"Song Duration: {FormatDuration(Utilities.ScoreHelper.GetSongDurationMs())}s");
 			DrawSummary();
 			DrawTable();
 		}
@@ -87,14 +90,14 @@ namespace OpenTaiko.Shrandy.Tools
 				return;
 			}
 
-			const int columnCount = 12;
+			const int columnCount = 13;
 			ImGuiTableFlags flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable | ImGuiTableFlags.ScrollX;
 			if (ImGui.BeginTable("Song History", columnCount, flags))
 			{
 				// Make columns auto-resize to fit content, with Song column stretching
 				ImGui.TableSetupColumn("Song", ImGuiTableColumnFlags.WidthFixed, 128);
 				ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 64);
-				ImGui.TableSetupColumn("Diff", ImGuiTableColumnFlags.WidthFixed, 48);
+				ImGui.TableSetupColumn("Badge", ImGuiTableColumnFlags.WidthFixed, 16);
 				ImGui.TableSetupColumn("Score", ImGuiTableColumnFlags.WidthFixed, 48);
 				ImGui.TableSetupColumn("Good%", ImGuiTableColumnFlags.WidthFixed, 48);
 				ImGui.TableSetupColumn("Goods", ImGuiTableColumnFlags.WidthFixed, 48);
@@ -104,6 +107,7 @@ namespace OpenTaiko.Shrandy.Tools
 				ImGui.TableSetupColumn("Combo", ImGuiTableColumnFlags.WidthFixed, 48);
 				ImGui.TableSetupColumn("Duration", ImGuiTableColumnFlags.WidthFixed, 64);
 				ImGui.TableSetupColumn("Total Notes", ImGuiTableColumnFlags.WidthFixed, 64);
+				ImGui.TableSetupColumn("Diff", ImGuiTableColumnFlags.WidthFixed, 48);
 				ImGui.TableHeadersRow();
 
 				foreach (SongEntry entry in m_SaveData.SongEntries)
@@ -119,8 +123,8 @@ namespace OpenTaiko.Shrandy.Tools
 					ImGui.TextUnformatted(StringHelpers.GetTimeSinceString(entry.Timestamp));
 
 					ImGui.TableSetColumnIndex(2);
-					ImGui.TextUnformatted(entry.Difficulty);
-
+					Utilities.ScoreHelper.DrawScoreRank(entry.ScoreRank, 16.0f);
+					
 					ImGui.TableSetColumnIndex(3);
 					ImGui.Text($"{entry.Score}");
 
@@ -147,6 +151,9 @@ namespace OpenTaiko.Shrandy.Tools
 
 					ImGui.TableSetColumnIndex(11);
 					ImGui.Text($"{totalNotes}");
+
+					ImGui.TableSetColumnIndex(12);
+					ImGui.TextUnformatted(entry.Difficulty);
 				}
 
 				ImGui.EndTable();
@@ -169,6 +176,8 @@ namespace OpenTaiko.Shrandy.Tools
 			int player = 0;
 			var score = OpenTaiko.stageGameScreen.CChartScore[player];
 			int difficulty = OpenTaiko.stageSongSelect.nChoosenSongDifficulty[player];
+			int currentScore = (int)OpenTaiko.stageGameScreen.actScore.Get(player);
+			int scoreRank = Utilities.ScoreHelper.GetScoreRank(player, currentScore);
 
 			SongEntry entry = new()
 			{
@@ -181,32 +190,11 @@ namespace OpenTaiko.Shrandy.Tools
 				Bads = score.nMiss,
 				Rolls = score.nRoll,
 				MaxCombo = OpenTaiko.stageGameScreen.actCombo?.nCurrentCombo.最高値[player] ?? 0,
-				DurationMs = GetSongDurationMs(),
+				DurationMs = Utilities.ScoreHelper.GetSongDurationMs(),
+				ScoreRank = scoreRank
 			};
 
 			m_SaveData.SongEntries.Add(entry);
-		}
-
-		private static int GetSongDurationMs()
-		{
-			CTja? tja = OpenTaiko.TJA;
-			if (tja == null || tja.listChip.Count == 0)
-			{
-				return 0;
-			}
-
-			for (int index = tja.listChip.Count - 1; index >= 0; index--)
-			{
-				CChip chip = tja.listChip[index];
-				if (chip.nChannelNo == 0x01)
-				{
-					int duration = chip.GetDuration();
-					int tjaEndMs = chip.n発声時刻ms + duration;
-					return (int)Math.Round(CTja.TjaDurationToGameDuration(tjaEndMs));
-				}
-			}
-
-			return (int)Math.Round(CTja.TjaDurationToGameDuration(tja.listChip[^1].n発声時刻ms));
 		}
 
 		private static string GetDifficultyLabel(int difficulty)
