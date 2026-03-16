@@ -13,5 +13,7 @@ namespace OpenTaiko.Shrandy
 		public int MaxCombo { get; set; }
 		public int DurationMs { get; set; }
 		public int ScoreRank { get; set; }
+		public string RandomMod { get; set; } = "None";
+		public int SongSpeed { get; set; } = CConfigIni.DefaultSongSpeed;
 	}
 }

@@ -10,6 +10,7 @@ namespace OpenTaiko.Shrandy.Tools
 		private const string m_SaveFileName = "song_history.json";
 		private SongHistorySaveData m_SaveData = new();
 		private int m_SongCountAtStartOfSession = 0;
+		private int m_SessionTargetSongs = 10;
 
 		public SongHistoryTool(string toolName, SlimDXKeys.Key enableHotkey)
 			: base(toolName, enableHotkey)
@@ -37,6 +38,8 @@ namespace OpenTaiko.Shrandy.Tools
 					MaxCombo = 350,
 					DurationMs = 120000,
 					ScoreRank = i % 5,
+					RandomMod = "None",
+					SongSpeed = CConfigIni.DefaultSongSpeed,
 				});
 			}
 		}
@@ -52,24 +55,47 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			base.Draw();
 
+			DrawSessionTargetProgress();
 
 			ImGui.Text($"Song Duration: {FormatDuration(Utilities.ScoreHelper.GetSongDurationMs())}s");
 			DrawSummary();
 			DrawTable();
 		}
 
+		private int GetSessionSongCount()
+		{
+			return Math.Max(0, m_SaveData.SongEntries.Count - m_SongCountAtStartOfSession);
+		}
+
+		private void DrawSessionTargetProgress()
+		{
+			int sessionSongCount = GetSessionSongCount();
+
+			ImGui.Text("Session Target (Songs)");
+			ImGui.SetNextItemWidth(100.0f);
+			ImGui.InputInt("##SessionTargetSongs", ref m_SessionTargetSongs, 1, 5);
+			m_SessionTargetSongs = Math.Max(0, m_SessionTargetSongs);
+
+			float progress = m_SessionTargetSongs > 0
+				? MathF.Min(1.0f, sessionSongCount / (float)m_SessionTargetSongs)
+				: 0.0f;
+
+			string overlay = m_SessionTargetSongs > 0
+				? $"{sessionSongCount} / {m_SessionTargetSongs}"
+				: $"{sessionSongCount} / -";
+
+			ImGui.ProgressBar(progress, new System.Numerics.Vector2(-1.0f, 0.0f), overlay);
+			ImGui.Separator();
+		}
+
 		private void DrawSummary()
 		{
 			int totalSongs = m_SaveData.SongEntries.Count;
 			int totalDurationMs = m_SaveData.SongEntries.Sum(x => x.DurationMs);
-			int sessionSongCount = 0;
-			int sessionDurationMs = 0;
-			
-			if (totalSongs > m_SongCountAtStartOfSession)
-			{
-				sessionSongCount = totalSongs - m_SongCountAtStartOfSession;
-				sessionDurationMs = m_SaveData.SongEntries.Skip(m_SongCountAtStartOfSession).Sum(x => x.DurationMs);
-			}
+			int sessionSongCount = GetSessionSongCount();
+			int sessionDurationMs = sessionSongCount > 0
+				? m_SaveData.SongEntries.Skip(m_SongCountAtStartOfSession).Sum(x => x.DurationMs)
+				: 0;
 	
 			ImGui.Text($"Total Songs Played: {totalSongs}");
 			ImGui.SameLine();
@@ -90,7 +116,7 @@ namespace OpenTaiko.Shrandy.Tools
 				return;
 			}
 
-			const int columnCount = 13;
+			const int columnCount = 15;
 			ImGuiTableFlags flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable | ImGuiTableFlags.ScrollX;
 			if (ImGui.BeginTable("Song History", columnCount, flags))
 			{
@@ -108,6 +134,8 @@ namespace OpenTaiko.Shrandy.Tools
 				ImGui.TableSetupColumn("Duration", ImGuiTableColumnFlags.WidthFixed, 64);
 				ImGui.TableSetupColumn("Total Notes", ImGuiTableColumnFlags.WidthFixed, 64);
 				ImGui.TableSetupColumn("Diff", ImGuiTableColumnFlags.WidthFixed, 48);
+				ImGui.TableSetupColumn("Speed", ImGuiTableColumnFlags.WidthFixed, 56);
+				ImGui.TableSetupColumn("Random", ImGuiTableColumnFlags.WidthFixed, 72);
 				ImGui.TableHeadersRow();
 
 				foreach (SongEntry entry in m_SaveData.SongEntries)
@@ -154,6 +182,12 @@ namespace OpenTaiko.Shrandy.Tools
 
 					ImGui.TableSetColumnIndex(12);
 					ImGui.TextUnformatted(entry.Difficulty);
+
+					ImGui.TableSetColumnIndex(13);
+					ImGui.TextUnformatted(CConfigIni.SongPlaybackSpeedToString(entry.SongSpeed));
+
+					ImGui.TableSetColumnIndex(14);
+					ImGui.TextUnformatted(entry.RandomMod);
 				}
 
 				ImGui.EndTable();
@@ -176,6 +210,7 @@ namespace OpenTaiko.Shrandy.Tools
 			int player = 0;
 			var score = OpenTaiko.stageGameScreen.CChartScore[player];
 			int difficulty = OpenTaiko.stageSongSelect.nChoosenSongDifficulty[player];
+			int actualPlayer = OpenTaiko.GetActualPlayer(player);
 			int currentScore = (int)OpenTaiko.stageGameScreen.actScore.Get(player);
 			int scoreRank = Utilities.ScoreHelper.GetScoreRank(player, currentScore);
 
@@ -191,7 +226,9 @@ namespace OpenTaiko.Shrandy.Tools
 				Rolls = score.nRoll,
 				MaxCombo = OpenTaiko.stageGameScreen.actCombo?.nCurrentCombo.最高値[player] ?? 0,
 				DurationMs = Utilities.ScoreHelper.GetSongDurationMs(),
-				ScoreRank = scoreRank
+				ScoreRank = scoreRank,
+				SongSpeed = OpenTaiko.ConfigIni.nSongSpeed,
+				RandomMod = GetRandomModLabel(OpenTaiko.ConfigIni.eRandom[actualPlayer])
 			};
 
 			m_SaveData.SongEntries.Add(entry);
@@ -209,6 +246,19 @@ namespace OpenTaiko.Shrandy.Tools
 				(int)Difficulty.Tower => "Tower",
 				(int)Difficulty.Dan => "Dan",
 				_ => difficulty.ToString()
+			};
+		}
+
+		private static string GetRandomModLabel(ERandomMode randomMode)
+		{
+			return randomMode switch
+			{
+				ERandomMode.Off => "None",
+				ERandomMode.Random => "Shuffle",
+				ERandomMode.SuperRandom => "Chaos",
+				ERandomMode.Mirror => "Mirror",
+				ERandomMode.MirrorRandom => "Mirror+Shuffle",
+				_ => randomMode.ToString()
 			};
 		}
 
