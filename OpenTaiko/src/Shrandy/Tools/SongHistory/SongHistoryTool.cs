@@ -11,6 +11,7 @@ namespace OpenTaiko.Shrandy.Tools
 		private SongHistorySaveData m_SaveData = new();
 		private int m_SongCountAtStartOfSession = 0;
 		private int m_SessionTargetSongs = 25;
+		private DateTime m_SessionStartTime = DateTime.Now;
 
 		public SongHistoryTool(string toolName, SlimDXKeys.Key enableHotkey)
 			: base(toolName, enableHotkey)
@@ -58,11 +59,18 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			base.Draw();
 
+			DrawSessionElapsedTime();
 			DrawSessionTargetProgress();
 
 			ImGui.Text($"Song Duration: {FormatDuration(Utilities.ScoreHelper.GetSongDurationMs())}s");
 			DrawSummary();
 			DrawTable();
+		}
+
+		private void DrawSessionElapsedTime()
+		{
+			TimeSpan elapsed = DateTime.Now - m_SessionStartTime;
+			ImGui.Text($"Time Since Session Start: {elapsed:hh\\:mm\\:ss}");
 		}
 
 		private int GetSessionSongCount()
