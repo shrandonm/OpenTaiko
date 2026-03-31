@@ -182,6 +182,15 @@ namespace OpenTaiko.Shrandy.Tools
 			m_Data.ApplyFiltersIfNeeded();
 
 			ImGui.Text($"{m_Data.FilteredSongs.Count} / {m_Data.AllSongs.Count} songs");
+			ImGui.SameLine();
+			if (ImGui.Button("Random"))
+			{
+				CSongListNode? randomSong = m_Data.GetRandomFilteredSong();
+				if (randomSong != null)
+				{
+					Utilities.SongTable.PlaySong(randomSong, m_Data.SelectedDifficulty);
+				}
+			}
 		}
 
 		private void DrawAllSongsTable()
