@@ -29,6 +29,11 @@ namespace OpenTaiko.Shrandy
 		[JsonIgnore]
 		public bool IsFC { get { return BadCount == 0; } }
 
+		public void OnNoteMissed()
+		{
+			++BadCount;
+		}
+
 		public void OnNoteHit(HitParams hitParams)
 		{
 			if (hitParams.Chip == null)

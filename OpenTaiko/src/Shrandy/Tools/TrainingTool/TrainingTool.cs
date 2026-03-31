@@ -214,7 +214,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 			if (hitParams.Chip != null
 				&& m_ActiveBookmarkInstance != null
-				&& IsNoteWithinBookmarkRange(hitParams, m_ActiveBookmarkInstance.Bookmark))
+				&& IsNoteWithinBookmarkRange(hitParams.Chip, m_ActiveBookmarkInstance.Bookmark))
 			{
 				m_ActiveBookmarkInstance.NoteStats.OnNoteHit(hitParams);
 			}
@@ -230,17 +230,24 @@ namespace OpenTaiko.Shrandy.Tools
 
 		public override void OnNoteMiss(CChip? chip)
 		{
+			if (chip != null
+				&& m_ActiveBookmarkInstance != null
+				&& IsNoteWithinBookmarkRange(chip, m_ActiveBookmarkInstance.Bookmark))
+			{
+				m_ActiveBookmarkInstance.NoteStats.OnNoteMissed();
+			}
+
 			if (m_Mode == Mode.AutoRewind)
 			{
 				OnMistakeMade();
 			}
 		}
 		
-		private bool IsNoteWithinBookmarkRange(HitParams hitParams, Bookmark bookmark)
+		private bool IsNoteWithinBookmarkRange(CChip chip, Bookmark bookmark)
 		{
 			int startNoteIndex = OpenTaiko.TJA.GetListChipIndexOfMeasure(bookmark.StartMeasure);
 			int lastNoteIndex = OpenTaiko.TJA.GetListChipIndexOfMeasure(bookmark.EndMeasure + 1) - 1;
-			int hitIndex = OpenTaiko.TJA.listChip.IndexOf(hitParams.Chip);
+			int hitIndex = OpenTaiko.TJA.listChip.IndexOf(chip);
 
 			return hitIndex >= startNoteIndex && hitIndex <= lastNoteIndex;
 		}
