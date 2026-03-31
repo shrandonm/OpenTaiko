@@ -44,6 +44,7 @@ namespace OpenTaiko.Shrandy
 			m_Tools.Add(new Tools.TrainingTool("Training Tool", SlimDXKeys.Key.T));
 			m_Tools.Add(new Tools.NoteVisualizer("Note Visualizer", SlimDXKeys.Key.V));
 			m_Tools.Add(new Tools.SongHistoryTool("Song History", SlimDXKeys.Key.H));
+			m_Tools.Add(new Tools.SongSelectionTool("Song Selection", SlimDXKeys.Key.S));
 		}
 
 		public void OnStageChanged(CStage stage)
@@ -129,7 +130,7 @@ namespace OpenTaiko.Shrandy
 			{
 				return false;
 			}
-			else if (m_Tools.Exists(x => x.IsBlockingInput()))
+			else if (m_Tools.Exists(x => x.Enabled && x.IsBlockingInput()))
 			{
 				return false;
 			}

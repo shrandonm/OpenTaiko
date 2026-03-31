@@ -782,7 +782,7 @@ internal class CStageSongSelect : CStage {
 					}
 				} else if (!this.actSortSongs.bIsActivePopupMenu && !this.actQuickConfig.bIsActivePopupMenu && !this.actDifficultySelectionScreen.bIsDifficltSelect && !actNewHeya.IsOpend) {
 					#region [ ESC ]
-					if ((OpenTaiko.Pad.bPressedDGB(EPad.Cancel) || OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.Escape)) && (this.actSongList.rCurrentlySelectedSong != null))// && (  ) ) )
+					if (OpenTaiko.Pad.IsPressingCancel() && (this.actSongList.rCurrentlySelectedSong != null))// && (  ) ) )
 						if (this.actSongList.rCurrentlySelectedSong.rParentNode == null) {   // [ESC]
 							this.actPresound.tStopSound();
 							CSongSelectSongManager.enable();
@@ -863,8 +863,7 @@ internal class CStageSongSelect : CStage {
 						if (this.actSongList.ctBoxOpen.IsEnded || this.actSongList.ctBoxOpen.CurrentValue == 0) {
 							if (!this.bCurrentlyScrolling) {
 								#region [ Decide ]
-								if ((OpenTaiko.Pad.IsPressingDecide() ||
-									 ((OpenTaiko.ConfigIni.bEnterIsNotUsedInKeyAssignments && OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.Return))))) {
+								if (OpenTaiko.Pad.IsPressingDecide()) {
 
 									if (this.actSongList.rCurrentlySelectedSong != null) {
 										switch (this.actSongList.rCurrentlySelectedSong.nodeType) {

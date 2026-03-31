@@ -14,6 +14,9 @@ namespace OpenTaiko.Shrandy
 		public int DurationMs { get; set; }
 		public int ScoreRank { get; set; }
 		public int ChartLevel { get; set; }
+		public double BaseBpm { get; set; }
+		public double MinBpm { get; set; }
+		public double MaxBpm { get; set; }
 		public string RandomMod { get; set; } = "None";
 		public int SongSpeed { get; set; } = CConfigIni.DefaultSongSpeed;
 	}

@@ -86,6 +86,13 @@ public class CPad {
 
 	public bool IsPressingLeftChange()
 	{
+		// [Divergence] ShrandyExtension input blocking
+		if (!OpenTaiko.ShrandyExtension.IsGameInputAllowed())
+		{
+			return false;
+		}
+		// [End Divergence]
+
 		return OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.LeftArrow)
 			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LeftChange)
 			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LBlue)
@@ -94,6 +101,13 @@ public class CPad {
 
 	public bool IsPressingRightChange()
 	{
+		// [Divergence] ShrandyExtension input blocking
+		if (!OpenTaiko.ShrandyExtension.IsGameInputAllowed())
+		{
+			return false;
+		}
+		// [End Divergence]
+
 		return OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.RightArrow)
 			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RightChange)
 			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RBlue)
@@ -102,6 +116,13 @@ public class CPad {
 
 	public bool IsPressingDecide()
 	{
+		// [Divergence] ShrandyExtension input blocking
+		if (!OpenTaiko.ShrandyExtension.IsGameInputAllowed())
+		{
+			return false;
+		}
+		// [End Divergence]
+
 		return OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.Decide)
 			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LRed)
 			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RRed)
@@ -109,12 +130,34 @@ public class CPad {
 			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RRed2P)
 			|| OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.Return);
 	}
-
-	public bool bPressed(EInstrumentPad part, EPad pad) {
-		if (part == EInstrumentPad.Unknown) {
+	
+	public bool IsPressingCancel()
+	{
+		// [Divergence] ShrandyExtension input blocking
+		if (!OpenTaiko.ShrandyExtension.IsGameInputAllowed())
+		{
 			return false;
 		}
+		// [End Divergence]
 
+		return OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.Cancel)
+			|| OpenTaiko.Pad.bPressedDGB(EPad.Cancel)
+			|| OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.Escape);
+	}
+
+	public bool bPressed(EInstrumentPad part, EPad pad) {
+		if (part == EInstrumentPad.Unknown)
+		{
+			return false;
+		}
+		
+		// [Divergence] ShrandyExtension input blocking
+		if (!OpenTaiko.ShrandyExtension.IsGameInputAllowed())
+		{
+			return false;
+		}
+		// [End Divergence]
+		
 		CConfigIni.CKeyAssign.STKEYASSIGN[] stkeyassignArray = this.rConfigIni.KeyAssign[(int)part][(int)pad];
 		for (int i = 0; i < stkeyassignArray.Length; i++) {
 			switch (stkeyassignArray[i].InputDevice) {
