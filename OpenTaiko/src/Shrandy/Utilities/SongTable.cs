@@ -30,19 +30,25 @@ namespace OpenTaiko.Shrandy.Utilities
 
 	internal static class SongTable
 	{
-		private const int ColumnCount = 18;
+		private const int BaseColumnCount = 18;
+		private const int AggregateColumnCount = 3;
 
-		public static bool BeginTable(string id, ImGuiTableFlags extraFlags = ImGuiTableFlags.None, float height = 0)
+		public static bool BeginTable(string id, ImGuiTableFlags extraFlags = ImGuiTableFlags.None, float height = 0, bool showAggregates = false)
 		{
+			int columnCount = showAggregates ? BaseColumnCount + AggregateColumnCount : BaseColumnCount;
+
 			ImGuiTableFlags flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg
-				| ImGuiTableFlags.Resizable | ImGuiTableFlags.ScrollX | extraFlags;
+				| ImGuiTableFlags.Resizable | ImGuiTableFlags.ScrollX
+				| ImGuiTableFlags.Hideable | extraFlags;
 
 			Vector2 size = height > 0 ? new Vector2(0, height) : Vector2.Zero;
 
-			if (!ImGui.BeginTable(id, ColumnCount, flags, size))
+			if (!ImGui.BeginTable(id, columnCount, flags, size))
 			{
 				return false;
 			}
+
+			ImGuiTableColumnFlags hide = ImGuiTableColumnFlags.DefaultHide;
 
 			ImGui.TableSetupColumn("Song", ImGuiTableColumnFlags.WidthFixed, 128);
 			ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 64);
@@ -51,20 +57,40 @@ namespace OpenTaiko.Shrandy.Utilities
 			ImGui.TableSetupColumn("BPM", ImGuiTableColumnFlags.WidthFixed, 80);
 			ImGui.TableSetupColumn("Score", ImGuiTableColumnFlags.WidthFixed, 48);
 			ImGui.TableSetupColumn("Good%", ImGuiTableColumnFlags.WidthFixed, 48);
-			ImGui.TableSetupColumn("Goods", ImGuiTableColumnFlags.WidthFixed, 48);
-			ImGui.TableSetupColumn("Okays", ImGuiTableColumnFlags.WidthFixed, 48);
-			ImGui.TableSetupColumn("Bads", ImGuiTableColumnFlags.WidthFixed, 48);
-			ImGui.TableSetupColumn("Rolls", ImGuiTableColumnFlags.WidthFixed, 48);
+			ImGui.TableSetupColumn("Goods", ImGuiTableColumnFlags.WidthFixed | hide, 48);
+			ImGui.TableSetupColumn("Okays", ImGuiTableColumnFlags.WidthFixed | hide, 48);
+			ImGui.TableSetupColumn("Bads", ImGuiTableColumnFlags.WidthFixed | hide, 48);
+			ImGui.TableSetupColumn("Rolls", ImGuiTableColumnFlags.WidthFixed | hide, 48);
 			ImGui.TableSetupColumn("Combo", ImGuiTableColumnFlags.WidthFixed, 48);
 			ImGui.TableSetupColumn("Duration", ImGuiTableColumnFlags.WidthFixed, 64);
-			ImGui.TableSetupColumn("Total Notes", ImGuiTableColumnFlags.WidthFixed, 64);
-			ImGui.TableSetupColumn("Diff", ImGuiTableColumnFlags.WidthFixed, 48);
-			ImGui.TableSetupColumn("Speed", ImGuiTableColumnFlags.WidthFixed, 56);
-			ImGui.TableSetupColumn("Random", ImGuiTableColumnFlags.WidthFixed, 72);
+			ImGui.TableSetupColumn("Total Notes", ImGuiTableColumnFlags.WidthFixed | hide, 64);
+			ImGui.TableSetupColumn("Diff", ImGuiTableColumnFlags.WidthFixed | hide, 48);
+			ImGui.TableSetupColumn("Speed", ImGuiTableColumnFlags.WidthFixed | hide, 56);
+			ImGui.TableSetupColumn("Random", ImGuiTableColumnFlags.WidthFixed | hide, 72);
 			ImGui.TableSetupColumn("Creator", ImGuiTableColumnFlags.WidthFixed, 100);
+
+			if (showAggregates)
+			{
+				ImGui.TableSetupColumn("Plays", ImGuiTableColumnFlags.WidthFixed, 40);
+				ImGui.TableSetupColumn("FC", ImGuiTableColumnFlags.WidthFixed, 40);
+				ImGui.TableSetupColumn("DFC", ImGuiTableColumnFlags.WidthFixed, 40);
+			}
+
 			ImGui.TableHeadersRow();
 
 			return true;
+		}
+
+		public static void DrawAggregateColumns(int playCount, int fcCount, int dfcCount)
+		{
+			ImGui.TableSetColumnIndex(BaseColumnCount);
+			ImGui.Text($"{playCount}");
+
+			ImGui.TableSetColumnIndex(BaseColumnCount + 1);
+			ImGui.Text($"{fcCount}");
+
+			ImGui.TableSetColumnIndex(BaseColumnCount + 2);
+			ImGui.Text($"{dfcCount}");
 		}
 
 		public static void DrawRow(in SongTableRow row, string creator = "")
@@ -197,7 +223,10 @@ namespace OpenTaiko.Shrandy.Utilities
 
 		private static void DrawBpm(double baseBpm, double minBpm, double maxBpm)
 		{
-			if (baseBpm <= 0) return;
+			if (baseBpm <= 0)
+			{
+				return;
+			}
 
 			if (minBpm > 0 && maxBpm > 0 && Math.Abs(minBpm - maxBpm) > 1)
 			{
@@ -236,7 +265,7 @@ namespace OpenTaiko.Shrandy.Utilities
 		public static SongTableRow FromSongNode(CSongListNode song, int difficulty)
 		{
 			CScore score = song.score[difficulty];
-			var info = score?.譜面情報 ?? default;
+			CScore.ST譜面情報 info = score?.譜面情報 ?? default;
 
 			return new SongTableRow
 			{
@@ -258,6 +287,21 @@ namespace OpenTaiko.Shrandy.Utilities
 				Speed = "",
 				RandomMod = "",
 			};
+		}
+
+		public static void MergeHistoryEntry(ref SongTableRow row, SongEntry entry)
+		{
+			row.TimeSince = StringHelpers.GetTimeSinceString(entry.Timestamp);
+			row.ScoreRank = entry.ScoreRank;
+			row.Score = entry.Score;
+			row.Goods = entry.Goods;
+			row.Okays = entry.Okays;
+			row.Bads = entry.Bads;
+			row.Rolls = entry.Rolls;
+			row.MaxCombo = entry.MaxCombo;
+			row.Duration = FormatDuration(entry.DurationMs);
+			row.Speed = CConfigIni.SongPlaybackSpeedToString(entry.SongSpeed);
+			row.RandomMod = entry.RandomMod;
 		}
 
 		public static int GetScoreRank(CSongListNode song, int difficulty)
@@ -310,9 +354,12 @@ namespace OpenTaiko.Shrandy.Utilities
 
 		public static void PlaySong(CSongListNode song, int difficulty)
 		{
-			if (OpenTaiko.stageSongSelect == null) return;
+			if (OpenTaiko.stageSongSelect == null)
+			{
+				return;
+			}
 
-			var songList = OpenTaiko.stageSongSelect.actSongList;
+			CActSelect曲リスト songList = OpenTaiko.stageSongSelect.actSongList;
 			songList.rCurrentlySelectedSong = song;
 
 			OpenTaiko.stageSongSelect.t曲を選択する(difficulty, 0);
@@ -321,10 +368,12 @@ namespace OpenTaiko.Shrandy.Utilities
 		public static CSongListNode? FindSongByTitle(string title)
 		{
 			if (OpenTaiko.stageSongSelect?.actSongList == null || OpenTaiko.Songs管理?.list曲ルート == null)
+			{
 				return null;
+			}
 
-			var allNodes = OpenTaiko.stageSongSelect.actSongList.flattenList(OpenTaiko.Songs管理.list曲ルート);
-			foreach (var node in allNodes)
+			List<CSongListNode> allNodes = OpenTaiko.stageSongSelect.actSongList.flattenList(OpenTaiko.Songs管理.list曲ルート);
+			foreach (CSongListNode node in allNodes)
 			{
 				if ((node.nodeType == CSongListNode.ENodeType.SCORE || node.nodeType == CSongListNode.ENodeType.SCORE_MIDI)
 					&& string.Equals(node.ldTitle.GetString(""), title, StringComparison.OrdinalIgnoreCase))
