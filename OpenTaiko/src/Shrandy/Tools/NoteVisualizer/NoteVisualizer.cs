@@ -19,6 +19,8 @@ namespace OpenTaiko.Shrandy.Tools
 		private Vector2 m_WidgetBottomRight;
 		private int m_NoteErrorFilterMs = 0;
 
+		private Hand m_FilterHand = Hand.None;
+
 		public NoteVisualizer(string toolName, SlimDXKeys.Key enableHotkey)
 			: base(toolName, enableHotkey)
 		{
@@ -31,12 +33,22 @@ namespace OpenTaiko.Shrandy.Tools
 				ImGui.Text("Note Error Filter (ms)");
 				ImGui.SameLine();
 				ImGui.SliderInt("", ref m_NoteErrorFilterMs, 0, 100);
+				DrawHandFilter();
 
 				double songDuration = OpenTaiko.TJA.listChip[^1].n発声時刻ms;
 				DrawTimelineWidget("##NoteTimeline", (float)songDuration,
 					tjaNotes: OpenTaiko.TJA.listNoteChip,
 					tjaBars: OpenTaiko.TJA.listBarLineChip,
 					m_HitHistory);
+			}
+		}
+
+		private void DrawHandFilter()
+		{
+			int filterInt = (int)m_FilterHand;
+			if (ImGui.Combo("Hand Filter", ref filterInt, Enum.GetNames(typeof(Hand)), Enum.GetValues(typeof(Hand)).Length))
+			{
+				m_FilterHand = (Hand)filterInt;
 			}
 		}
 
@@ -224,7 +236,7 @@ namespace OpenTaiko.Shrandy.Tools
 					continue;
 				}
 
-				if (Math.Abs(hitParams.HitErrorMs) < m_NoteErrorFilterMs)
+				if (!CanDrawNote(hitParams))
 				{
 					continue;
 				}
@@ -253,14 +265,17 @@ namespace OpenTaiko.Shrandy.Tools
 				textPosition.Y += textOffsetY;
 				m_DrawList.AddText(textPosition, 0xFFFFFFFF, hitParams.HitErrorMs.ToString("+0;-0;0"));
 
-				string errorText = hitParams.HitErrorMs == 0 ? "Perfect"
-					: hitParams.HitErrorMs < 0 ? "Early"
-					: "Late";
+				string errorText = hitParams.HitErrorMs == 0 ? "P"
+					: hitParams.HitErrorMs < 0 ? "E"
+					: "L";
 				textPosition.Y += textOffsetY;
 				m_DrawList.AddText(textPosition, 0xFFFFFFFF, errorText);
 
 				textPosition.Y += textOffsetY;
-				m_DrawList.AddText(textPosition, 0xFFFFFFFF, hitParams.Hand.ToString());
+				m_DrawList.AddText(textPosition, 0xFFFFFFFF,
+					hitParams.Hand == Hand.Left ? "L" :
+					hitParams.Hand == Hand.Right ? "R"
+					: "-");
 			}
 
 			// Optional tooltip
@@ -271,6 +286,21 @@ namespace OpenTaiko.Shrandy.Tools
 				ImGui.Text($"t = {tHover:0.###}");
 				ImGui.EndTooltip();
 			}
+		}
+
+		private bool CanDrawNote(HitParams hitParams)
+		{
+			if (Math.Abs(hitParams.HitErrorMs) < m_NoteErrorFilterMs)
+			{
+				return false;
+			}
+			
+			if (m_FilterHand != Hand.None && hitParams.Hand != m_FilterHand)
+			{
+				return false;
+			}
+
+			return true;
 		}
 
 		private uint GetOutlineColour(CChip? note, ENoteJudge judgeResult)
