@@ -53,6 +53,7 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				ImGui.TableSetupColumn("Time Since Start", ImGuiTableColumnFlags.WidthFixed, 120);
 				ImGui.TableSetupColumn("Session Playtime", ImGuiTableColumnFlags.WidthFixed, 120);
+				ImGui.TableSetupColumn("Session Song Count", ImGuiTableColumnFlags.WidthFixed, 120);
 				ImGui.TableSetupColumn("Uptime", ImGuiTableColumnFlags.WidthFixed, 100);
 				ImGui.TableSetupColumn("Songs Per Hour", ImGuiTableColumnFlags.WidthFixed, 120);
 				ImGui.TableSetupColumn("Reset", ImGuiTableColumnFlags.WidthFixed, 120);
@@ -67,12 +68,15 @@ namespace OpenTaiko.Shrandy.Tools
 				ImGui.TextUnformatted(Utilities.SongTable.FormatDuration(sessionDurationMs));
 
 				ImGui.TableSetColumnIndex(2);
-				ImGui.Text($"{(int)(uptime * 100)}%%");
+				ImGui.TextUnformatted($"{sessionSongCount}");
 
 				ImGui.TableSetColumnIndex(3);
-				ImGui.Text($"{(int)songsPerHour}");
+				ImGui.Text($"{(int)(uptime * 100)}%%");
 
 				ImGui.TableSetColumnIndex(4);
+				ImGui.Text($"{(int)songsPerHour}");
+
+				ImGui.TableSetColumnIndex(5);
 				if (ImGui.Button("Reset Session Stats"))
 				{
 					m_Data.ResetSessionStats();
