@@ -11,6 +11,8 @@ namespace OpenTaiko.Shrandy.Tools
 		private SongHistorySaveData m_SaveData = new();
 		private int m_SongCountAtStartOfSession = 0;
 		private int m_SessionTargetSongs = 25;
+		private int m_DailyTargetSongs = 50;
+		private int m_FilterDays = 0;
 		private DateTime m_SessionStartTime = DateTime.Now;
 
 		public SongHistoryTool(string toolName, SlimDXKeys.Key enableHotkey)
@@ -60,22 +62,82 @@ namespace OpenTaiko.Shrandy.Tools
 			base.Draw();
 
 			DrawSessionElapsedTime();
-			DrawSessionTargetProgress();
-
-			ImGui.Text($"Song Duration: {FormatDuration(Utilities.ScoreHelper.GetSongDurationMs())}s");
+			DrawGoals();
+			
+			ImGui.SeparatorText("History");
+			DrawFilterDaysInput();
 			DrawSummary();
 			DrawTable();
+		}
+		
+		private void DrawFilterDaysInput()
+		{
+			if (ImGui.Button("Today"))
+			{
+				m_FilterDays = 1;
+			}
+			ImGui.SameLine();
+			if (ImGui.Button("7 Days"))
+			{
+				m_FilterDays = 7;
+			}
+			ImGui.SameLine();
+			if (ImGui.Button("30 Days"))
+			{
+				m_FilterDays = 30;
+			}
+			ImGui.SameLine();
+			if (ImGui.Button("All Time"))
+			{
+				m_FilterDays = 0;
+			}
 		}
 
 		private void DrawSessionElapsedTime()
 		{
+			ImGui.SeparatorText("Session Stats");
+			
 			TimeSpan elapsed = DateTime.Now - m_SessionStartTime;
-			ImGui.Text($"Time Since Session Start: {elapsed:hh\\:mm\\:ss}");
-			ImGui.SameLine();
-			if (ImGui.Button("Reset Session Stats"))
+			int sessionSongCount = GetSessionSongCount();
+			int sessionDurationMs = sessionSongCount > 0
+				? m_SaveData.SongEntries.Skip(m_SongCountAtStartOfSession).Sum(x => x.DurationMs)
+				: 0;
+			float uptime = sessionDurationMs / (float)elapsed.TotalMilliseconds;
+			float songsPerHour = sessionSongCount / (float)elapsed.TotalHours;
+
+			ImGuiTableFlags flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg;
+			if (ImGui.BeginTable("Session Stats", 5, flags))
 			{
-				ResetSessionStats();
+				ImGui.TableSetupColumn("Time Since Start", ImGuiTableColumnFlags.WidthFixed, 120);
+				ImGui.TableSetupColumn("Session Playtime", ImGuiTableColumnFlags.WidthFixed, 120);
+				ImGui.TableSetupColumn("Uptime", ImGuiTableColumnFlags.WidthFixed, 100);
+				ImGui.TableSetupColumn("Songs Per Hour", ImGuiTableColumnFlags.WidthFixed, 120);
+				ImGui.TableSetupColumn("Reset", ImGuiTableColumnFlags.WidthFixed, 120);
+				ImGui.TableHeadersRow();
+
+				ImGui.TableNextRow();
+				
+				ImGui.TableSetColumnIndex(0);
+				ImGui.TextUnformatted($"{elapsed:hh\\:mm\\:ss}");
+				
+				ImGui.TableSetColumnIndex(1);
+				ImGui.TextUnformatted(FormatDuration(sessionDurationMs));
+				
+				ImGui.TableSetColumnIndex(2);
+				ImGui.Text($"{(int)(uptime * 100)}%%");
+				
+				ImGui.TableSetColumnIndex(3);
+				ImGui.Text($"{(int)songsPerHour}");
+
+				ImGui.TableSetColumnIndex(4);
+				if (ImGui.Button("Reset Session Stats"))
+				{
+					ResetSessionStats();
+				}
+
+				ImGui.EndTable();
 			}
+			
 		}
 
 		private void ResetSessionStats()
@@ -88,46 +150,60 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			return Math.Max(0, m_SaveData.SongEntries.Count - m_SongCountAtStartOfSession);
 		}
-
-		private void DrawSessionTargetProgress()
+		
+		private void DrawGoals()
 		{
-			int sessionSongCount = GetSessionSongCount();
+			ImGui.SeparatorText("Goals");
+			DrawGoalInput(ref m_SessionTargetSongs, "Session");
+			ImGui.SameLine();
+			DrawGoalInput(ref m_DailyTargetSongs, "Daily");
+			DrawProgressGoal(m_SessionTargetSongs, "Session", GetSessionSongCount());
+			DrawProgressGoal(m_DailyTargetSongs, "Daily", GetSongCountFromCutoff(1));
+			DrawProgressGoal(m_DailyTargetSongs * 7, "Weekly", GetSongCountFromCutoff(7));
+			DrawProgressGoal(m_DailyTargetSongs * 30, "Monthly", GetSongCountFromCutoff(30));
+		}
 
-			ImGui.Text("Session Target (Songs)");
-			ImGui.SetNextItemWidth(100.0f);
-			ImGui.InputInt("##SessionTargetSongs", ref m_SessionTargetSongs, 1, 5);
-			m_SessionTargetSongs = Math.Max(0, m_SessionTargetSongs);
+		private void DrawGoalInput(ref int goal, string label)
+		{
+			ImGui.SetNextItemWidth(100);
+			ImGui.InputInt($"{label}TargetSongs", ref goal, 1, 5);
+			
+			goal = Math.Max(0, goal);
+		}
 
-			float progress = m_SessionTargetSongs > 0
-				? MathF.Min(1.0f, sessionSongCount / (float)m_SessionTargetSongs)
+		private void DrawProgressGoal(int goal, string label, int current)
+		{
+			float progress = goal > 0
+				? MathF.Min(1.0f, current / (float)goal)
 				: 0.0f;
 
-			string overlay = m_SessionTargetSongs > 0
-				? $"{sessionSongCount} / {m_SessionTargetSongs}"
-				: $"{sessionSongCount} / -";
+			string overlay = goal > 0
+				? $"{current} / {goal}"
+				: $"{current} / -";
 
-			ImGui.ProgressBar(progress, new System.Numerics.Vector2(-1.0f, 0.0f), overlay);
-			ImGui.Separator();
+			ImGui.ProgressBar(progress, new System.Numerics.Vector2(-1.0f, 0.0f), $"{label} Goal: {overlay}");
 		}
 
 		private void DrawSummary()
 		{
-			int totalSongs = m_SaveData.SongEntries.Count;
-			int totalDurationMs = m_SaveData.SongEntries.Sum(x => x.DurationMs);
-			int sessionSongCount = GetSessionSongCount();
-			int sessionDurationMs = sessionSongCount > 0
-				? m_SaveData.SongEntries.Skip(m_SongCountAtStartOfSession).Sum(x => x.DurationMs)
-				: 0;
-	
-			ImGui.Text($"Total Songs Played: {totalSongs}");
+			int startIndex = CalculateHistoryStartIndex();
+			
+			int totalSongs = m_SaveData.SongEntries.Count - startIndex;
+			int totalDurationMs = m_SaveData.SongEntries.Skip(startIndex).Sum(x => x.DurationMs);
+			
+			ImGui.Text($"Songs Played: {totalSongs}");
 			ImGui.SameLine();
-			ImGui.Text($"Total Playtime: {FormatDuration(totalDurationMs)}");
-			ImGui.Separator();
+			ImGui.Text($"Playtime: {FormatDuration(totalDurationMs)}");
 
-			ImGui.Text($"Session Songs Played: {sessionSongCount}");
 			ImGui.SameLine();
-			ImGui.Text($"Session Playtime: {FormatDuration(sessionDurationMs)}");
-			ImGui.Separator();
+			if (m_FilterDays > 0)
+			{
+				ImGui.Text($"(Showing last {m_FilterDays} days)");
+			}
+			else
+			{
+				ImGui.Text("(Showing all time)");
+			}
 		}
 
 		private void DrawTable()
@@ -160,9 +236,11 @@ namespace OpenTaiko.Shrandy.Tools
 				ImGui.TableSetupColumn("Speed", ImGuiTableColumnFlags.WidthFixed, 56);
 				ImGui.TableSetupColumn("Random", ImGuiTableColumnFlags.WidthFixed, 72);
 				ImGui.TableHeadersRow();
-
-				foreach (SongEntry entry in m_SaveData.SongEntries)
+				
+				int startIndex = CalculateHistoryStartIndex();
+				for (int i = startIndex; i < m_SaveData.SongEntries.Count; ++i)
 				{
+					SongEntry entry = m_SaveData.SongEntries[i];
 					int totalNotes = entry.Goods + entry.Okays + entry.Bads;
 
 					ImGui.TableNextRow();
@@ -218,6 +296,29 @@ namespace OpenTaiko.Shrandy.Tools
 
 				ImGui.EndTable();
 			}
+		}
+
+		private int GetSongCountFromCutoff(int days)
+		{
+			if (days == 0)
+			{
+				return m_SaveData.SongEntries.Count;
+			}
+
+			// Subtracting an extra day to account for the 5 AM day boundary
+			DateTime cutoff = DateTime.Today.AddHours(5).Subtract(TimeSpan.FromDays(days - 1));
+			return m_SaveData.SongEntries.Count(x => x.Timestamp >= cutoff);
+		}
+		
+		private int CalculateHistoryStartIndex()
+		{
+			int startIndex = 0;
+			if (m_FilterDays != 0)
+			{
+				startIndex = Math.Max(0, m_SaveData.SongEntries.Count - GetSongCountFromCutoff(m_FilterDays));
+			}
+			
+			return startIndex;
 		}
 
 		private void TryAddCurrentSongStats()
