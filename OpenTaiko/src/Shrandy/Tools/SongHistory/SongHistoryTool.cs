@@ -219,8 +219,24 @@ namespace OpenTaiko.Shrandy.Tools
 				int startIndex = CalculateHistoryStartIndex();
 				for (int i = startIndex; i < m_SaveData.SongEntries.Count; ++i)
 				{
-					var row = Utilities.SongTable.FromSongEntry(m_SaveData.SongEntries[i]);
-					Utilities.SongTable.DrawRow(in row);
+					var entry = m_SaveData.SongEntries[i];
+					var row = Utilities.SongTable.FromSongEntry(entry);
+
+					ImGui.TableNextRow();
+					ImGui.TableSetColumnIndex(0);
+					ImGui.PushID(i);
+					if (ImGui.Selectable(row.Title))
+					{
+						CSongListNode? song = Utilities.SongTable.FindSongByTitle(entry.SongTitle);
+						if (song != null)
+						{
+							int diff = Utilities.SongTable.GetDifficultyFromLabel(entry.Difficulty);
+							Utilities.SongTable.PlaySong(song, diff);
+						}
+					}
+					ImGui.PopID();
+
+					Utilities.SongTable.DrawRowFromColumn1(in row);
 				}
 
 				Utilities.SongTable.EndTable();

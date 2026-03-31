@@ -307,5 +307,47 @@ namespace OpenTaiko.Shrandy.Utilities
 
 			return $"{duration.Minutes:D2}:{duration.Seconds:D2}";
 		}
+
+		public static void PlaySong(CSongListNode song, int difficulty)
+		{
+			if (OpenTaiko.stageSongSelect == null) return;
+
+			var songList = OpenTaiko.stageSongSelect.actSongList;
+			songList.rCurrentlySelectedSong = song;
+
+			OpenTaiko.stageSongSelect.t曲を選択する(difficulty, 0);
+		}
+
+		public static CSongListNode? FindSongByTitle(string title)
+		{
+			if (OpenTaiko.stageSongSelect?.actSongList == null || OpenTaiko.Songs管理?.list曲ルート == null)
+				return null;
+
+			var allNodes = OpenTaiko.stageSongSelect.actSongList.flattenList(OpenTaiko.Songs管理.list曲ルート);
+			foreach (var node in allNodes)
+			{
+				if ((node.nodeType == CSongListNode.ENodeType.SCORE || node.nodeType == CSongListNode.ENodeType.SCORE_MIDI)
+					&& string.Equals(node.ldTitle.GetString(""), title, StringComparison.OrdinalIgnoreCase))
+				{
+					return node;
+				}
+			}
+			return null;
+		}
+
+		public static int GetDifficultyFromLabel(string label)
+		{
+			return label?.ToLowerInvariant() switch
+			{
+				"easy" => (int)Difficulty.Easy,
+				"normal" => (int)Difficulty.Normal,
+				"hard" => (int)Difficulty.Hard,
+				"oni" => (int)Difficulty.Oni,
+				"ura" => (int)Difficulty.Edit,
+				"tower" => (int)Difficulty.Tower,
+				"dan" => (int)Difficulty.Dan,
+				_ => (int)Difficulty.Oni,
+			};
+		}
 	}
 }

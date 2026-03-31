@@ -131,7 +131,7 @@ namespace OpenTaiko.Shrandy.Tools
 					string label = row.Title;
 					if (ImGui.Selectable(label))
 					{
-						PlaySong(song, m_SelectedDifficulty);
+						Utilities.SongTable.PlaySong(song, m_SelectedDifficulty);
 					}
 					ImGui.PopID();
 
@@ -273,14 +273,5 @@ namespace OpenTaiko.Shrandy.Tools
 			return 0;
 		}
 
-		private static void PlaySong(CSongListNode song, int difficulty)
-		{
-			if (OpenTaiko.stageSongSelect == null) return;
-
-			var songList = OpenTaiko.stageSongSelect.actSongList;
-			songList.rCurrentlySelectedSong = song;
-
-			OpenTaiko.stageSongSelect.t曲を選択する(difficulty, 0);
-		}
 	}
 }
