@@ -49,7 +49,7 @@ namespace OpenTaiko.Shrandy.Tools
 			float songsPerHour = sessionSongCount / (float)elapsed.TotalHours;
 
 			ImGuiTableFlags flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg;
-			if (ImGui.BeginTable("Session Stats", 5, flags))
+			if (ImGui.BeginTable("Session Stats", 6, flags))
 			{
 				ImGui.TableSetupColumn("Time Since Start", ImGuiTableColumnFlags.WidthFixed, 120);
 				ImGui.TableSetupColumn("Session Playtime", ImGuiTableColumnFlags.WidthFixed, 120);
