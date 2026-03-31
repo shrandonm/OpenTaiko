@@ -1014,7 +1014,7 @@ internal class CStageSongSelect : CStage {
 							if (!this.bCurrentlyScrolling) {
 								var IsSongLocked = OpenTaiko.Databases.DBSongUnlockables.tIsSongLocked(this.rNowSelectedSong);
 
-								if (OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.LeftControl) && !IsSongLocked) {
+								if (OpenTaiko.ShrandyExtension.IsGameInputAllowed() && OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.LeftControl) && !IsSongLocked) {
 									CSongUniqueID csu = this.rNowSelectedSong.uniqueId;
 
 									if (csu != null) {
