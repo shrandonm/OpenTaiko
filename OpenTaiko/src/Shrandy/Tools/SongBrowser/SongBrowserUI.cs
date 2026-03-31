@@ -93,9 +93,9 @@ namespace OpenTaiko.Shrandy.Tools
 			DrawGoalInput(ref m_Data.DailyTargetSongs, "Daily");
 
 			DrawProgressGoal(m_Data.SessionTargetSongs, "Session", m_Data.GetSessionSongCount());
-			DrawProgressGoal(m_Data.DailyTargetSongs, "Daily", m_Data.GetSongCountFromCutoff(1));
-			DrawProgressGoal(m_Data.DailyTargetSongs * 7, "Weekly", m_Data.GetSongCountFromCutoff(7));
-			DrawProgressGoal(m_Data.DailyTargetSongs * 30, "Monthly", m_Data.GetSongCountFromCutoff(30));
+			DrawProgressGoal(m_Data.DailyTargetSongs, "Daily", m_Data.GetDailySongCount());
+			DrawProgressGoal(m_Data.DailyTargetSongs * 7, "Weekly", m_Data.GetWeeklySongCount());
+			DrawProgressGoal(m_Data.DailyTargetSongs * 30, "Monthly", m_Data.GetMonthlySongCount());
 		}
 
 		private static void DrawGoalInput(ref int goal, string label)

@@ -142,6 +142,30 @@ namespace OpenTaiko.Shrandy.Tools
 
 		// --- History ---
 
+		public int GetSongCountSince(DateTime cutoff)
+		{
+			return m_SaveData.SongEntries.Count(x => x.Timestamp >= cutoff);
+		}
+
+		public int GetDailySongCount()
+		{
+			return GetSongCountSince(DateTime.Today);
+		}
+
+		public int GetWeeklySongCount()
+		{
+			DayOfWeek today = DateTime.Today.DayOfWeek;
+			int daysSinceMonday = ((int)today + 6) % 7;
+			DateTime weekStart = DateTime.Today.AddDays(-daysSinceMonday);
+			return GetSongCountSince(weekStart);
+		}
+
+		public int GetMonthlySongCount()
+		{
+			DateTime monthStart = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+			return GetSongCountSince(monthStart);
+		}
+
 		public int GetSongCountFromCutoff(int days)
 		{
 			if (days == 0)
@@ -149,8 +173,8 @@ namespace OpenTaiko.Shrandy.Tools
 				return m_SaveData.SongEntries.Count;
 			}
 
-			DateTime cutoff = DateTime.Today.AddHours(5).Subtract(TimeSpan.FromDays(days - 1));
-			return m_SaveData.SongEntries.Count(x => x.Timestamp >= cutoff);
+			DateTime cutoff = DateTime.Today.AddDays(-(days - 1));
+			return GetSongCountSince(cutoff);
 		}
 
 		public int CalculateHistoryStartIndex()
@@ -213,6 +237,16 @@ namespace OpenTaiko.Shrandy.Tools
 		}
 
 		// --- Song list ---
+
+		public CSongListNode? GetRandomFilteredSong()
+		{
+			if (m_FilteredSongs.Count == 0)
+			{
+				return null;
+			}
+			int index = Random.Shared.Next(m_FilteredSongs.Count);
+			return m_FilteredSongs[index];
+		}
 
 		public void RefreshSongList()
 		{
