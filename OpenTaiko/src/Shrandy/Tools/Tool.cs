@@ -10,7 +10,7 @@ namespace OpenTaiko.Shrandy
 	internal class Tool
 	{
 		public string ToolName = "Tool";
-		public bool Enabled { get; set; } = false;
+		public bool Enabled { get; private set; } = false;
 		private SlimDXKeys.Key m_ModifierHotkey = SlimDXKeys.Key.LeftShift;
 		private SlimDXKeys.Key m_Hotkey = SlimDXKeys.Key.Unknown;
 
@@ -34,8 +34,13 @@ namespace OpenTaiko.Shrandy
 				&& OpenTaiko.InputManager.Keyboard.KeyPressing((int)m_ModifierHotkey)
 				&& OpenTaiko.InputManager.Keyboard.KeyPressed((int)m_Hotkey))
 			{
-				Enabled = !Enabled;
+				SetEnabled(!Enabled);
 			}
+		}
+		
+		public virtual void SetEnabled(bool enabled)
+		{
+			Enabled = enabled;
 		}
 
 		public virtual void OnNoteMiss(CChip? chip)

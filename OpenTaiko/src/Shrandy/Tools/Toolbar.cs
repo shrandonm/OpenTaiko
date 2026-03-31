@@ -20,7 +20,7 @@ namespace OpenTaiko.Shrandy
 					{
 						if (ImGui.MenuItem(tool.ToolName, tool.GetHotkeyString(), tool.Enabled))
 						{
-							tool.Enabled = !tool.Enabled;
+							tool.SetEnabled(!tool.Enabled);
 						}
 					}
 					ImGui.EndMenu();

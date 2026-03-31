@@ -4,6 +4,7 @@ namespace OpenTaiko.Shrandy.Tools
 	{
 		private SongBrowserData m_Data;
 		private SongBrowserUI m_UI;
+		private bool m_AutoShowInSongSelect = false;
 
 		public SongBrowserTool(string toolName, SlimDXKeys.Key enableHotkey)
 			: base(toolName, enableHotkey)
@@ -17,12 +18,29 @@ namespace OpenTaiko.Shrandy.Tools
 			return true;
 		}
 
+		public override void SetEnabled(bool enabled)
+		{
+			base.SetEnabled(enabled);
+			if (enabled)
+			{
+				m_AutoShowInSongSelect = true;
+			}
+		}
+
 		public override void OnStageChanged(CStage stage)
 		{
 			base.OnStageChanged(stage);
 			if (stage is CStageSongSelect)
 			{
+				if (m_AutoShowInSongSelect)
+				{
+					SetEnabled(true);
+				}
 				m_Data.RefreshSongList();
+			}
+			else
+			{
+				SetEnabled(false);
 			}
 		}
 
