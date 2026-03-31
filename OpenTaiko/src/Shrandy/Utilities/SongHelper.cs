@@ -1,3 +1,4 @@
+using FDK;
 using ImGuiNET;
 using System.Numerics;
 
@@ -53,6 +54,25 @@ namespace OpenTaiko.Shrandy.Utilities
 
 			float framePixelHeight = texture.szTextureSize.Height / 7f;
 			float aspectRatio = texture.szTextureSize.Width / framePixelHeight;
+			Vector2 size = new(iconHeight * aspectRatio, iconHeight);
+
+			ImGui.Image((nint)texture.Pointer, size, uv0, uv1);
+		}
+
+		public static void DrawDifficultyIcon(int difficultyIndex, float iconHeight = 16.0f)
+		{
+			CTexture texture = OpenTaiko.Tx.SongSelect_Difficulty_Cymbol ?? OpenTaiko.Tx.Dani_Difficulty_Cymbol;
+			if (texture == null || difficultyIndex < 0 || difficultyIndex > 4)
+			{
+				return;
+			}
+
+			float frameWidthUv = 1f / 5f;
+			Vector2 uv0 = new(difficultyIndex * frameWidthUv, 0f);
+			Vector2 uv1 = new((difficultyIndex + 1) * frameWidthUv, 1f);
+
+			float framePixelWidth = texture.szTextureSize.Width / 5f;
+			float aspectRatio = framePixelWidth / texture.szTextureSize.Height;
 			Vector2 size = new(iconHeight * aspectRatio, iconHeight);
 
 			ImGui.Image((nint)texture.Pointer, size, uv0, uv1);

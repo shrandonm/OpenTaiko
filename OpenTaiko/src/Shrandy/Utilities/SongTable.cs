@@ -19,6 +19,7 @@ namespace OpenTaiko.Shrandy.Utilities
 		public int MaxCombo;
 		public string Duration;
 		public string Difficulty;
+		public int DifficultyIndex;
 		public string Speed;
 		public string RandomMod;
 		public double BaseBpm;
@@ -64,7 +65,7 @@ namespace OpenTaiko.Shrandy.Utilities
 			ImGui.TableSetupColumn("Combo", ImGuiTableColumnFlags.WidthFixed | hide, 48);
 			ImGui.TableSetupColumn("Duration", ImGuiTableColumnFlags.WidthFixed, 64);
 			ImGui.TableSetupColumn("Total Notes", ImGuiTableColumnFlags.WidthFixed | hide, 64);
-			ImGui.TableSetupColumn("Diff", ImGuiTableColumnFlags.WidthFixed | hide, 48);
+			ImGui.TableSetupColumn("Diff", ImGuiTableColumnFlags.WidthFixed, 20);
 			ImGui.TableSetupColumn("Speed", ImGuiTableColumnFlags.WidthFixed | hide, 56);
 			ImGui.TableSetupColumn("Random", ImGuiTableColumnFlags.WidthFixed | hide, 72);
 			ImGui.TableSetupColumn("Creator", ImGuiTableColumnFlags.WidthFixed, 100);
@@ -144,7 +145,7 @@ namespace OpenTaiko.Shrandy.Utilities
 			ImGui.Text($"{totalNotes}");
 
 			ImGui.TableSetColumnIndex(col++);
-			ImGui.TextUnformatted(row.Difficulty);
+			ScoreHelper.DrawDifficultyIcon(row.DifficultyIndex, 16.0f);
 
 			ImGui.TableSetColumnIndex(col++);
 			ImGui.TextUnformatted(row.Speed);
@@ -209,7 +210,7 @@ namespace OpenTaiko.Shrandy.Utilities
 			ImGui.Text($"{totalNotes}");
 
 			ImGui.TableSetColumnIndex(col++);
-			ImGui.TextUnformatted(row.Difficulty);
+			ScoreHelper.DrawDifficultyIcon(row.DifficultyIndex, 16.0f);
 
 			ImGui.TableSetColumnIndex(col++);
 			ImGui.TextUnformatted(row.Speed);
@@ -257,6 +258,7 @@ namespace OpenTaiko.Shrandy.Utilities
 				MaxCombo = entry.MaxCombo,
 				Duration = FormatDuration(entry.DurationMs),
 				Difficulty = entry.Difficulty,
+				DifficultyIndex = GetDifficultyFromLabel(entry.Difficulty),
 				Speed = CConfigIni.SongPlaybackSpeedToString(entry.SongSpeed),
 				RandomMod = entry.RandomMod,
 			};
@@ -284,6 +286,7 @@ namespace OpenTaiko.Shrandy.Utilities
 				MaxCombo = 0,
 				Duration = info.Duration > 0 ? FormatDuration(info.Duration) : "",
 				Difficulty = GetDifficultyLabel(difficulty),
+				DifficultyIndex = difficulty,
 				Speed = "",
 				RandomMod = "",
 			};
