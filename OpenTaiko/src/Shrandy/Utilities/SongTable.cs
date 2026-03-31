@@ -61,7 +61,7 @@ namespace OpenTaiko.Shrandy.Utilities
 			ImGui.TableSetupColumn("Okays", ImGuiTableColumnFlags.WidthFixed | hide, 48);
 			ImGui.TableSetupColumn("Bads", ImGuiTableColumnFlags.WidthFixed | hide, 48);
 			ImGui.TableSetupColumn("Rolls", ImGuiTableColumnFlags.WidthFixed | hide, 48);
-			ImGui.TableSetupColumn("Combo", ImGuiTableColumnFlags.WidthFixed, 48);
+			ImGui.TableSetupColumn("Combo", ImGuiTableColumnFlags.WidthFixed | hide, 48);
 			ImGui.TableSetupColumn("Duration", ImGuiTableColumnFlags.WidthFixed, 64);
 			ImGui.TableSetupColumn("Total Notes", ImGuiTableColumnFlags.WidthFixed | hide, 64);
 			ImGui.TableSetupColumn("Diff", ImGuiTableColumnFlags.WidthFixed | hide, 48);
