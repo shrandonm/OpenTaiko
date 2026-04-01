@@ -4260,13 +4260,11 @@ internal class CTja : CActivity {
 		double th16DBeat = chip.fBMSCROLLTime - th16NowBeat + OpenTaiko.ConfigIni.nVisualOffsetMs;
 		// [End Divergence]
 
-		bool forceNMScroll = false;
-		EScrollMode scrollModeForced = forceNMScroll ? EScrollMode.Normal : velocityRefChip.eScrollMode;
+		bool constantScroll = OpenTaiko.ConfigIni.bTokkunMode && OpenTaiko.ConfigIni.bTokkunConstantScrollSpeed;
+		EScrollMode scrollModeForced = constantScroll ? EScrollMode.Normal : velocityRefChip.eScrollMode;
 
-		double scrollSpeed = ((scrollModeForced == EScrollMode.BMScroll) ? 1.0 : velocityRefChip.dbSCROLL) * scrollRate;
-		double scrollSpeed_Y = ((scrollModeForced == EScrollMode.BMScroll) ? 0.0 : velocityRefChip.dbSCROLL_Y) * scrollRate;
-		chip.nHorizontalChipDistance = NotesManager.GetNoteX(msDTime, th16DBeat, velocityRefChip.dbBPM, scrollSpeed, scrollModeForced);
-		chip.nVerticalChipDistance = NotesManager.GetNoteY(msDTime, th16DBeat, velocityRefChip.dbBPM, scrollSpeed_Y, scrollModeForced);
+		double effectiveBPM = constantScroll ? this.BPM : velocityRefChip.dbBPM;
+		double scrollSpeed = (constantScroll ? 1.0 : ((scrollModeForced == EScrollMode.BMScroll) ? 1.0 : velocityRefChip.dbSCROLL)) * scrollRate;
 		double scrollSpeed_Y = (constantScroll ? 0.0 : ((scrollModeForced == EScrollMode.BMScroll) ? 0.0 : velocityRefChip.dbSCROLL_Y)) * scrollRate;
 		chip.nHorizontalChipDistance = NotesManager.GetNoteX(msDTime, th16DBeat, effectiveBPM, scrollSpeed, scrollModeForced);
 		chip.nVerticalChipDistance = NotesManager.GetNoteY(msDTime, th16DBeat, effectiveBPM, scrollSpeed_Y, scrollModeForced);
