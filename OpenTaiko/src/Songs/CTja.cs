@@ -4267,5 +4267,8 @@ internal class CTja : CActivity {
 		double scrollSpeed_Y = ((scrollModeForced == EScrollMode.BMScroll) ? 0.0 : velocityRefChip.dbSCROLL_Y) * scrollRate;
 		chip.nHorizontalChipDistance = NotesManager.GetNoteX(msDTime, th16DBeat, velocityRefChip.dbBPM, scrollSpeed, scrollModeForced);
 		chip.nVerticalChipDistance = NotesManager.GetNoteY(msDTime, th16DBeat, velocityRefChip.dbBPM, scrollSpeed_Y, scrollModeForced);
+		double scrollSpeed_Y = (constantScroll ? 0.0 : ((scrollModeForced == EScrollMode.BMScroll) ? 0.0 : velocityRefChip.dbSCROLL_Y)) * scrollRate;
+		chip.nHorizontalChipDistance = NotesManager.GetNoteX(msDTime, th16DBeat, effectiveBPM, scrollSpeed, scrollModeForced);
+		chip.nVerticalChipDistance = NotesManager.GetNoteY(msDTime, th16DBeat, effectiveBPM, scrollSpeed_Y, scrollModeForced);
 	}
 }

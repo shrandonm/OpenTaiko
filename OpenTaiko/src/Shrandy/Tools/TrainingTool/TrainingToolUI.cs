@@ -24,6 +24,7 @@ namespace OpenTaiko.Shrandy.Tools
 			if (OpenTaiko.stageGameScreen.actTokkun != null && OpenTaiko.ConfigIni.bTokkunMode)
 			{
 				DrawSpeedControls();
+				ImGui.Checkbox("Constant Scroll Speed", ref OpenTaiko.ConfigIni.bTokkunConstantScrollSpeed);
 
 				int modeInt = (int)m_Tool.CurrentMode;
 				if (ImGui.Combo("Mode", ref modeInt, Enum.GetNames(typeof(TrainingTool.Mode)), Enum.GetValues(typeof(TrainingTool.Mode)).Length))
