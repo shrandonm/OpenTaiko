@@ -353,12 +353,15 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private double? GetFieldValue(CSongListNode song, CScore score, int level, string field)
 		{
+			SongEntry? bestPlay = GetBestPlay(song.ldTitle.GetString(""), m_SelectedDifficulty);
+			int scoreRank = bestPlay?.ScoreRank ?? 0;
+			
 			return field switch
 			{
 				"bpm" => score.譜面情報.BaseBpm,
 				"level" or "lv" => level,
-				"badge" or "rank" => Utilities.SongTable.GetScoreRank(song, m_SelectedDifficulty),
-				"fc" or "clear" => GetClearStatus(score, m_SelectedDifficulty),
+				"badge" or "rank" => scoreRank,
+				"score" => bestPlay?.Score,
 				_ => null,
 			};
 		}
