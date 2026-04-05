@@ -32,8 +32,8 @@ namespace OpenTaiko.Shrandy.Tools
 
 		// All songs
 		private List<CSongListNode> m_AllSongs = new();
-		private List<CSongListNode> m_FilteredSongs = new();
-		private int m_SelectedDifficulty = (int)Difficulty.Oni;
+		private List<(CSongListNode song, int difficulty)> m_FilteredSongs = new();
+		private HashSet<int> m_SelectedDifficulties = new() { (int)Difficulty.Oni, (int)Difficulty.Edit };
 		private string m_FilterText = "";
 		private bool m_NeedsRefresh = true;
 
@@ -55,16 +55,24 @@ namespace OpenTaiko.Shrandy.Tools
 		// Public accessors
 		public SongHistorySaveData SaveData => m_SaveData;
 		public List<CSongListNode> AllSongs => m_AllSongs;
-		public List<CSongListNode> FilteredSongs => m_FilteredSongs;
+		public List<(CSongListNode song, int difficulty)> FilteredSongs => m_FilteredSongs;
 
-		public int SelectedDifficulty
+		public bool IsDifficultySelected(int diff) => m_SelectedDifficulties.Contains(diff);
+
+		public void ToggleDifficulty(int diff)
 		{
-			get => m_SelectedDifficulty;
-			set
+			if (m_SelectedDifficulties.Contains(diff))
 			{
-				m_SelectedDifficulty = value;
-				m_NeedsRefresh = true;
+				if (m_SelectedDifficulties.Count > 1)
+				{
+					m_SelectedDifficulties.Remove(diff);
+				}
 			}
+			else
+			{
+				m_SelectedDifficulties.Add(diff);
+			}
+			m_NeedsRefresh = true;
 		}
 
 		public string FilterText
@@ -238,7 +246,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		// --- Song list ---
 
-		public CSongListNode? GetRandomFilteredSong()
+		public (CSongListNode song, int difficulty)? GetRandomFilteredSong()
 		{
 			if (m_FilteredSongs.Count == 0)
 			{
@@ -287,33 +295,34 @@ namespace OpenTaiko.Shrandy.Tools
 
 			foreach (CSongListNode song in m_AllSongs)
 			{
-				CScore score = song.score[m_SelectedDifficulty];
-				if (score == null)
-				{
-					continue;
-				}
+				string? title = null;
 
-				int level = song.nLevel[m_SelectedDifficulty];
-				if (level < 0)
+				foreach (int diff in m_SelectedDifficulties.OrderBy(d => d))
 				{
-					continue;
-				}
-
-				if (!string.IsNullOrEmpty(titleSearch))
-				{
-					string title = song.ldTitle.GetString("").ToLowerInvariant();
-					if (!SearchAlgorithms.FuzzyMatch(titleSearch, title))
+					if (song.score[diff] == null || song.nLevel[diff] < 0)
 					{
 						continue;
 					}
-				}
 
-				if (!PassesAllFilters(song, score, level, filters))
-				{
-					continue;
-				}
+					if (!string.IsNullOrEmpty(titleSearch))
+					{
+						title ??= song.ldTitle.GetString("").ToLowerInvariant();
+						if (!SearchAlgorithms.FuzzyMatch(titleSearch, title))
+						{
+							break;
+						}
+					}
 
-				m_FilteredSongs.Add(song);
+					CScore score = song.score[diff];
+					int level = song.nLevel[diff];
+
+					if (!PassesAllFilters(song, score, level, diff, filters))
+					{
+						continue;
+					}
+
+					m_FilteredSongs.Add((song, diff));
+				}
 			}
 		}
 
@@ -331,11 +340,11 @@ namespace OpenTaiko.Shrandy.Tools
 			titleSearch = remaining.Trim().ToLowerInvariant();
 		}
 
-		private bool PassesAllFilters(CSongListNode song, CScore score, int level, List<(string field, string op, string value)> filters)
+		private bool PassesAllFilters(CSongListNode song, CScore score, int level, int difficulty, List<(string field, string op, string value)> filters)
 		{
 			foreach ((string field, string op, string value) in filters)
 			{
-				double? songValue = GetFieldValue(song, score, level, field);
+				double? songValue = GetFieldValue(song, score, level, field, difficulty);
 				double? targetValue = ResolveValue(field, value);
 
 				if (songValue == null || targetValue == null)
@@ -351,9 +360,9 @@ namespace OpenTaiko.Shrandy.Tools
 			return true;
 		}
 
-		private double? GetFieldValue(CSongListNode song, CScore score, int level, string field)
+		private double? GetFieldValue(CSongListNode song, CScore score, int level, string field, int difficulty)
 		{
-			SongEntry? bestPlay = GetBestPlay(song.ldTitle.GetString(""), m_SelectedDifficulty);
+			SongEntry? bestPlay = GetBestPlay(song.ldTitle.GetString(""), difficulty);
 			int scoreRank = bestPlay?.ScoreRank ?? 0;
 			
 			return field switch

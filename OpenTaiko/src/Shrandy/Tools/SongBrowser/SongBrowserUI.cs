@@ -154,7 +154,7 @@ namespace OpenTaiko.Shrandy.Tools
 					ImGui.SameLine();
 				}
 
-				bool selected = m_Data.SelectedDifficulty == i;
+				bool selected = m_Data.IsDifficultySelected(i);
 				if (selected)
 				{
 					ImGui.PushStyleColor(ImGuiCol.Button, ImGui.GetColorU32(ImGuiCol.ButtonActive));
@@ -162,7 +162,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 				if (ImGui.Button(SongBrowserData.DifficultyNames[i]))
 				{
-					m_Data.SelectedDifficulty = i;
+					m_Data.ToggleDifficulty(i);
 				}
 
 				if (selected)
@@ -189,10 +189,10 @@ namespace OpenTaiko.Shrandy.Tools
 			ImGui.SameLine();
 			if (ImGui.Button("Random"))
 			{
-				CSongListNode? randomSong = m_Data.GetRandomFilteredSong();
-				if (randomSong != null)
+				var random = m_Data.GetRandomFilteredSong();
+				if (random != null)
 				{
-					Utilities.SongTable.PlaySong(randomSong, m_Data.SelectedDifficulty);
+					Utilities.SongTable.PlaySong(random.Value.song, random.Value.difficulty);
 				}
 			}
 		}
@@ -210,10 +210,9 @@ namespace OpenTaiko.Shrandy.Tools
 			float availableHeight = ImGui.GetContentRegionAvail().Y - 30;
 			if (Utilities.SongTable.BeginTable("SongList", ImGuiTableFlags.ScrollY, availableHeight, showAggregates: true))
 			{
-				int difficulty = m_Data.SelectedDifficulty;
 				for (int i = 0; i < m_Data.FilteredSongs.Count; i++)
 				{
-					CSongListNode song = m_Data.FilteredSongs[i];
+					(CSongListNode song, int difficulty) = m_Data.FilteredSongs[i];
 					Utilities.SongTableRow row = Utilities.SongTable.FromSongNode(song, difficulty);
 					string creator = song.strNotesDesigner?[difficulty] ?? "";
 
