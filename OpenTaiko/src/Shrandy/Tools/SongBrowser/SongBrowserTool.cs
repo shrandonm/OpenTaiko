@@ -50,6 +50,7 @@ namespace OpenTaiko.Shrandy.Tools
 			m_Data.TryAddCurrentSongStats();
 			m_Data.SaveHistory();
 			m_Data.RebuildBestPlaysCache();
+			m_UI.RequestResultsPopup();
 		}
 
 		protected override void Draw()

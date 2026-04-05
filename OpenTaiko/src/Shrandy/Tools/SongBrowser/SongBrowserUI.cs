@@ -8,13 +8,24 @@ namespace OpenTaiko.Shrandy.Tools
 	{
 		private SongBrowserData m_Data;
 
+		private bool m_ResultsPopupRequested = false;
+		public ResultsPopup ResultsPopup { get; private set; }
+
 		public SongBrowserUI(SongBrowserData data)
 		{
 			m_Data = data;
+			ResultsPopup = new ResultsPopup(data);
 		}
 
 		public void Draw()
 		{
+			if (m_ResultsPopupRequested)
+			{
+				ResultsPopup.Show();
+				m_ResultsPopupRequested = false;
+			}
+			
+			ResultsPopup.Draw();
 			DrawSessionStats();
 			DrawGoals();
 
@@ -354,6 +365,11 @@ namespace OpenTaiko.Shrandy.Tools
 
 				Utilities.SongTable.EndTable();
 			}
+		}
+		
+		public void RequestResultsPopup()
+		{
+			m_ResultsPopupRequested = true;
 		}
 	}
 }

@@ -84,75 +84,75 @@ public class CPad {
 		return list;
 	}
 
-	public bool IsPressingLeftChange()
+	public bool IsPressingLeftChange(bool forceAllowGameInput = false)
 	{
 		// [Divergence] ShrandyExtension input blocking
-		if (!OpenTaiko.ShrandyExtension.IsGameInputAllowed())
+		if (!forceAllowGameInput && !OpenTaiko.ShrandyExtension.IsGameInputAllowed())
 		{
 			return false;
 		}
 		// [End Divergence]
 
 		return OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.LeftArrow)
-			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LeftChange)
-			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LBlue)
-			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LBlue2P);
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LeftChange, forceAllowGameInput)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LBlue, forceAllowGameInput)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LBlue2P, forceAllowGameInput);
 	}
 
-	public bool IsPressingRightChange()
+	public bool IsPressingRightChange(bool forceAllowGameInput = false)
 	{
 		// [Divergence] ShrandyExtension input blocking
-		if (!OpenTaiko.ShrandyExtension.IsGameInputAllowed())
+		if (!forceAllowGameInput && !OpenTaiko.ShrandyExtension.IsGameInputAllowed())
 		{
 			return false;
 		}
 		// [End Divergence]
 
 		return OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.RightArrow)
-			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RightChange)
-			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RBlue)
-			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RBlue2P);
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RightChange, forceAllowGameInput)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RBlue, forceAllowGameInput)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RBlue2P, forceAllowGameInput);
 	}
 
-	public bool IsPressingDecide()
+	public bool IsPressingDecide(bool forceAllowGameInput = false)
 	{
 		// [Divergence] ShrandyExtension input blocking
-		if (!OpenTaiko.ShrandyExtension.IsGameInputAllowed())
+		if (!forceAllowGameInput && !OpenTaiko.ShrandyExtension.IsGameInputAllowed())
 		{
 			return false;
 		}
 		// [End Divergence]
 
-		return OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.Decide)
-			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LRed)
-			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RRed)
-			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LRed2P)
-			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RRed2P)
+		return OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.Decide, forceAllowGameInput)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LRed, forceAllowGameInput)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RRed, forceAllowGameInput)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.LRed2P, forceAllowGameInput)
+			|| OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.RRed2P, forceAllowGameInput)
 			|| OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.Return);
 	}
 	
-	public bool IsPressingCancel()
+	public bool IsPressingCancel(bool forceAllowGameInput = false)
 	{
 		// [Divergence] ShrandyExtension input blocking
-		if (!OpenTaiko.ShrandyExtension.IsGameInputAllowed())
+		if (!forceAllowGameInput && !OpenTaiko.ShrandyExtension.IsGameInputAllowed())
 		{
 			return false;
 		}
 		// [End Divergence]
 
-		return OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.Cancel)
+		return OpenTaiko.Pad.bPressed(EInstrumentPad.Drums, EPad.Cancel, forceAllowGameInput)
 			|| OpenTaiko.Pad.bPressedDGB(EPad.Cancel)
 			|| OpenTaiko.InputManager.Keyboard.KeyPressed((int)SlimDXKeys.Key.Escape);
 	}
 
-	public bool bPressed(EInstrumentPad part, EPad pad) {
+	public bool bPressed(EInstrumentPad part, EPad pad, bool forceAllowGameInput = false) {
 		if (part == EInstrumentPad.Unknown)
 		{
 			return false;
 		}
 		
 		// [Divergence] ShrandyExtension input blocking
-		if (!OpenTaiko.ShrandyExtension.IsGameInputAllowed())
+		if (!forceAllowGameInput && !OpenTaiko.ShrandyExtension.IsGameInputAllowed())
 		{
 			return false;
 		}
