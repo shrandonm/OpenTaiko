@@ -302,7 +302,7 @@ namespace OpenTaiko.Shrandy.Tools
 				if (!string.IsNullOrEmpty(titleSearch))
 				{
 					string title = song.ldTitle.GetString("").ToLowerInvariant();
-					if (!title.Contains(titleSearch))
+					if (!SearchAlgorithms.FuzzyMatch(titleSearch, title))
 					{
 						continue;
 					}
