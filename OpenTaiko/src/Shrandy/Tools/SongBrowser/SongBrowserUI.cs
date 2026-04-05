@@ -96,10 +96,17 @@ namespace OpenTaiko.Shrandy.Tools
 			ImGui.SameLine();
 			DrawGoalInput(ref m_Data.DailyTargetSongs, "Daily");
 
-			DrawProgressGoal(m_Data.SessionTargetSongs, "Session", m_Data.GetSessionSongCount());
-			DrawProgressGoal(m_Data.DailyTargetSongs, "Daily", m_Data.GetDailySongCount());
-			DrawProgressGoal(m_Data.DailyTargetSongs * 7, "Weekly", m_Data.GetWeeklySongCount());
-			DrawProgressGoal(m_Data.DailyTargetSongs * 30, "Monthly", m_Data.GetMonthlySongCount());
+			float barWidth = ImGui.GetWindowWidth() / 3.0f;
+			DrawProgressGoal(m_Data.SessionTargetSongs, "Session", m_Data.GetSessionSongCount(), barWidth);
+			
+			ImGui.SameLine();
+			DrawProgressGoal(m_Data.DailyTargetSongs, "Daily", m_Data.GetDailySongCount(), barWidth);
+			
+			ImGui.SameLine();
+			int monthlyGoal = m_Data.DailyTargetSongs * DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month);
+			int expectedByToday = m_Data.DailyTargetSongs * DateTime.Now.Day;
+			float expectedProgress = monthlyGoal > 0 ? expectedByToday / (float)monthlyGoal : 0.0f;
+			DrawProgressGoal(monthlyGoal, "Monthly", m_Data.GetMonthlySongCount(), barWidth, expectedProgress);
 		}
 
 		private static void DrawGoalInput(ref int goal, string label)
@@ -110,7 +117,7 @@ namespace OpenTaiko.Shrandy.Tools
 			goal = Math.Max(0, goal);
 		}
 
-		private static void DrawProgressGoal(int goal, string label, int current)
+		private static void DrawProgressGoal(int goal, string label, int current, float barWidth, float expectedProgress = -1.0f)
 		{
 			float progress = goal > 0
 				? MathF.Min(1.0f, current / (float)goal)
@@ -120,7 +127,20 @@ namespace OpenTaiko.Shrandy.Tools
 				? $"{current} / {goal}"
 				: $"{current} / -";
 
-			ImGui.ProgressBar(progress, new Vector2(-1.0f, 0.0f), $"{label} Goal: {overlay}");
+			Vector2 cursorPos = ImGui.GetCursorScreenPos();
+			ImGui.ProgressBar(progress, new Vector2(barWidth, 0.0f), $"{label} Goal: {overlay}");
+
+			if (expectedProgress >= 0.0f && goal > 0)
+			{
+				float barHeight = ImGui.GetFrameHeight();
+				float markerX = cursorPos.X + barWidth * MathF.Min(1.0f, expectedProgress);
+				var drawList = ImGui.GetWindowDrawList();
+				uint markerColor = ImGui.GetColorU32(new Vector4(1.0f, 1.0f, 1.0f, 0.9f));
+				drawList.AddLine(
+					new Vector2(markerX, cursorPos.Y),
+					new Vector2(markerX, cursorPos.Y + barHeight),
+					markerColor, 2.0f);
+			}
 		}
 
 		// --- All Songs Tab ---
