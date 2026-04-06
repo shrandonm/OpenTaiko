@@ -1,12 +1,8 @@
 Todo:
 - Add perfect hit window, just change animation of 'Good' text, don't bother making it a new hit type
 - Add graphs breaking down accuracy
-- Simplify training tool UI
 - Track score per speed
 - Add disappearing note mode (disappear near circle)
-- Match cab hit feedback
-	- Add a fading note exactly at the hit position
-	- Make flying notes spawn a frame later, and above the target not on it	
 - Adjust frame buffer size when the setting changes or when backing out of the menu
 - Fix shader so alpha/colour is correct
 - Allow ka to pop balloons
@@ -15,6 +11,11 @@ Todo:
 	- UpdateScrolledChipPosition
 - Add a % good based score, summary at end of song with +/-, celebrate records
 - Remove onscreen shrandy text drawing, it's slow and ugly. Replace with imgui
+- Give each hand notation a colour
+- show stats like left hand okays, right hand okays
+- rewind mode: pause for a few seconds on fail, show visualiser
+- store best rewind mode score (# attempts to pass, best ms)
+- Dan mode for each song. Requirements are % based
 
 Done:
 - Add perfect hit sound
@@ -22,3 +23,11 @@ Done:
 - Move song speed override out of training tool, maybe build a song select tool
 - All don mode
 - Make perfect hit sound a setting
+- Simplify training tool UI
+- Add fuzzy search to song browser
+- Simplify training tool UI
+- Match cab hit feedback
+	- There's a visual difference between opentaiko and the arcade cab:
+		- On cab when you hit a note, the note starts fading when the hit is detected, but 'good' appears after a small delay so like, the good/okay text feedback animations have a slight delay on them
+	- Task: Add a fading note that doesn't move exactly at the hit position, spawn it immediately and fade over X time
+	- Make flying notes spawn X seconds later (maybe 0.1s to start with), and above the target not on it	

@@ -6,7 +6,7 @@ namespace OpenTaiko;
 // When the player hits a note, this renders a stationary copy of the note
 // at the player's actual hit position, fading out over a short duration.
 internal class FadingNotes : CActivity {
-	private const int FADE_DURATION_MS = 50;
+	private const int FADE_DURATION_MS = 25;
 	private const int POOL_SIZE = 64;
 
 	public FadingNotes() {

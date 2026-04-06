@@ -4,7 +4,7 @@ using FDK;
 namespace OpenTaiko;
 
 internal class FlyingNotes : CActivity {
-	private const int FLYING_DELAY_MS = 8;
+	private const int FLYING_DELAY_MS = 25;
 	private const int FADE_IN_MS = 8;
 
 	// Constructor
