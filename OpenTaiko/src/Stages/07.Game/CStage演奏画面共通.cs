@@ -1365,6 +1365,7 @@ internal abstract class CStage演奏画面共通 : CStage {
 					if (eJudgeResult is not ENoteJudge.Poor) {
 						this.actTaikoLaneFlash.PlayerLane[nPlayer].Start(PlayerLane.FlashType.Hit, gt);
 						OpenTaiko.stageGameScreen.FlyingNotes.Start(NotesManager.GetFlyNoteType(pChip, gt, isBigInput), gt, nPlayer);
+						OpenTaiko.stageGameScreen.FadingNotes.Start(NotesManager.GetFlyNoteType(pChip, gt, isBigInput), gt, nPlayer, pChip.nHorizontalChipDistance);
 				}
 			}
 			}

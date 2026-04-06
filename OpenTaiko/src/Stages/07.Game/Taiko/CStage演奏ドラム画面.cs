@@ -55,6 +55,7 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 		base.ChildActivities.Add(this.actMob = new CActImplMob());
 		base.ChildActivities.Add(this.GoGoSplash = new GoGoSplash());
 		base.ChildActivities.Add(this.FlyingNotes = new FlyingNotes());
+		base.ChildActivities.Add(this.FadingNotes = new FadingNotes());
 		base.ChildActivities.Add(this.FireWorks = new FireWorks());
 		base.ChildActivities.Add(this.PuchiChara = new PuchiChara());
 		base.ChildActivities.Add(this.ScoreRank = new CActImplScoreRank());
@@ -483,6 +484,7 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 			this.Rainbow.Draw();
 			this.FireWorks.Draw();
 			this.actChipEffects.Draw();
+			this.FadingNotes.Draw();
 			this.FlyingNotes.Draw();
 			this.t進行描画_チップファイアD();
 
@@ -622,6 +624,7 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 	public CActImplBackground actBackground;
 	public GoGoSplash GoGoSplash;
 	public FlyingNotes FlyingNotes;
+	public FadingNotes FadingNotes;
 	public FireWorks FireWorks;
 	public PuchiChara PuchiChara;
 	public CActImplScoreRank ScoreRank;
