@@ -4,6 +4,9 @@ using FDK;
 namespace OpenTaiko;
 
 internal class FlyingNotes : CActivity {
+	private const int FLYING_DELAY_MS = 100;
+	private const int FADE_IN_MS = 50;
+
 	// Constructor
 
 	public FlyingNotes() {
@@ -35,7 +38,8 @@ internal class FlyingNotes : CActivity {
 					Flying[i].Width = (Math.Abs((OpenTaiko.Skin.Game_Effect_FlyingNotes_EndPoint_X[nPlayer] - StartPointX[nPlayer])) / 2);
 					//Console.WriteLine("{0}, {1}", width2P, height2P);
 					Flying[i].Theta = ((Math.Atan2(Flying[i].Height, Flying[i].Width) * 180.0) / Math.PI);
-					Flying[i].Counter = new CCounter(0, 140, OpenTaiko.Skin.Game_Effect_FlyingNotes_Timer, OpenTaiko.Timer);
+					Flying[i].DelayCounter = new CCounter(0, FLYING_DELAY_MS, 1, OpenTaiko.Timer);
+					Flying[i].Counter = new CCounter();
 					//Flying[i].Counter = new CCounter(0, 200000, CDTXMania.Skin.Game_Effect_FlyingNotes_Timer, CDTXMania.Timer);
 
 					Flying[i].IncreaseX = (1.00 * Math.Abs((OpenTaiko.Skin.Game_Effect_FlyingNotes_EndPoint_X[nPlayer] - StartPointX[nPlayer]))) / (180);
@@ -62,6 +66,7 @@ internal class FlyingNotes : CActivity {
 	public override void DeActivate() {
 		for (int i = 0; i < 128; i++) {
 			Flying[i].Counter = null;
+			Flying[i].DelayCounter = null;
 		}
 		base.DeActivate();
 	}
@@ -75,6 +80,13 @@ internal class FlyingNotes : CActivity {
 		if (!base.IsDeActivated && !OpenTaiko.ConfigIni.SimpleMode) {
 			for (int i = 0; i < 128; i++) {
 				if (Flying[i].IsUsing) {
+					// Handle delay before flight starts
+					if (Flying[i].DelayCounter != null && !Flying[i].DelayCounter.IsEnded) {
+						Flying[i].DelayCounter.Tick();
+						if (!Flying[i].DelayCounter.IsEnded) continue;
+						// Delay finished, start the real flight counter
+						Flying[i].Counter = new CCounter(0, 140, OpenTaiko.Skin.Game_Effect_FlyingNotes_Timer, OpenTaiko.Timer);
+					}
 					Flying[i].OldValue = Flying[i].Counter.CurrentValue;
 					Flying[i].Counter.Tick();
 					if (Flying[i].Counter.IsEnded) {
@@ -146,7 +158,17 @@ internal class FlyingNotes : CActivity {
 					}
 					//Flying[i].OldValue = Flying[i].Counter.n現在の値;
 
+					// Fade-in during first FADE_IN_MS of flight
+					var tex = Flying[i].Lane == NotesManager.ENoteType.Kadon
+						? OpenTaiko.Tx.Note_Swap
+						: OpenTaiko.Tx.Notes[(int)Flying[i].GameType];
+					int savedOpacity = -1;
+					if (tex != null && Flying[i].Counter.CurrentValue < FADE_IN_MS) {
+						savedOpacity = tex.Opacity;
+						tex.Opacity = (int)(255 * Flying[i].Counter.CurrentValue / (double)FADE_IN_MS);
+					}
 					NotesManager.DisplayNote(Flying[i].Player, (int)Flying[i].X, (int)Flying[i].Y, Flying[i].Lane, Flying[i].GameType);
+					if (savedOpacity >= 0 && tex != null) tex.Opacity = savedOpacity;
 				}
 			}
 		}
@@ -175,6 +197,7 @@ internal class FlyingNotes : CActivity {
 		public int StartPointX;
 		public int StartPointY;
 		public double Theta;
+		public CCounter DelayCounter;
 	}
 
 	private Status[] Flying = new Status[128];
