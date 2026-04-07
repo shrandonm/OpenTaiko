@@ -8,42 +8,64 @@ namespace OpenTaiko.Shrandy.Tools
 	internal class TrainingToolUI
 	{
 		private TrainingTool m_Tool;
+		private SongMods m_SongMods;
 
 		private const string BookmarkPopupName = "Edit Bookmark";
 		private string m_BookmarkNameInput = "";
 		private int m_StartMeasureInput;
 		private int m_EndMeasureInput;
 
-		public TrainingToolUI(TrainingTool tool)
+		public TrainingToolUI(TrainingTool tool, SongMods songMods)
 		{
 			m_Tool = tool;
+			m_SongMods = songMods;
 		}
 
 		public void Draw()
 		{
 			if (OpenTaiko.stageGameScreen.actTokkun != null && OpenTaiko.ConfigIni.bTokkunMode)
 			{
-				DrawSpeedControls();
-				ImGui.Checkbox("Constant Scroll Speed", ref OpenTaiko.ConfigIni.bTokkunConstantScrollSpeed);
-
-				int modeInt = (int)m_Tool.CurrentMode;
-				if (ImGui.Combo("Mode", ref modeInt, Enum.GetNames(typeof(TrainingTool.Mode)), Enum.GetValues(typeof(TrainingTool.Mode)).Length))
+				if (ImGui.BeginTabBar("TrainingToolTabs"))
 				{
-					m_Tool.SetMode((TrainingTool.Mode)modeInt);
-				}
+					if (ImGui.BeginTabItem("Training"))
+					{
+						DrawTrainingTab();
+						ImGui.EndTabItem();
+					}
 
-				switch (m_Tool.CurrentMode)
-				{
-					case TrainingTool.Mode.AutoRewind:
-						DrawAutoRewind();
-						break;
-					case TrainingTool.Mode.Bookmark:
-						DrawBookmarks();
-						DrawNewBookmarkPopup();
-						break;
-					default:
-						break;
+					if (ImGui.BeginTabItem("Song Mods"))
+					{
+						m_SongMods.Draw();
+						ImGui.EndTabItem();
+					}
+
+					ImGui.EndTabBar();
 				}
+			}
+		}
+
+		private void DrawTrainingTab()
+		{
+			DrawSpeedControls();
+			ImGui.Checkbox("Constant Scroll Speed", ref OpenTaiko.ConfigIni.bTokkunConstantScrollSpeed);
+
+			int modeInt = (int)m_Tool.CurrentMode;
+			if (ImGui.Combo("Mode", ref modeInt, Enum.GetNames(typeof(TrainingTool.Mode)), Enum.GetValues(typeof(TrainingTool.Mode)).Length))
+			{
+				m_Tool.SetMode((TrainingTool.Mode)modeInt);
+			}
+
+			switch (m_Tool.CurrentMode)
+			{
+				case TrainingTool.Mode.AutoRewind:
+					DrawAutoRewind();
+					break;
+				case TrainingTool.Mode.Bookmark:
+					DrawBookmarks();
+					DrawNewBookmarkPopup();
+					break;
+				default:
+					break;
 			}
 		}
 

@@ -40,10 +40,11 @@ namespace OpenTaiko.Shrandy.Tools
 		private int m_SongSpeed = 100;
 
 		private TrainingToolUI m_UI;
+		private SongMods m_SongMods = new();
 
 		public TrainingTool(string toolName, Key enableHotkey) : base(toolName, enableHotkey)
 		{
-			m_UI = new TrainingToolUI(this);
+			m_UI = new TrainingToolUI(this, m_SongMods);
 		}
 
 		protected override void Update()
