@@ -463,8 +463,7 @@ public abstract class Game : IDisposable {
 
 		Gl.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-		if (!OperatingSystem.IsMacOS())
-			Gl.Viewport(0, 0, (uint)Window_.Size.X, (uint)Window_.Size.Y);
+		Window_Resize(Window_.Size);
 
 		Context.SwapInterval(VSync ? 1 : 0);
 
@@ -548,7 +547,8 @@ public abstract class Game : IDisposable {
 			Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 			Draw();
 
-			Gl.Viewport(0, 0, (uint)Window_.Size.X, (uint)Window_.Size.Y);
+			var fbSize = Window_.FramebufferSize;
+			Gl.Viewport(0, 0, (uint)fbSize.X, (uint)fbSize.Y);
 			ImGuiController?.Render();
 			Gl.Viewport(ViewPortOffset.X, ViewPortOffset.Y, (uint)ViewPortSize.X, (uint)ViewPortSize.Y);
 		}
@@ -559,6 +559,8 @@ public abstract class Game : IDisposable {
 	private void DrawToBackBuffer(uint textureId)
 	{
 		Gl.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+		var fbSize = Window_.FramebufferSize;
+		Gl.Viewport(0, 0, (uint)fbSize.X, (uint)fbSize.Y);
 		Gl.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
 		Gl.UseProgram(m_FullscreenQuad.Shader);
@@ -573,20 +575,24 @@ public abstract class Game : IDisposable {
 	}
 
 	public void Window_Resize(Vector2D<int> size) {
-		if (size.X > 0 && size.Y > 0) {
+		Vector2D<int> fbSize = Window_.FramebufferSize;
+		if (fbSize.X <= 0 || fbSize.Y <= 0)
+			fbSize = size;
+
+		if (fbSize.X > 0 && fbSize.Y > 0) {
 			float resolutionAspect = (float)GameWindowSize.Width / GameWindowSize.Height;
-			float windowAspect = (float)size.X / size.Y;
+			float windowAspect = (float)fbSize.X / fbSize.Y;
 			if (windowAspect > resolutionAspect) {
-				ViewPortSize.X = (int)(size.Y * resolutionAspect);
-				ViewPortSize.Y = size.Y;
+				ViewPortSize.X = (int)(fbSize.Y * resolutionAspect);
+				ViewPortSize.Y = fbSize.Y;
 			} else {
-				ViewPortSize.X = size.X;
-				ViewPortSize.Y = (int)(size.X / resolutionAspect);
+				ViewPortSize.X = fbSize.X;
+				ViewPortSize.Y = (int)(fbSize.X / resolutionAspect);
 			}
 		}
 
-		ViewPortOffset.X = (size.X - ViewPortSize.X) / 2;
-		ViewPortOffset.Y = (size.Y - ViewPortSize.Y) / 2;
+		ViewPortOffset.X = (fbSize.X - ViewPortSize.X) / 2;
+		ViewPortOffset.Y = (fbSize.Y - ViewPortSize.Y) / 2;
 
 		Gl.Viewport(ViewPortOffset.X, ViewPortOffset.Y, (uint)ViewPortSize.X, (uint)ViewPortSize.Y);
 	}
@@ -595,6 +601,7 @@ public abstract class Game : IDisposable {
 
 	public void Window_FramebufferResize(Vector2D<int> size)
 	{
+		Window_Resize(Window_.Size);
 		RecreateFrameBuffers();
 	}
 
