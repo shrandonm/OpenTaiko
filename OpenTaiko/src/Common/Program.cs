@@ -86,7 +86,9 @@ internal class Program {
 							platform = "arm";
 							break;
 						case Architecture.Arm64:
-							platform = "arm64";
+							// [Divergence] macOS on ARM (Apple Silicon) only supports 64-bit
+							platform = OperatingSystem.IsMacOS() ? "x64" : "arm64";
+							// [End Divergence]
 							break;
 						default:
 							throw new PlatformNotSupportedException($"OpenTaiko does not support this architecture. ({RuntimeInformation.ProcessArchitecture})");
