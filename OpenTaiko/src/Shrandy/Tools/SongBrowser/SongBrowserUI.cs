@@ -216,7 +216,7 @@ namespace OpenTaiko.Shrandy.Tools
 			string filterText = m_Data.FilterText;
 			ImGui.SetNextItemWidth(-1);
 			
-			if (m_FocusFilterInput)
+			if (m_FocusFilterInput && ImGui.IsWindowFocused())
 			{
 				ImGui.SetKeyboardFocusHere();
 				m_FocusFilterInput = false;
