@@ -81,8 +81,7 @@ namespace OpenTaiko.Shrandy.Tools
 						var chosen = OpenTaiko.stageSongSelect.rChoosenSong;
 						if (chosen != null)
 						{
-							int diff = OpenTaiko.stageSongSelect.nChoosenSongDifficulty[0];
-							Utilities.SongTable.PlaySong(chosen, diff);
+							Utilities.SongTable.PlaySong(chosen, m_Data.GetLastChosenDifficulty());
 						}
 						break;
 					case 2: // Close

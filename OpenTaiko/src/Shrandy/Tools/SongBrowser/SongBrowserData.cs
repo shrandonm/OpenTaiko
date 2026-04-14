@@ -482,5 +482,16 @@ namespace OpenTaiko.Shrandy.Tools
 				_ => randomMode.ToString()
 			};
 		}
+		
+		public int GetLastChosenDifficulty()
+		{
+			if (m_SaveData.SongEntries.Count == 0)
+			{
+				return 0;
+			}
+
+			SongEntry lastEntry = m_SaveData.SongEntries.Last();
+			return Utilities.SongTable.GetDifficultyFromLabel(lastEntry.Difficulty);
+		}
 	}
 }
