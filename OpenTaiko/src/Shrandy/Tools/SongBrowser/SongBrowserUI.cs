@@ -8,6 +8,7 @@ namespace OpenTaiko.Shrandy.Tools
 	{
 		private SongBrowserData m_Data;
 
+		private bool m_FocusFilterInput = false;
 		private bool m_ResultsPopupRequested = false;
 		public ResultsPopup ResultsPopup { get; private set; }
 
@@ -15,6 +16,11 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			m_Data = data;
 			ResultsPopup = new ResultsPopup(data);
+		}
+		
+		public void OnEnabled()
+		{
+			m_FocusFilterInput = true;
 		}
 
 		public void Draw()
@@ -209,6 +215,13 @@ namespace OpenTaiko.Shrandy.Tools
 
 			string filterText = m_Data.FilterText;
 			ImGui.SetNextItemWidth(-1);
+			
+			if (m_FocusFilterInput)
+			{
+				ImGui.SetKeyboardFocusHere();
+				m_FocusFilterInput = false;
+			}
+			
 			if (ImGui.InputTextWithHint("##filter", "e.g. bpm>100 badge<purple fc<=0 song title words", ref filterText, 512))
 			{
 				m_Data.FilterText = filterText;

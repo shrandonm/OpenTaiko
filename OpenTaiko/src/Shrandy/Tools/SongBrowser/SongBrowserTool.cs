@@ -24,6 +24,7 @@ namespace OpenTaiko.Shrandy.Tools
 			if (enabled)
 			{
 				m_AutoShowInSongSelect = true;
+				m_UI.OnEnabled();
 			}
 		}
 
