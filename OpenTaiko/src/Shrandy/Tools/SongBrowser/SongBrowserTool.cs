@@ -41,8 +41,28 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 			else
 			{
+				if (stage is CStage演奏ドラム画面)
+				{
+					m_Data.ResetCurrentNoteStats();
+				}
 				SetEnabled(false);
 			}
+		}
+
+		public override void OnNoteHit(HitParams hitParams)
+		{
+			m_Data.CurrentNoteStats.OnNoteHit(hitParams);
+		}
+
+		public override void OnNoteMiss(CChip? chip)
+		{
+			m_Data.CurrentNoteStats.OnNoteMissed();
+		}
+
+		public override void OnSongRestart()
+		{
+			base.OnSongRestart();
+			m_Data.ResetCurrentNoteStats();
 		}
 
 		public override void OnResultsActivate(CStage結果 resultsScreen)
