@@ -38,8 +38,9 @@ namespace OpenTaiko.Shrandy.Utilities
 
 	internal static class SongTable
 	{
-		private const int BaseColumnCount = 25;
+		private const int BaseColumnCount = 26;
 		private const int AggregateColumnCount = 3;
+		public const int TagsColumnIndex = 25;
 
 		private struct ColumnDef
 		{
@@ -100,6 +101,7 @@ namespace OpenTaiko.Shrandy.Utilities
 				new ColumnDef("R.Avg Error",	hidden:true),
 				new ColumnDef("L.Okays",		hidden:true),
 				new ColumnDef("R.Okays",		hidden:true),
+				new ColumnDef("Tags",			hidden:false, useLargeSize:true),
 			};
 			ColumnDef[] aggregateColumns =
 			{

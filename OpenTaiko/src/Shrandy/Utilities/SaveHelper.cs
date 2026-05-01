@@ -13,7 +13,7 @@ namespace OpenTaiko.Shrandy.Utilities
 	{
 		public static void Save(string fileName, object obj)
 		{
-			string json = JsonSerializer.Serialize(obj);
+			string json = JsonSerializer.Serialize(obj, new JsonSerializerOptions { WriteIndented = true });
 			File.WriteAllText(Path.Combine(ShrandyExtension.SaveDirectoryPath, fileName), json);
 		}
 

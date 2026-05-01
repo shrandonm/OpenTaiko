@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
 
@@ -10,11 +11,14 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private bool m_FocusFilterInput = false;
 		private bool m_ResultsPopupRequested = false;
+
+		private SongTagsUI m_TagsUI;
 		public ResultsPopup ResultsPopup { get; private set; }
 
 		public SongBrowserUI(SongBrowserData data)
 		{
 			m_Data = data;
+			m_TagsUI = new SongTagsUI(data.Tags, data.SaveTags);
 			ResultsPopup = new ResultsPopup(data);
 		}
 		
@@ -222,7 +226,7 @@ namespace OpenTaiko.Shrandy.Tools
 				m_FocusFilterInput = false;
 			}
 			
-			if (ImGui.InputTextWithHint("##filter", "e.g. bpm>100 badge<purple lastplayed>7 lastpb>30 song title words", ref filterText, 512))
+			if (ImGui.InputTextWithHint("##filter", "e.g. bpm>100 badge<purple lastplayed>7 lastpb>30 tag=rock tag!=rock song title words", ref filterText, 512))
 			{
 				m_Data.FilterText = filterText;
 			}
@@ -285,10 +289,14 @@ namespace OpenTaiko.Shrandy.Tools
 					ImGui.PopID();
 
 					Utilities.SongTable.DrawRow(in row, creator);
+
+					m_TagsUI.DrawCell(row.Title, difficulty, i);
+
 					Utilities.SongTable.DrawAggregateColumns(aggStats.PlayCount, aggStats.FCCount, aggStats.DFCCount);
 				}
 
 				Utilities.SongTable.EndTable();
+				m_TagsUI.DrawPopup();
 			}
 		}
 
@@ -404,7 +412,7 @@ namespace OpenTaiko.Shrandy.Tools
 				Utilities.SongTable.EndTable();
 			}
 		}
-		
+
 		public void RequestResultsPopup()
 		{
 			m_ResultsPopupRequested = true;

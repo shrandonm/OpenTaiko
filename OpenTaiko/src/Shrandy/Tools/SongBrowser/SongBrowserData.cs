@@ -15,12 +15,16 @@ namespace OpenTaiko.Shrandy.Tools
 	internal class SongBrowserData
 	{
 		private const string SaveFileName = "song_history.json";
+		private const string TagsSaveFileName = "song_tags.json";
 
 		// History
 		private SongHistorySaveData m_SaveData = new();
+		private SongTagsSaveData m_TagsSaveData = new();
 		private Dictionary<(string title, int difficulty), SongEntry> m_BestPlays = new();
 		private Dictionary<(string title, int difficulty), SongEntry> m_LastPlays = new();
 		private Dictionary<(string title, int difficulty), SongAggregateStats> m_AggregateStats = new();
+
+		public SongTagsData Tags { get; private set; } = null!;
 
 		// Session tracking
 		private int m_SongCountAtStartOfSession = 0;
@@ -75,7 +79,7 @@ namespace OpenTaiko.Shrandy.Tools
 			["none"] = 0, ["clear"] = 1, ["fc"] = 2, ["dfc"] = 3,
 		};
 
-		private static readonly Regex FilterTokenRegex = new(@"(\w+)\s*(>=|<=|>|<|=)\s*(\S+)", RegexOptions.Compiled);
+		private static readonly Regex FilterTokenRegex = new(@"(\w+)\s*(!=|>=|<=|>|<|=)\s*(\S+)", RegexOptions.Compiled);
 
 		// Public accessors
 		public SongHistorySaveData SaveData => m_SaveData;
@@ -113,6 +117,8 @@ namespace OpenTaiko.Shrandy.Tools
 		public SongBrowserData()
 		{
 			m_SaveData = Utilities.SaveHelper.LoadOrCreate<SongHistorySaveData>(SaveFileName);
+			m_TagsSaveData = Utilities.SaveHelper.LoadOrCreate<SongTagsSaveData>(TagsSaveFileName);
+			Tags = new SongTagsData(m_TagsSaveData, () => m_NeedsRefresh = true);
 			m_SongCountAtStartOfSession = m_SaveData.SongEntries.Count;
 
 #if DEBUG
@@ -380,6 +386,14 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			foreach ((string field, string op, string value) in filters)
 			{
+				if (field == "tag")
+				{
+					bool hasTag = Tags.SongHasTag(song.ldTitle.GetString(""), difficulty, value);
+					if (op == "!="  && hasTag) return false;
+					if (op != "!=" && !hasTag) return false;
+					continue;
+				}
+
 				double? songValue = GetFieldValue(song, score, level, field, difficulty);
 				double? targetValue = ResolveValue(field, value);
 
@@ -524,6 +538,11 @@ namespace OpenTaiko.Shrandy.Tools
 		public void SaveHistory()
 		{
 			Utilities.SaveHelper.Save(SaveFileName, m_SaveData);
+		}
+
+		public void SaveTags()
+		{
+			Utilities.SaveHelper.Save(TagsSaveFileName, m_TagsSaveData);
 		}
 
 		private static string BuildModsLabel(ERandomMode randomMode, EFunMods funMod)
