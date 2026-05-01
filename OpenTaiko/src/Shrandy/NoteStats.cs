@@ -17,6 +17,8 @@ namespace OpenTaiko.Shrandy
 		public int LateCount { get; set; }
 		public float TotalHitError { get; set; }
 		public float TotalSync { get; set; }
+		public NoteStats? LeftHandStats { get; set; }
+		public NoteStats? RightHandStats { get; set; }
 
 		[JsonIgnore]
 		public int TotalNotes { get { return GoodCount + OkayCount + BadCount; } }
@@ -72,19 +74,34 @@ namespace OpenTaiko.Shrandy
 					EarlyCount++;
 				}
 			}
+
+			if (hitParams.Hand == Hand.Left)
+				LeftHandStats?.OnNoteHit(hitParams);
+			else if (hitParams.Hand == Hand.Right)
+				RightHandStats?.OnNoteHit(hitParams);
 		}
 
-		public static NoteStats operator +(NoteStats left, NoteStats right)
+		public static NoteStats operator +(NoteStats a, NoteStats b)
 		{
+			NoteStats? leftHand = null;
+			if (a.LeftHandStats != null || b.LeftHandStats != null)
+				leftHand = (a.LeftHandStats ?? new()) + (b.LeftHandStats ?? new());
+
+			NoteStats? rightHand = null;
+			if (a.RightHandStats != null || b.RightHandStats != null)
+				rightHand = (a.RightHandStats ?? new()) + (b.RightHandStats ?? new());
+
 			return new NoteStats()
 			{
-				EarlyCount = left.EarlyCount + right.EarlyCount,
-				LateCount = left.LateCount + right.LateCount,
-				GoodCount = left.GoodCount + right.GoodCount,
-				OkayCount = left.OkayCount + right.OkayCount,
-				BadCount = left.BadCount + right.BadCount,
-				TotalHitError = left.TotalHitError + right.TotalHitError,
-				TotalSync = left.TotalSync + right.TotalSync,
+				EarlyCount = a.EarlyCount + b.EarlyCount,
+				LateCount = a.LateCount + b.LateCount,
+				GoodCount = a.GoodCount + b.GoodCount,
+				OkayCount = a.OkayCount + b.OkayCount,
+				BadCount = a.BadCount + b.BadCount,
+				TotalHitError = a.TotalHitError + b.TotalHitError,
+				TotalSync = a.TotalSync + b.TotalSync,
+				LeftHandStats = leftHand,
+				RightHandStats = rightHand,
 			};
 		}
 

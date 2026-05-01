@@ -19,6 +19,7 @@ namespace OpenTaiko.Shrandy.Tools
 		// History
 		private SongHistorySaveData m_SaveData = new();
 		private Dictionary<(string title, int difficulty), SongEntry> m_BestPlays = new();
+		private Dictionary<(string title, int difficulty), SongEntry> m_LastPlays = new();
 		private Dictionary<(string title, int difficulty), SongAggregateStats> m_AggregateStats = new();
 
 		// Session tracking
@@ -29,6 +30,30 @@ namespace OpenTaiko.Shrandy.Tools
 
 		// History filter
 		public int FilterDays = 0;
+		private string m_HistoryFilterText = "";
+
+		public string HistoryFilterText
+		{
+			get => m_HistoryFilterText;
+			set => m_HistoryFilterText = value;
+		}
+
+		// Note stats for current song
+		public NoteStats CurrentNoteStats { get; private set; } = CreateFreshNoteStats();
+
+		public void ResetCurrentNoteStats()
+		{
+			CurrentNoteStats = CreateFreshNoteStats();
+		}
+
+		private static NoteStats CreateFreshNoteStats()
+		{
+			return new NoteStats
+			{
+				LeftHandStats = new NoteStats(),
+				RightHandStats = new NoteStats(),
+			};
+		}
 
 		// All songs
 		private List<CSongListNode> m_AllSongs = new();
@@ -205,7 +230,14 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 			return null;
 		}
-
+		public SongEntry? GetLastPlay(string title, int difficulty)
+		{
+			if (m_LastPlays.TryGetValue((title.ToLowerInvariant(), difficulty), out SongEntry? entry))
+			{
+				return entry;
+			}
+			return null;
+		}
 		public SongAggregateStats GetAggregateStats(string title, int difficulty)
 		{
 			if (m_AggregateStats.TryGetValue((title.ToLowerInvariant(), difficulty), out SongAggregateStats stats))
@@ -218,6 +250,7 @@ namespace OpenTaiko.Shrandy.Tools
 		public void RebuildBestPlaysCache()
 		{
 			m_BestPlays.Clear();
+			m_LastPlays.Clear();
 			m_AggregateStats.Clear();
 
 			foreach (SongEntry entry in m_SaveData.SongEntries)
@@ -229,6 +262,9 @@ namespace OpenTaiko.Shrandy.Tools
 				{
 					m_BestPlays[key] = entry;
 				}
+
+				// SongEntries is in chronological order, so later entries overwrite earlier ones
+				m_LastPlays[key] = entry;
 
 				m_AggregateStats.TryGetValue(key, out SongAggregateStats agg);
 				agg.PlayCount++;
@@ -364,15 +400,24 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			SongEntry? bestPlay = GetBestPlay(song.ldTitle.GetString(""), difficulty);
 			int scoreRank = bestPlay?.ScoreRank ?? 0;
-			
+
 			return field switch
 			{
 				"bpm" => score.譜面情報.BaseBpm,
 				"level" or "lv" => level,
 				"badge" or "rank" => scoreRank,
 				"score" => bestPlay?.Score,
+				"lastplayed" => GetDaysSinceLastPlayed(song.ldTitle.GetString(""), difficulty),
 				_ => null,
 			};
+		}
+
+		private double GetDaysSinceLastPlayed(string title, int difficulty)
+		{
+			SongEntry? last = m_SaveData.SongEntries.LastOrDefault(
+				e => e.SongTitle.Equals(title, StringComparison.OrdinalIgnoreCase)
+					&& Utilities.SongTable.GetDifficultyFromLabel(e.Difficulty) == difficulty);
+			return last == null ? double.MaxValue : (DateTime.Now - last.Timestamp).TotalDays;
 		}
 
 		private static double? ResolveValue(string field, string value)
@@ -459,7 +504,13 @@ namespace OpenTaiko.Shrandy.Tools
 				MinBpm = song.score[difficulty]?.譜面情報.MinBpm ?? 0,
 				MaxBpm = song.score[difficulty]?.譜面情報.MaxBpm ?? 0,
 				SongSpeed = OpenTaiko.ConfigIni.nSongSpeed,
-				RandomMod = GetRandomModLabel(OpenTaiko.ConfigIni.eRandom[actualPlayer])
+				RandomMod = BuildModsLabel(OpenTaiko.ConfigIni.eRandom[actualPlayer], OpenTaiko.ConfigIni.nFunMods[actualPlayer]),
+				AvgHitError = CurrentNoteStats.AverageHitError,
+				AvgSync = CurrentNoteStats.AverageSync,
+				AvgLeftHandError = CurrentNoteStats.LeftHandStats?.AverageHitError ?? 0,
+				AvgRightHandError = CurrentNoteStats.RightHandStats?.AverageHitError ?? 0,
+				LeftHandOkays = CurrentNoteStats.LeftHandStats?.OkayCount ?? 0,
+				RightHandOkays = CurrentNoteStats.RightHandStats?.OkayCount ?? 0,
 			};
 
 			m_SaveData.SongEntries.Add(entry);
@@ -468,6 +519,16 @@ namespace OpenTaiko.Shrandy.Tools
 		public void SaveHistory()
 		{
 			Utilities.SaveHelper.Save(SaveFileName, m_SaveData);
+		}
+
+		private static string BuildModsLabel(ERandomMode randomMode, EFunMods funMod)
+		{
+			var parts = new List<string>();
+			string random = GetRandomModLabel(randomMode);
+			if (random != "None") parts.Add(random);
+			string fun = GetFunModLabel(funMod);
+			if (fun != "None") parts.Add(fun);
+			return parts.Count > 0 ? string.Join(",", parts) : "None";
 		}
 
 		private static string GetRandomModLabel(ERandomMode randomMode)
@@ -480,6 +541,18 @@ namespace OpenTaiko.Shrandy.Tools
 				ERandomMode.Mirror => "Mirror",
 				ERandomMode.MirrorRandom => "Mirror+Shuffle",
 				_ => randomMode.ToString()
+			};
+		}
+
+		private static string GetFunModLabel(EFunMods funMod)
+		{
+			return funMod switch
+			{
+				EFunMods.None => "None",
+				EFunMods.ForceAllDon => "AllDon",
+				EFunMods.Avalanche => "Avalanche",
+				EFunMods.Minesweeper => "Minesweeper",
+				_ => funMod.ToString()
 			};
 		}
 		
