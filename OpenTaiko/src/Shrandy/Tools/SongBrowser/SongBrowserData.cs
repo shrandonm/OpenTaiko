@@ -408,16 +408,21 @@ namespace OpenTaiko.Shrandy.Tools
 				"badge" or "rank" => scoreRank,
 				"score" => bestPlay?.Score,
 				"lastplayed" => GetDaysSinceLastPlayed(song.ldTitle.GetString(""), difficulty),
+				"lastpb" => GetDaysSinceLastPB(song.ldTitle.GetString(""), difficulty),
 				_ => null,
 			};
 		}
 
 		private double GetDaysSinceLastPlayed(string title, int difficulty)
 		{
-			SongEntry? last = m_SaveData.SongEntries.LastOrDefault(
-				e => e.SongTitle.Equals(title, StringComparison.OrdinalIgnoreCase)
-					&& Utilities.SongTable.GetDifficultyFromLabel(e.Difficulty) == difficulty);
+			SongEntry? last = GetLastPlay(title, difficulty);
 			return last == null ? double.MaxValue : (DateTime.Now - last.Timestamp).TotalDays;
+		}
+
+		private double GetDaysSinceLastPB(string title, int difficulty)
+		{
+			SongEntry? best = GetBestPlay(title, difficulty);
+			return best == null ? double.MaxValue : (DateTime.Now - best.Timestamp).TotalDays;
 		}
 
 		private static double? ResolveValue(string field, string value)

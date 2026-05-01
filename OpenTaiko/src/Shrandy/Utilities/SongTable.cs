@@ -9,6 +9,7 @@ namespace OpenTaiko.Shrandy.Utilities
 	{
 		public string Title;
 		public string TimeSince;
+		public string TimeSinceLastPB;
 		public int ScoreRank;
 		public int ChartLevel;
 		public int Score;
@@ -37,7 +38,7 @@ namespace OpenTaiko.Shrandy.Utilities
 
 	internal static class SongTable
 	{
-		private const int BaseColumnCount = 24;
+		private const int BaseColumnCount = 25;
 		private const int AggregateColumnCount = 3;
 
 		public static bool BeginTable(string id, ImGuiTableFlags extraFlags = ImGuiTableFlags.None, float height = 0, bool showAggregates = false)
@@ -58,7 +59,8 @@ namespace OpenTaiko.Shrandy.Utilities
 			ImGuiTableColumnFlags hide = ImGuiTableColumnFlags.DefaultHide;
 
 			ImGui.TableSetupColumn("Song", ImGuiTableColumnFlags.WidthFixed, 128);
-			ImGui.TableSetupColumn("Time", ImGuiTableColumnFlags.WidthFixed, 64);
+			ImGui.TableSetupColumn("Last Play", ImGuiTableColumnFlags.WidthFixed, 64);
+			ImGui.TableSetupColumn("Last PB", ImGuiTableColumnFlags.WidthFixed | hide, 64);
 			ImGui.TableSetupColumn("Badge", ImGuiTableColumnFlags.WidthFixed, 16);
 			ImGui.TableSetupColumn("Level", ImGuiTableColumnFlags.WidthFixed, 48);
 			ImGui.TableSetupColumn("BPM", ImGuiTableColumnFlags.WidthFixed, 80);
@@ -121,6 +123,9 @@ namespace OpenTaiko.Shrandy.Utilities
 
 			ImGui.TableSetColumnIndex(col++);
 			ImGui.TextUnformatted(row.TimeSince);
+
+			ImGui.TableSetColumnIndex(col++);
+			ImGui.TextUnformatted(row.TimeSinceLastPB);
 
 			ImGui.TableSetColumnIndex(col++);
 			ScoreHelper.DrawScoreRank(row.ScoreRank, 16.0f);

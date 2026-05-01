@@ -222,7 +222,7 @@ namespace OpenTaiko.Shrandy.Tools
 				m_FocusFilterInput = false;
 			}
 			
-			if (ImGui.InputTextWithHint("##filter", "e.g. bpm>100 badge<purple lastplayed>7 song title words", ref filterText, 512))
+			if (ImGui.InputTextWithHint("##filter", "e.g. bpm>100 badge<purple lastplayed>7 lastpb>30 song title words", ref filterText, 512))
 			{
 				m_Data.FilterText = filterText;
 			}
@@ -264,6 +264,13 @@ namespace OpenTaiko.Shrandy.Tools
 					if (bestPlay != null)
 					{
 						Utilities.SongTable.MergeHistoryEntry(ref row, bestPlay);
+						row.TimeSinceLastPB = StringHelpers.GetTimeSinceString(bestPlay.Timestamp);
+					}
+
+					SongEntry? lastPlay = m_Data.GetLastPlay(row.Title, difficulty);
+					if (lastPlay != null)
+					{
+						row.TimeSince = StringHelpers.GetTimeSinceString(lastPlay.Timestamp);
 					}
 
 					SongAggregateStats aggStats = m_Data.GetAggregateStats(row.Title, difficulty);
