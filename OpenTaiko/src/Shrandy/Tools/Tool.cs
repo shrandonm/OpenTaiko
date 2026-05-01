@@ -67,7 +67,7 @@ namespace OpenTaiko.Shrandy
 		{
 		}
 
-		public void DrawWindow()
+		public virtual void DrawWindow()
 		{
 			Update();
 

@@ -44,6 +44,7 @@ namespace OpenTaiko.Shrandy
 			m_Tools.Add(new Tools.TrainingTool("Training Tool", SlimDXKeys.Key.T));
 			m_Tools.Add(new Tools.NoteVisualizer("Note Visualizer", SlimDXKeys.Key.V));
 			m_Tools.Add(new Tools.SongBrowserTool("Song Browser", SlimDXKeys.Key.S));
+			m_Tools.Add(new Tools.HitErrorBarTool("Hit Error Bar", SlimDXKeys.Key.E));
 		}
 
 		public void OnStageChanged(CStage stage)
