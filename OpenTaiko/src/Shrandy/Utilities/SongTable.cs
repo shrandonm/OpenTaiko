@@ -41,6 +41,20 @@ namespace OpenTaiko.Shrandy.Utilities
 		private const int BaseColumnCount = 25;
 		private const int AggregateColumnCount = 3;
 
+		private struct ColumnDef
+		{
+			public string Label;
+			public bool Hidden;
+			public bool UseLargeSize;
+
+			public ColumnDef(string label, bool hidden, bool useLargeSize = false)
+			{
+				Label = label;
+				Hidden = hidden;
+				UseLargeSize = useLargeSize;
+			}
+		}
+
 		public static bool BeginTable(string id, ImGuiTableFlags extraFlags = ImGuiTableFlags.None, float height = 0, bool showAggregates = false)
 		{
 			int columnCount = showAggregates ? BaseColumnCount + AggregateColumnCount : BaseColumnCount;
@@ -58,37 +72,78 @@ namespace OpenTaiko.Shrandy.Utilities
 
 			ImGuiTableColumnFlags hide = ImGuiTableColumnFlags.DefaultHide;
 
-			ImGui.TableSetupColumn("Song", ImGuiTableColumnFlags.WidthFixed, 128);
-			ImGui.TableSetupColumn("Last Play", ImGuiTableColumnFlags.WidthFixed, 64);
-			ImGui.TableSetupColumn("Last PB", ImGuiTableColumnFlags.WidthFixed | hide, 64);
-			ImGui.TableSetupColumn("Badge", ImGuiTableColumnFlags.WidthFixed, 16);
-			ImGui.TableSetupColumn("Level", ImGuiTableColumnFlags.WidthFixed, 48);
-			ImGui.TableSetupColumn("BPM", ImGuiTableColumnFlags.WidthFixed, 80);
-			ImGui.TableSetupColumn("Score", ImGuiTableColumnFlags.WidthFixed, 48);
-			ImGui.TableSetupColumn("Good%", ImGuiTableColumnFlags.WidthFixed, 48);
-			ImGui.TableSetupColumn("Goods", ImGuiTableColumnFlags.WidthFixed | hide, 48);
-			ImGui.TableSetupColumn("Okays", ImGuiTableColumnFlags.WidthFixed | hide, 48);
-			ImGui.TableSetupColumn("Bads", ImGuiTableColumnFlags.WidthFixed | hide, 48);
-			ImGui.TableSetupColumn("Rolls", ImGuiTableColumnFlags.WidthFixed | hide, 48);
-			ImGui.TableSetupColumn("Combo", ImGuiTableColumnFlags.WidthFixed | hide, 48);
-			ImGui.TableSetupColumn("Duration", ImGuiTableColumnFlags.WidthFixed | hide, 64);
-			ImGui.TableSetupColumn("Total Notes", ImGuiTableColumnFlags.WidthFixed | hide, 64);
-			ImGui.TableSetupColumn("Diff", ImGuiTableColumnFlags.WidthFixed, 20);
-			ImGui.TableSetupColumn("Speed", ImGuiTableColumnFlags.WidthFixed | hide, 56);
-			ImGui.TableSetupColumn("Random", ImGuiTableColumnFlags.WidthFixed | hide, 72);
-			ImGui.TableSetupColumn("Creator", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.DefaultHide, 100);
-			ImGui.TableSetupColumn("Avg Error", ImGuiTableColumnFlags.WidthFixed, 72);
-			ImGui.TableSetupColumn("Avg Sync", ImGuiTableColumnFlags.WidthFixed | hide, 72);
-			ImGui.TableSetupColumn("L.Avg Error", ImGuiTableColumnFlags.WidthFixed | hide, 80);
-			ImGui.TableSetupColumn("R.Avg Error", ImGuiTableColumnFlags.WidthFixed | hide, 80);
-			ImGui.TableSetupColumn("L.Okays", ImGuiTableColumnFlags.WidthFixed | hide, 56);
-			ImGui.TableSetupColumn("R.Okays", ImGuiTableColumnFlags.WidthFixed | hide, 56);
+			// (label, hidden by default, use large size)
+			ColumnDef[] baseColumns =
+			{
+				new ColumnDef("Song", 			hidden:false, useLargeSize:true),
+				new ColumnDef("Last Played", 	hidden:false),
+				new ColumnDef("Last PB", 		hidden:true),
+				new ColumnDef("Badge", 			hidden:false),
+				new ColumnDef("Level", 			hidden:false),
+				new ColumnDef("BPM",			hidden:false),
+				new ColumnDef("Score",			hidden:false, useLargeSize:true),
+				new ColumnDef("Good%",			hidden:false),
+				new ColumnDef("Goods",			hidden:true),
+				new ColumnDef("Okays",			hidden:true),
+				new ColumnDef("Bads",			hidden:true),
+				new ColumnDef("Rolls",			hidden:true),
+				new ColumnDef("Combo",			hidden:true),
+				new ColumnDef("Duration",		hidden:true),
+				new ColumnDef("Total Notes",	hidden:true),
+				new ColumnDef("Diff",			hidden:false),
+				new ColumnDef("Speed",			hidden:true),
+				new ColumnDef("Random",			hidden:true),
+				new ColumnDef("Creator",		hidden:true, useLargeSize:true),
+				new ColumnDef("Avg Error",		hidden:false),
+				new ColumnDef("Avg Sync",		hidden:true),
+				new ColumnDef("L.Avg Error",	hidden:true),
+				new ColumnDef("R.Avg Error",	hidden:true),
+				new ColumnDef("L.Okays",		hidden:true),
+				new ColumnDef("R.Okays",		hidden:true),
+			};
+			ColumnDef[] aggregateColumns =
+			{
+				new ColumnDef("Plays", hidden:false),
+				new ColumnDef("FC",    hidden:true),
+				new ColumnDef("DFC",   hidden:true),
+			};
+
+			// Large columns count as 2 units; total units determines the base column width
+			int visibleUnits = 0;
+			foreach (var col in baseColumns)
+			{
+				if (!col.Hidden)
+				{
+					visibleUnits += col.UseLargeSize ? 2 : 1;
+				}
+			}
 
 			if (showAggregates)
 			{
-				ImGui.TableSetupColumn("Plays", ImGuiTableColumnFlags.WidthFixed, 40);
-				ImGui.TableSetupColumn("FC", ImGuiTableColumnFlags.WidthFixed | hide, 40);
-				ImGui.TableSetupColumn("DFC", ImGuiTableColumnFlags.WidthFixed | hide, 40);
+				foreach (var col in aggregateColumns)
+				{
+					if (!col.Hidden)
+					{
+						visibleUnits += col.UseLargeSize ? 2 : 1;
+					}
+				}
+			}
+
+			float colWidth = ImGui.GetContentRegionAvail().X / visibleUnits;
+
+			foreach (var col in baseColumns)
+			{
+				float width = col.UseLargeSize ? colWidth * 2 : colWidth;
+				ImGui.TableSetupColumn(col.Label, ImGuiTableColumnFlags.WidthFixed | (col.Hidden ? hide : ImGuiTableColumnFlags.None), width);
+			}
+
+			if (showAggregates)
+			{
+				foreach (var col in aggregateColumns)
+				{
+					float width = col.UseLargeSize ? colWidth * 2 : colWidth;
+					ImGui.TableSetupColumn(col.Label, ImGuiTableColumnFlags.WidthFixed | (col.Hidden ? hide : ImGuiTableColumnFlags.None), width);
+				}
 			}
 
 			ImGui.TableHeadersRow();
