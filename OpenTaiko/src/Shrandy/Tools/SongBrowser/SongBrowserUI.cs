@@ -222,7 +222,7 @@ namespace OpenTaiko.Shrandy.Tools
 				m_FocusFilterInput = false;
 			}
 			
-			if (ImGui.InputTextWithHint("##filter", "e.g. bpm>100 badge<purple fc<=0 song title words", ref filterText, 512))
+			if (ImGui.InputTextWithHint("##filter", "e.g. bpm>100 badge<purple lastplayed>7 song title words", ref filterText, 512))
 			{
 				m_Data.FilterText = filterText;
 			}
@@ -277,7 +277,7 @@ namespace OpenTaiko.Shrandy.Tools
 					}
 					ImGui.PopID();
 
-					Utilities.SongTable.DrawRowFromColumn1(in row, creator);
+					Utilities.SongTable.DrawRow(in row, creator);
 					Utilities.SongTable.DrawAggregateColumns(aggStats.PlayCount, aggStats.FCCount, aggStats.DFCCount);
 				}
 
@@ -290,8 +290,19 @@ namespace OpenTaiko.Shrandy.Tools
 		private void DrawHistoryTab()
 		{
 			DrawFilterDaysInput();
+			DrawHistoryFilterInput();
 			DrawHistorySummary();
 			DrawHistoryTable();
+		}
+
+		private void DrawHistoryFilterInput()
+		{
+			string filterText = m_Data.HistoryFilterText;
+			ImGui.SetNextItemWidth(-1);
+			if (ImGui.InputTextWithHint("##historyfilter", "Filter by song title...", ref filterText, 512))
+			{
+				m_Data.HistoryFilterText = filterText;
+			}
 		}
 
 		private void DrawFilterDaysInput()
@@ -354,9 +365,16 @@ namespace OpenTaiko.Shrandy.Tools
 			if (Utilities.SongTable.BeginTable("Song History"))
 			{
 				int startIndex = m_Data.CalculateHistoryStartIndex();
+				string filterLower = m_Data.HistoryFilterText.ToLowerInvariant();
 				for (int i = startIndex; i < m_Data.SaveData.SongEntries.Count; ++i)
 				{
 					SongEntry entry = m_Data.SaveData.SongEntries[i];
+
+					if (!string.IsNullOrEmpty(filterLower) && !entry.SongTitle.ToLowerInvariant().Contains(filterLower))
+					{
+						continue;
+					}
+
 					Utilities.SongTableRow row = Utilities.SongTable.FromSongEntry(entry);
 
 					ImGui.TableNextRow();
@@ -373,7 +391,7 @@ namespace OpenTaiko.Shrandy.Tools
 					}
 					ImGui.PopID();
 
-					Utilities.SongTable.DrawRowFromColumn1(in row);
+					Utilities.SongTable.DrawRow(in row);
 				}
 
 				Utilities.SongTable.EndTable();

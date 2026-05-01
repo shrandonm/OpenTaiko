@@ -25,13 +25,19 @@ namespace OpenTaiko.Shrandy.Utilities
 		public double BaseBpm;
 		public double MinBpm;
 		public double MaxBpm;
+		public float AvgHitError;
+		public float AvgSync;
+		public float AvgLeftHandError;
+		public float AvgRightHandError;
+		public int LeftHandOkays;
+		public int RightHandOkays;
 
 		public int TotalNotes => Goods + Okays + Bads;
 	}
 
 	internal static class SongTable
 	{
-		private const int BaseColumnCount = 18;
+		private const int BaseColumnCount = 24;
 		private const int AggregateColumnCount = 3;
 
 		public static bool BeginTable(string id, ImGuiTableFlags extraFlags = ImGuiTableFlags.None, float height = 0, bool showAggregates = false)
@@ -63,18 +69,24 @@ namespace OpenTaiko.Shrandy.Utilities
 			ImGui.TableSetupColumn("Bads", ImGuiTableColumnFlags.WidthFixed | hide, 48);
 			ImGui.TableSetupColumn("Rolls", ImGuiTableColumnFlags.WidthFixed | hide, 48);
 			ImGui.TableSetupColumn("Combo", ImGuiTableColumnFlags.WidthFixed | hide, 48);
-			ImGui.TableSetupColumn("Duration", ImGuiTableColumnFlags.WidthFixed, 64);
+			ImGui.TableSetupColumn("Duration", ImGuiTableColumnFlags.WidthFixed | hide, 64);
 			ImGui.TableSetupColumn("Total Notes", ImGuiTableColumnFlags.WidthFixed | hide, 64);
 			ImGui.TableSetupColumn("Diff", ImGuiTableColumnFlags.WidthFixed, 20);
 			ImGui.TableSetupColumn("Speed", ImGuiTableColumnFlags.WidthFixed | hide, 56);
 			ImGui.TableSetupColumn("Random", ImGuiTableColumnFlags.WidthFixed | hide, 72);
-			ImGui.TableSetupColumn("Creator", ImGuiTableColumnFlags.WidthFixed, 100);
+			ImGui.TableSetupColumn("Creator", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.DefaultHide, 100);
+			ImGui.TableSetupColumn("Avg Error", ImGuiTableColumnFlags.WidthFixed, 72);
+			ImGui.TableSetupColumn("Avg Sync", ImGuiTableColumnFlags.WidthFixed | hide, 72);
+			ImGui.TableSetupColumn("L.Avg Error", ImGuiTableColumnFlags.WidthFixed | hide, 80);
+			ImGui.TableSetupColumn("R.Avg Error", ImGuiTableColumnFlags.WidthFixed | hide, 80);
+			ImGui.TableSetupColumn("L.Okays", ImGuiTableColumnFlags.WidthFixed | hide, 56);
+			ImGui.TableSetupColumn("R.Okays", ImGuiTableColumnFlags.WidthFixed | hide, 56);
 
 			if (showAggregates)
 			{
 				ImGui.TableSetupColumn("Plays", ImGuiTableColumnFlags.WidthFixed, 40);
-				ImGui.TableSetupColumn("FC", ImGuiTableColumnFlags.WidthFixed, 40);
-				ImGui.TableSetupColumn("DFC", ImGuiTableColumnFlags.WidthFixed, 40);
+				ImGui.TableSetupColumn("FC", ImGuiTableColumnFlags.WidthFixed | hide, 40);
+				ImGui.TableSetupColumn("DFC", ImGuiTableColumnFlags.WidthFixed | hide, 40);
 			}
 
 			ImGui.TableHeadersRow();
@@ -94,69 +106,6 @@ namespace OpenTaiko.Shrandy.Utilities
 			ImGui.Text($"{dfcCount}");
 		}
 
-		public static void DrawRow(in SongTableRow row, string creator = "")
-		{
-			int totalNotes = row.TotalNotes;
-
-			ImGui.TableNextRow();
-
-			int col = 0;
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.TextUnformatted(row.Title);
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.TextUnformatted(row.TimeSince);
-
-			ImGui.TableSetColumnIndex(col++);
-			ScoreHelper.DrawScoreRank(row.ScoreRank, 16.0f);
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.TextUnformatted(row.ChartLevel.ToString());
-
-			ImGui.TableSetColumnIndex(col++);
-			DrawBpm(row.BaseBpm, row.MinBpm, row.MaxBpm);
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.Text($"{row.Score}");
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.Text($"{StringHelpers.GetPercentString(row.Goods, totalNotes)}%");
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.Text($"{row.Goods}");
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.Text($"{row.Okays}");
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.Text($"{row.Bads}");
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.Text($"{row.Rolls}");
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.Text($"{row.MaxCombo}");
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.TextUnformatted(row.Duration);
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.Text($"{totalNotes}");
-
-			ImGui.TableSetColumnIndex(col++);
-			ScoreHelper.DrawDifficultyIcon(row.DifficultyIndex, 16.0f);
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.TextUnformatted(row.Speed);
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.TextUnformatted(row.RandomMod);
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.TextUnformatted(creator);
-		}
-
 		public static void EndTable()
 		{
 			ImGui.EndTable();
@@ -165,7 +114,7 @@ namespace OpenTaiko.Shrandy.Utilities
 		/// <summary>
 		/// Draws columns 1+ for a row (caller handles column 0 and TableNextRow).
 		/// </summary>
-		public static void DrawRowFromColumn1(in SongTableRow row, string creator = "")
+		public static void DrawRow(in SongTableRow row, string creator = "")
 		{
 			int totalNotes = row.TotalNotes;
 			int col = 1;
@@ -220,6 +169,24 @@ namespace OpenTaiko.Shrandy.Utilities
 
 			ImGui.TableSetColumnIndex(col++);
 			ImGui.TextUnformatted(creator);
+
+			ImGui.TableSetColumnIndex(col++);
+			ImGui.Text($"{row.AvgHitError:F2}ms");
+
+			ImGui.TableSetColumnIndex(col++);
+			ImGui.Text($"{row.AvgSync:F2}ms");
+
+			ImGui.TableSetColumnIndex(col++);
+			ImGui.Text($"{row.AvgLeftHandError:F2}ms");
+
+			ImGui.TableSetColumnIndex(col++);
+			ImGui.Text($"{row.AvgRightHandError:F2}ms");
+
+			ImGui.TableSetColumnIndex(col++);
+			ImGui.Text($"{row.LeftHandOkays}");
+
+			ImGui.TableSetColumnIndex(col++);
+			ImGui.Text($"{row.RightHandOkays}");
 		}
 
 		private static void DrawBpm(double baseBpm, double minBpm, double maxBpm)
@@ -261,6 +228,12 @@ namespace OpenTaiko.Shrandy.Utilities
 				DifficultyIndex = GetDifficultyFromLabel(entry.Difficulty),
 				Speed = CConfigIni.SongPlaybackSpeedToString(entry.SongSpeed),
 				RandomMod = entry.RandomMod,
+				AvgHitError = entry.AvgHitError,
+				AvgSync = entry.AvgSync,
+				AvgLeftHandError = entry.AvgLeftHandError,
+				AvgRightHandError = entry.AvgRightHandError,
+				LeftHandOkays = entry.LeftHandOkays,
+				RightHandOkays = entry.RightHandOkays,
 			};
 		}
 
@@ -305,6 +278,12 @@ namespace OpenTaiko.Shrandy.Utilities
 			row.Duration = FormatDuration(entry.DurationMs);
 			row.Speed = CConfigIni.SongPlaybackSpeedToString(entry.SongSpeed);
 			row.RandomMod = entry.RandomMod;
+			row.AvgHitError = entry.AvgHitError;
+			row.AvgSync = entry.AvgSync;
+			row.AvgLeftHandError = entry.AvgLeftHandError;
+			row.AvgRightHandError = entry.AvgRightHandError;
+			row.LeftHandOkays = entry.LeftHandOkays;
+			row.RightHandOkays = entry.RightHandOkays;
 		}
 
 		public static int GetScoreRank(CSongListNode song, int difficulty)
