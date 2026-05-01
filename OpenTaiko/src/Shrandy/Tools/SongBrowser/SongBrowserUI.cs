@@ -13,12 +13,14 @@ namespace OpenTaiko.Shrandy.Tools
 		private bool m_ResultsPopupRequested = false;
 
 		private SongTagsUI m_TagsUI;
+		private TagFilterBar m_TagFilterBar;
 		public ResultsPopup ResultsPopup { get; private set; }
 
 		public SongBrowserUI(SongBrowserData data)
 		{
 			m_Data = data;
 			m_TagsUI = new SongTagsUI(data.Tags, data.SaveTags);
+			m_TagFilterBar = new TagFilterBar(data.Tags, () => data.FilterText, value => data.FilterText = value);
 			ResultsPopup = new ResultsPopup(data);
 		}
 		
@@ -230,6 +232,8 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				m_Data.FilterText = filterText;
 			}
+
+			m_TagFilterBar.Draw();
 
 			m_Data.ApplyFiltersIfNeeded();
 
