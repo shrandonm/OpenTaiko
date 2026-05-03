@@ -68,6 +68,14 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			base.OnStageChanged(stage);
 			m_Ticks.Clear();
+			if (stage is CStage演奏ドラム画面)
+			{
+				SetEnabled(true);
+			}
+			else
+			{
+				SetEnabled(false);
+			}
 		}
 
 		public override void OnSongRestart()
