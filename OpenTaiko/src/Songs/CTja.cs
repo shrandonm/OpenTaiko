@@ -751,7 +751,7 @@ internal class CTja : CActivity {
 				foreach (var chip in this.listChip) {
 					int n = rnd.Next(100);
 
-					if (n >= 0 && n <= 20) {
+					if (n < 20) {
 						switch (chip.nChannelNo) {
 							case 0x11:
 								chip.nChannelNo = 0x12;
@@ -775,7 +775,7 @@ internal class CTja : CActivity {
 				foreach (var chip in this.listChip) {
 					int n = rnd.Next(100);
 
-					if (n >= 0 && n <= 50) {
+					if (n < 50) {
 						switch (chip.nChannelNo) {
 							case 0x11:
 								chip.nChannelNo = 0x12;
@@ -799,7 +799,7 @@ internal class CTja : CActivity {
 				foreach (var chip in this.listChip) {
 					int n = rnd.Next(100);
 
-					if (n >= 0 && n <= 80) {
+					if (n < 80) {
 						switch (chip.nChannelNo) {
 							case 0x11:
 								chip.nChannelNo = 0x12;
