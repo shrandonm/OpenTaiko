@@ -16,6 +16,7 @@ namespace OpenTaiko.Shrandy.Tools
 	{
 		public SongEntry CurrentEntry;
 		public SongEntry? PreviousBest;
+		public SongEntry? NoModBest;
 	}
 
 	internal class SongBrowserData
@@ -621,6 +622,8 @@ namespace OpenTaiko.Shrandy.Tools
 			};
 
 			SongEntry? previousBest = GetBestPlayMatchingMods(entry.SongTitle, difficulty, entry.RandomMod, entry.Judgement);
+			bool hasMods = entry.RandomMod != "None" || entry.Judgement != 2 || entry.SongSpeed != CConfigIni.DefaultSongSpeed;
+			SongEntry? noModBest = hasMods ? GetBestPlayMatchingMods(entry.SongTitle, difficulty, "None", 2) : null;
 
 			m_SaveData.SongEntries.Add(entry);
 
@@ -628,6 +631,7 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				CurrentEntry = entry,
 				PreviousBest = previousBest,
+				NoModBest = noModBest,
 			};
 		}
 
