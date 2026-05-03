@@ -26,6 +26,10 @@ namespace OpenTaiko.Shrandy.Tools
 				m_AutoShowInSongSelect = true;
 				m_UI.OnEnabled();
 			}
+			else
+			{
+				m_UI.OnDisabled();
+			}
 		}
 
 		public override void OnStageChanged(CStage stage)

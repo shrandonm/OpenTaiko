@@ -433,16 +433,85 @@ namespace OpenTaiko.Shrandy.Tools
 			};
 		}
 
-		private double GetDaysSinceLastPlayed(string title, int difficulty)
+		public double GetDaysSinceLastPlayed(string title, int difficulty)
 		{
 			SongEntry? last = GetLastPlay(title, difficulty);
 			return last == null ? double.MaxValue : (DateTime.Now - last.Timestamp).TotalDays;
 		}
 
-		private double GetDaysSinceLastPB(string title, int difficulty)
+		public double GetDaysSinceLastPB(string title, int difficulty)
 		{
 			SongEntry? best = GetBestPlay(title, difficulty);
 			return best == null ? double.MaxValue : (DateTime.Now - best.Timestamp).TotalDays;
+		}
+
+		public SongEntry? GetBestPlayNoMods(string title, int difficulty)
+		{
+			string diffLabel = Utilities.SongTable.GetDifficultyLabel(difficulty);
+			SongEntry? best = null;
+			foreach (SongEntry e in m_SaveData.SongEntries)
+			{
+				if (!e.SongTitle.Equals(title, StringComparison.OrdinalIgnoreCase)) continue;
+				if (e.Difficulty != diffLabel) continue;
+				if (e.RandomMod != "None" || e.Judgement != 2) continue;
+				if (best == null || e.Score > best.Score) best = e;
+			}
+			return best;
+		}
+
+		public SongEntry? GetBestPlayMatchingMods(string title, int difficulty, string randomMod, int judgement)
+		{
+			string diffLabel = Utilities.SongTable.GetDifficultyLabel(difficulty);
+			SongEntry? best = null;
+			foreach (SongEntry e in m_SaveData.SongEntries)
+			{
+				if (!e.SongTitle.Equals(title, StringComparison.OrdinalIgnoreCase)) continue;
+				if (e.Difficulty != diffLabel) continue;
+				if (e.RandomMod != randomMod || e.Judgement != judgement) continue;
+				if (best == null || e.Score > best.Score) best = e;
+			}
+			return best;
+		}
+
+		public SongAggregateStats GetAggregateStatsNoMods(string title, int difficulty)
+		{
+			string diffLabel = Utilities.SongTable.GetDifficultyLabel(difficulty);
+			SongAggregateStats agg = default;
+			foreach (SongEntry e in m_SaveData.SongEntries)
+			{
+				if (!e.SongTitle.Equals(title, StringComparison.OrdinalIgnoreCase)) continue;
+				if (e.Difficulty != diffLabel) continue;
+				if (e.RandomMod != "None" || e.Judgement != 2) continue;
+				agg.PlayCount++;
+				if (e.Bads == 0) { agg.FCCount++; if (e.Okays == 0) agg.DFCCount++; }
+			}
+			return agg;
+		}
+
+		public SongAggregateStats GetAggregateStatsMatchingMods(string title, int difficulty, string randomMod, int judgement)
+		{
+			string diffLabel = Utilities.SongTable.GetDifficultyLabel(difficulty);
+			SongAggregateStats agg = default;
+			foreach (SongEntry e in m_SaveData.SongEntries)
+			{
+				if (!e.SongTitle.Equals(title, StringComparison.OrdinalIgnoreCase)) continue;
+				if (e.Difficulty != diffLabel) continue;
+				if (e.RandomMod != randomMod || e.Judgement != judgement) continue;
+				agg.PlayCount++;
+				if (e.Bads == 0) { agg.FCCount++; if (e.Okays == 0) agg.DFCCount++; }
+			}
+			return agg;
+		}
+
+		public string GetCurrentModsLabel()
+		{
+			int actualPlayer = OpenTaiko.GetActualPlayer(0);
+			return BuildModsLabel(OpenTaiko.ConfigIni.eRandom[actualPlayer], OpenTaiko.ConfigIni.nFunMods[actualPlayer]);
+		}
+
+		public int GetCurrentJudgement()
+		{
+			return OpenTaiko.ConfigIni.nTimingZones[OpenTaiko.SaveFile];
 		}
 
 		private static double? ResolveValue(string field, string value)
