@@ -2,28 +2,28 @@ using ImGuiNET;
 
 namespace OpenTaiko.Shrandy.Tools
 {
-	internal class ResultsPopup
+	internal class RetryPopup
 	{
 		private SongBrowserData m_Data;
 		private int m_Selection;
 
 		private static readonly string[] Options = { "Random Song", "Retry", "Close" };
 
-		public ResultsPopup(SongBrowserData data)
+		public RetryPopup(SongBrowserData data)
 		{
 			m_Data = data;
 		}
 
 		public void Show()
 		{
-			ImGui.OpenPopup("Results");
+			ImGui.OpenPopup("Retry");
 			m_Selection = 0;
 		}
 
 		public void Draw()
 		{
 			bool keepOpen = true;
-			if (!ImGui.BeginPopupModal("Results", ref keepOpen, ImGuiWindowFlags.AlwaysAutoResize))
+			if (!ImGui.BeginPopupModal("Retry", ref keepOpen, ImGuiWindowFlags.AlwaysAutoResize))
 			{
 				return;
 			}

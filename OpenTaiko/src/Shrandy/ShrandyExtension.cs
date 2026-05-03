@@ -43,7 +43,9 @@ namespace OpenTaiko.Shrandy
 			}
 			m_Tools.Add(new Tools.TrainingTool("Training Tool", SlimDXKeys.Key.T));
 			m_Tools.Add(new Tools.NoteVisualizer("Note Visualizer", SlimDXKeys.Key.V));
-			m_Tools.Add(new Tools.SongBrowserTool("Song Browser", SlimDXKeys.Key.S));
+			Tools.SongBrowserTool songBrowserTool = new Tools.SongBrowserTool("Song Browser", SlimDXKeys.Key.S);
+			m_Tools.Add(songBrowserTool);
+			m_Tools.Add(new Tools.ResultsTool(songBrowserTool.Data, "Results Tool", SlimDXKeys.Key.R));
 			m_Tools.Add(new Tools.HitErrorBarTool("Hit Error Bar", SlimDXKeys.Key.E));
 			m_Tools.Add(new Tools.ModMenuTool("Game Mods", SlimDXKeys.Key.M));
 		}

@@ -14,7 +14,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private SongTagsUI m_TagsUI;
 		private TagFilterBar m_TagFilterBar;
-		public ResultsPopup ResultsPopup { get; private set; }
+		public RetryPopup RetryPopup { get; private set; }
 		private PreviewPopup m_PreviewPopup;
 
 		public SongBrowserUI(SongBrowserData data)
@@ -22,10 +22,9 @@ namespace OpenTaiko.Shrandy.Tools
 			m_Data = data;
 			m_TagsUI = new SongTagsUI(data.Tags, data.SaveTags);
 			m_TagFilterBar = new TagFilterBar(data.Tags, () => data.FilterText, value => data.FilterText = value);
-			ResultsPopup = new ResultsPopup(data);
+			RetryPopup = new RetryPopup(data);
 			m_PreviewPopup = new PreviewPopup(data);
 		}
-		
 		public void OnEnabled()
 		{
 			m_FocusFilterInput = true;
@@ -46,11 +45,11 @@ namespace OpenTaiko.Shrandy.Tools
 
 			if (m_ResultsPopupRequested)
 			{
-				ResultsPopup.Show();
+				RetryPopup.Show();
 				m_ResultsPopupRequested = false;
 			}
 			
-			ResultsPopup.Draw();
+			RetryPopup.Draw();
 			
 			if (ImGui.Button("Song Mods"))
 			{

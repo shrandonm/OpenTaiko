@@ -6,6 +6,8 @@ namespace OpenTaiko.Shrandy.Tools
 		private SongBrowserUI m_UI;
 		private bool m_AutoShowInSongSelect = false;
 
+		public SongBrowserData Data => m_Data;
+
 		public SongBrowserTool(string toolName, SlimDXKeys.Key enableHotkey)
 			: base(toolName, enableHotkey)
 		{

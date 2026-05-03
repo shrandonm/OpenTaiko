@@ -12,6 +12,12 @@ namespace OpenTaiko.Shrandy.Tools
 		public int DFCCount;
 	}
 
+	internal struct ResultsSnapshot
+	{
+		public SongEntry CurrentEntry;
+		public SongEntry? PreviousBest;
+	}
+
 	internal class SongBrowserData
 	{
 		private const string SaveFileName = "song_history.json";
@@ -90,6 +96,7 @@ namespace OpenTaiko.Shrandy.Tools
 		public SongHistorySaveData SaveData => m_SaveData;
 		public List<CSongListNode> AllSongs => m_AllSongs;
 		public List<(CSongListNode song, int difficulty)> FilteredSongs => m_FilteredSongs;
+		public ResultsSnapshot? CurrentResultsSnapshot { get; private set; }
 
 		public bool IsDifficultySelected(int diff) => m_SelectedDifficulties.Contains(diff);
 
@@ -613,7 +620,15 @@ namespace OpenTaiko.Shrandy.Tools
 				RightHandOkays = CurrentNoteStats.RightHandStats?.OkayCount ?? 0,
 			};
 
+			SongEntry? previousBest = GetBestPlayMatchingMods(entry.SongTitle, difficulty, entry.RandomMod, entry.Judgement);
+
 			m_SaveData.SongEntries.Add(entry);
+
+			CurrentResultsSnapshot = new ResultsSnapshot
+			{
+				CurrentEntry = entry,
+				PreviousBest = previousBest,
+			};
 		}
 
 		public void SaveHistory()
