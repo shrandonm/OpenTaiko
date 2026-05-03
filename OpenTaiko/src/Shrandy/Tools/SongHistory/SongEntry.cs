@@ -19,6 +19,7 @@ namespace OpenTaiko.Shrandy
 		public double MaxBpm { get; set; }
 		public string RandomMod { get; set; } = "None";
 		public int SongSpeed { get; set; } = CConfigIni.DefaultSongSpeed;
+		public int Judgement { get; set; } = 2;
 		public float AvgHitError { get; set; }
 		public float AvgSync { get; set; }
 		public float AvgLeftHandError { get; set; }

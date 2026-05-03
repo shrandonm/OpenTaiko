@@ -32,15 +32,16 @@ namespace OpenTaiko.Shrandy.Utilities
 		public float AvgRightHandError;
 		public int LeftHandOkays;
 		public int RightHandOkays;
+		public int Judgement;
 
 		public int TotalNotes => Goods + Okays + Bads;
 	}
 
 	internal static class SongTable
 	{
-		private const int BaseColumnCount = 26;
+		private const int BaseColumnCount = 27;
 		private const int AggregateColumnCount = 3;
-		public const int TagsColumnIndex = 25;
+		public const int TagsColumnIndex = 26;
 
 		private struct ColumnDef
 		{
@@ -94,6 +95,7 @@ namespace OpenTaiko.Shrandy.Utilities
 				new ColumnDef("Diff",			hidden:false),
 				new ColumnDef("Speed",			hidden:true),
 				new ColumnDef("Random",			hidden:true),
+				new ColumnDef("Judgement",		hidden:true),
 				new ColumnDef("Creator",		hidden:true, useLargeSize:true),
 				new ColumnDef("Avg Error",		hidden:false),
 				new ColumnDef("Avg Sync",		hidden:true),
@@ -230,6 +232,9 @@ namespace OpenTaiko.Shrandy.Utilities
 			ImGui.TextUnformatted(row.RandomMod);
 
 			ImGui.TableSetColumnIndex(col++);
+			ImGui.TextUnformatted(CLangManager.LangInstance.GetString($"MOD_TIMING{row.Judgement + 1}"));
+
+			ImGui.TableSetColumnIndex(col++);
 			ImGui.TextUnformatted(creator);
 
 			ImGui.TableSetColumnIndex(col++);
@@ -290,6 +295,7 @@ namespace OpenTaiko.Shrandy.Utilities
 				DifficultyIndex = GetDifficultyFromLabel(entry.Difficulty),
 				Speed = CConfigIni.SongPlaybackSpeedToString(entry.SongSpeed),
 				RandomMod = entry.RandomMod,
+				Judgement = entry.Judgement,
 				AvgHitError = entry.AvgHitError,
 				AvgSync = entry.AvgSync,
 				AvgLeftHandError = entry.AvgLeftHandError,
@@ -340,6 +346,7 @@ namespace OpenTaiko.Shrandy.Utilities
 			row.Duration = FormatDuration(entry.DurationMs);
 			row.Speed = CConfigIni.SongPlaybackSpeedToString(entry.SongSpeed);
 			row.RandomMod = entry.RandomMod;
+			row.Judgement = entry.Judgement;
 			row.AvgHitError = entry.AvgHitError;
 			row.AvgSync = entry.AvgSync;
 			row.AvgLeftHandError = entry.AvgLeftHandError;

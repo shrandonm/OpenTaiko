@@ -79,6 +79,11 @@ namespace OpenTaiko.Shrandy.Tools
 			["none"] = 0, ["clear"] = 1, ["fc"] = 2, ["dfc"] = 3,
 		};
 
+		private static readonly Dictionary<string, int> TimingNames = new(StringComparer.OrdinalIgnoreCase)
+		{
+			["loose"] = 0, ["lenient"] = 1, ["normal"] = 2, ["strict"] = 3, ["rigorous"] = 4,
+		};
+
 		private static readonly Regex FilterTokenRegex = new(@"(\w+)\s*(!=|>=|<=|>|<|=)\s*(\S+)", RegexOptions.Compiled);
 
 		// Public accessors
@@ -423,6 +428,7 @@ namespace OpenTaiko.Shrandy.Tools
 				"score" => bestPlay?.Score,
 				"lastplayed" => GetDaysSinceLastPlayed(song.ldTitle.GetString(""), difficulty),
 				"lastpb" => GetDaysSinceLastPB(song.ldTitle.GetString(""), difficulty),
+				"judgement" => bestPlay?.Judgement,
 				_ => null,
 			};
 		}
@@ -454,6 +460,11 @@ namespace OpenTaiko.Shrandy.Tools
 			if ((field == "fc" || field == "clear") && ClearNames.TryGetValue(value, out int clearVal))
 			{
 				return clearVal;
+			}
+
+			if (field == "judgement" && TimingNames.TryGetValue(value, out int timingVal))
+			{
+				return timingVal;
 			}
 
 			return null;
@@ -523,6 +534,7 @@ namespace OpenTaiko.Shrandy.Tools
 				MinBpm = song.score[difficulty]?.譜面情報.MinBpm ?? 0,
 				MaxBpm = song.score[difficulty]?.譜面情報.MaxBpm ?? 0,
 				SongSpeed = OpenTaiko.ConfigIni.nSongSpeed,
+				Judgement = OpenTaiko.ConfigIni.nTimingZones[OpenTaiko.SaveFile],
 				RandomMod = BuildModsLabel(OpenTaiko.ConfigIni.eRandom[actualPlayer], OpenTaiko.ConfigIni.nFunMods[actualPlayer]),
 				AvgHitError = CurrentNoteStats.AverageHitError,
 				AvgSync = CurrentNoteStats.AverageSync,
