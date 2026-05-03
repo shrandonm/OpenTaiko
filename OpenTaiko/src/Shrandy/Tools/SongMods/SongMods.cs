@@ -1,13 +1,13 @@
 namespace OpenTaiko.Shrandy.Tools
 {
-	internal class SongMods
+	internal class ExtraSongMods
 	{
 		internal bool RemoveEvenNotes { get; private set; }
 		internal bool RemoveOddNotes { get; private set; }
 
 		private SongModsUI m_UI;
 
-		internal SongMods()
+		internal ExtraSongMods()
 		{
 			m_UI = new SongModsUI(this);
 		}

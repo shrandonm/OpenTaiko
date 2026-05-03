@@ -45,6 +45,12 @@ namespace OpenTaiko.Shrandy
 			m_Tools.Add(new Tools.NoteVisualizer("Note Visualizer", SlimDXKeys.Key.V));
 			m_Tools.Add(new Tools.SongBrowserTool("Song Browser", SlimDXKeys.Key.S));
 			m_Tools.Add(new Tools.HitErrorBarTool("Hit Error Bar", SlimDXKeys.Key.E));
+			m_Tools.Add(new Tools.ModMenuTool("Game Mods", SlimDXKeys.Key.M));
+		}
+		
+		public void SetToolEnabled<T>(bool enabled) where T : Tool
+		{
+			m_Tools.Find(x => x.GetType() == typeof(T))?.SetEnabled(enabled);
 		}
 
 		public void OnStageChanged(CStage stage)

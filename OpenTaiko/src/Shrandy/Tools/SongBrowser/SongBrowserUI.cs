@@ -38,6 +38,12 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 			
 			ResultsPopup.Draw();
+
+			if (ImGui.Button("Song Mods"))
+			{
+				OpenTaiko.ShrandyExtension.SetToolEnabled<ModMenuTool>(true);
+			}
+
 			DrawSessionStats();
 			DrawGoals();
 

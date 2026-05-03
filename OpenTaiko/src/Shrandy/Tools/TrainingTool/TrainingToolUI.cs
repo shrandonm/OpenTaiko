@@ -8,14 +8,14 @@ namespace OpenTaiko.Shrandy.Tools
 	internal class TrainingToolUI
 	{
 		private TrainingTool m_Tool;
-		private SongMods m_SongMods;
+		private ExtraSongMods m_SongMods;
 
 		private const string BookmarkPopupName = "Edit Bookmark";
 		private string m_BookmarkNameInput = "";
 		private int m_StartMeasureInput;
 		private int m_EndMeasureInput;
 
-		public TrainingToolUI(TrainingTool tool, SongMods songMods)
+		public TrainingToolUI(TrainingTool tool, ExtraSongMods songMods)
 		{
 			m_Tool = tool;
 			m_SongMods = songMods;
@@ -23,6 +23,11 @@ namespace OpenTaiko.Shrandy.Tools
 
 		public void Draw()
 		{
+			if (ImGui.Button("Song Mods"))
+			{
+				OpenTaiko.ShrandyExtension.SetToolEnabled<ModMenuTool>(true);
+			}
+
 			if (OpenTaiko.stageGameScreen.actTokkun != null && OpenTaiko.ConfigIni.bTokkunMode)
 			{
 				if (ImGui.BeginTabBar("TrainingToolTabs"))
@@ -87,9 +92,7 @@ namespace OpenTaiko.Shrandy.Tools
 				m_Tool.SetSongSpeed(newSongSpeed);
 			}
 
-			float scrollSpeed = Utilities.SpeedConversions.GetActualScrollSpeed(OpenTaiko.ConfigIni.nScrollSpeed[OpenTaiko.SaveFile]);
-			ImGui.InputFloat("Scroll Speed", ref scrollSpeed, 0.1f);
-			OpenTaiko.ConfigIni.nScrollSpeed[OpenTaiko.SaveFile] = Utilities.SpeedConversions.GetScrollSpeedIntValue(scrollSpeed);
+			ModMenuTool.DrawScrollSpeed();
 		}
 
 		private void DrawAutoRewind()
