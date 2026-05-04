@@ -414,6 +414,7 @@ namespace OpenTaiko.Shrandy.Utilities
 			songList.rCurrentlySelectedSong = song;
 
 			OpenTaiko.stageSongSelect.t曲を選択する(difficulty, 0);
+			OpenTaiko.ShrandyExtension.GetTool<Tools.PreviewTool>()?.Show(song, difficulty);
 		}
 
 		public static CSongListNode? FindSongByTitle(string title)

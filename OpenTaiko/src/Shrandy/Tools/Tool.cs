@@ -27,10 +27,16 @@ namespace OpenTaiko.Shrandy
 			string modifier = m_ModifierHotkey.ToString().Replace("Left", "");
 			return $"{modifier}+{m_Hotkey}";
 		}
+		
+		public bool ShowInToolbar()
+		{
+			return m_Hotkey != SlimDXKeys.Key.Unknown;
+		}
 
 		public void UpdateEnabledState()
 		{
 			if (OpenTaiko.InputManager != null
+				&& m_Hotkey != SlimDXKeys.Key.Unknown
 				&& OpenTaiko.InputManager.Keyboard.KeyPressing((int)m_ModifierHotkey)
 				&& OpenTaiko.InputManager.Keyboard.KeyPressed((int)m_Hotkey))
 			{

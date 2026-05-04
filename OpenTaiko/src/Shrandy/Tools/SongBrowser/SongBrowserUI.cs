@@ -15,7 +15,6 @@ namespace OpenTaiko.Shrandy.Tools
 		private SongTagsUI m_TagsUI;
 		private TagFilterBar m_TagFilterBar;
 		public RetryPopup RetryPopup { get; private set; }
-		private PreviewPopup m_PreviewPopup;
 
 		public SongBrowserUI(SongBrowserData data)
 		{
@@ -23,7 +22,6 @@ namespace OpenTaiko.Shrandy.Tools
 			m_TagsUI = new SongTagsUI(data.Tags, data.SaveTags);
 			m_TagFilterBar = new TagFilterBar(data.Tags, () => data.FilterText, value => data.FilterText = value);
 			RetryPopup = new RetryPopup(data);
-			m_PreviewPopup = new PreviewPopup(data);
 		}
 		public void OnEnabled()
 		{
@@ -32,17 +30,10 @@ namespace OpenTaiko.Shrandy.Tools
 		
 		public void OnDisabled()
 		{
-			m_PreviewPopup.Hide();
 		}
 
 		public void Draw()
 		{
-			if (m_PreviewPopup.IsOpen())
-			{
-				m_PreviewPopup.Draw();
-				return;
-			}
-
 			if (m_ResultsPopupRequested)
 			{
 				RetryPopup.Show();
@@ -263,7 +254,6 @@ namespace OpenTaiko.Shrandy.Tools
 				if (random != null)
 				{
 					Utilities.SongTable.PlaySong(random.Value.song, random.Value.difficulty);
-					m_PreviewPopup.Show(random.Value.song, random.Value.difficulty);
 				}
 			}
 		}
@@ -308,7 +298,6 @@ namespace OpenTaiko.Shrandy.Tools
 					if (ImGui.Selectable(row.Title))
 					{
 						Utilities.SongTable.PlaySong(song, difficulty);
-						m_PreviewPopup.Show(song, difficulty);
 					}
 					ImGui.PopID();
 

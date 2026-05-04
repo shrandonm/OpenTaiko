@@ -8,14 +8,9 @@ namespace OpenTaiko.Shrandy.Tools
 		private static readonly Vector4 DeltaPositiveColor = new Vector4(0.2f, 0.9f, 0.2f, 1.0f);
 		private static readonly Vector4 DeltaNegativeColor = new Vector4(0.9f, 0.2f, 0.2f, 1.0f);
 
-
-
-		private SongBrowserData m_Data;
-
-		public ResultsTool(SongBrowserData data, string toolName = "Results", SlimDXKeys.Key enableHotkey = SlimDXKeys.Key.Unknown)
+		public ResultsTool(string toolName = "Results", SlimDXKeys.Key enableHotkey = SlimDXKeys.Key.Unknown)
 			: base(toolName, enableHotkey)
 		{
-			m_Data = data;
 		}
 
 		public override bool IsBlockingInput()
@@ -51,7 +46,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		protected override void Draw()
 		{
-			ResultsSnapshot? snapshot = m_Data.CurrentResultsSnapshot;
+			ResultsSnapshot? snapshot = OpenTaiko.ShrandyExtension.GetTool<SongBrowserTool>()?.Data.CurrentResultsSnapshot;
 			if (snapshot == null)
 			{
 				ImGui.Text("No results data.");

@@ -18,9 +18,12 @@ namespace OpenTaiko.Shrandy
 				{
 					foreach (Tool tool in tools)
 					{
-						if (ImGui.MenuItem(tool.ToolName, tool.GetHotkeyString(), tool.Enabled))
+						if (tool.ShowInToolbar())
 						{
-							tool.SetEnabled(!tool.Enabled);
+							if (ImGui.MenuItem(tool.ToolName, tool.GetHotkeyString(), tool.Enabled))
+							{
+								tool.SetEnabled(!tool.Enabled);
+							}	
 						}
 					}
 					ImGui.EndMenu();

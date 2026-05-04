@@ -43,13 +43,19 @@ namespace OpenTaiko.Shrandy
 			}
 			m_Tools.Add(new Tools.TrainingTool("Training Tool", SlimDXKeys.Key.T));
 			m_Tools.Add(new Tools.NoteVisualizer("Note Visualizer", SlimDXKeys.Key.V));
-			Tools.SongBrowserTool songBrowserTool = new Tools.SongBrowserTool("Song Browser", SlimDXKeys.Key.S);
-			m_Tools.Add(songBrowserTool);
-			m_Tools.Add(new Tools.ResultsTool(songBrowserTool.Data, "Results Tool", SlimDXKeys.Key.R));
+			m_Tools.Add(new Tools.SongBrowserTool("Song Browser", SlimDXKeys.Key.S));
 			m_Tools.Add(new Tools.HitErrorBarTool("Hit Error Bar", SlimDXKeys.Key.E));
 			m_Tools.Add(new Tools.ModMenuTool("Game Mods", SlimDXKeys.Key.M));
+			
+			m_Tools.Add(new Tools.ResultsTool("Results Tool"));
+			m_Tools.Add(new Tools.PreviewTool("Preview Tool"));
 		}
-		
+
+		public T? GetTool<T>() where T : Tool
+		{
+			return m_Tools.Find(x => x is T) as T;
+		}
+
 		public void SetToolEnabled<T>(bool enabled) where T : Tool
 		{
 			m_Tools.Find(x => x.GetType() == typeof(T))?.SetEnabled(enabled);
