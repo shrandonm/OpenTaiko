@@ -511,6 +511,34 @@ namespace OpenTaiko.Shrandy.Tools
 			return agg;
 		}
 
+		public SongEntry? GetLastPlayNoMods(string title, int difficulty)
+		{
+			string diffLabel = Utilities.SongTable.GetDifficultyLabel(difficulty);
+			SongEntry? last = null;
+			foreach (SongEntry e in m_SaveData.SongEntries)
+			{
+				if (!e.SongTitle.Equals(title, StringComparison.OrdinalIgnoreCase)) continue;
+				if (e.Difficulty != diffLabel) continue;
+				if (e.RandomMod != "None" || e.Judgement != 2) continue;
+				if (last == null || e.Timestamp > last.Timestamp) last = e;
+			}
+			return last;
+		}
+
+		public SongEntry? GetLastPlayMatchingMods(string title, int difficulty, string randomMod, int judgement)
+		{
+			string diffLabel = Utilities.SongTable.GetDifficultyLabel(difficulty);
+			SongEntry? last = null;
+			foreach (SongEntry e in m_SaveData.SongEntries)
+			{
+				if (!e.SongTitle.Equals(title, StringComparison.OrdinalIgnoreCase)) continue;
+				if (e.Difficulty != diffLabel) continue;
+				if (e.RandomMod != randomMod || e.Judgement != judgement) continue;
+				if (last == null || e.Timestamp > last.Timestamp) last = e;
+			}
+			return last;
+		}
+
 		public string GetCurrentModsLabel()
 		{
 			int actualPlayer = OpenTaiko.GetActualPlayer(0);
