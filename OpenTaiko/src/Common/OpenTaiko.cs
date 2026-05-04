@@ -621,10 +621,26 @@ internal class OpenTaiko : Game {
 						#region [ *** ]
 						//-----------------------------
 						if (this.nDrawLoopReturnValue != 0) {
-							ChangeStage(stageTitle);
-							Trace.TraceInformation("----------------------");
-							Trace.TraceInformation("■ Title");
+							// [Divergence] Skip title screen, go directly to song select.
+							OpenTaiko.latestSongSelect = stageSongSelect;
 
+							// Start full song enumeration (normally triggered by the title screen).
+							if (EnumSongs != null && !EnumSongs.IsSongListEnumStarted) {
+								actEnumSongs.Activate();
+								if (!ConfigIni.PreAssetsLoading) {
+									actEnumSongs.CreateManagedResource();
+									actEnumSongs.CreateUnmanagedResource();
+								}
+								stageSongSelect.bIsEnumeratingSongs = true;
+								EnumSongs.Init();
+								EnumSongs.StartEnumFromDisk();
+							}
+
+							ChangeStage(stageSongSelect);
+							Trace.TraceInformation("----------------------");
+							Trace.TraceInformation("■ Song Select (title bypassed)");
+
+							// [End Divergence]
 							this.tExecuteGarbageCollection();
 						}
 						//-----------------------------

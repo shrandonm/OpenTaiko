@@ -214,13 +214,14 @@ internal class CStage起動 : CStage {
 				{
 					OpenTaiko.Songs管理 = (es != null) ? es.Songs管理 : null;      // 最後に、曲リストを拾い上げる
 
-					if (OpenTaiko.Pad.IsPressingDecide()) {
-						OpenTaiko.Skin.soundDecideSFX.tPlay();
-						return 1;
-					}
+					// [Divergence] Skip screen
+					OpenTaiko.SaveFile = 0;      // Player 1
+					OpenTaiko.PlayerSide = 0;    // Left player
+					for (int i = 0; i < 2; i++)
+						OpenTaiko.NamePlate.tNamePlateRefreshTitles(i);
+					return 1;
+					// [End Divergence]
 				}
-
-				OpenTaiko.Tx.Readme.t2D描画(0, 0);
 			}
 
 		}
