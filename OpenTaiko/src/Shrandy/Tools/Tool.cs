@@ -89,9 +89,11 @@ namespace OpenTaiko.Shrandy
 				ImGui.Separator();
 
 				DrawProfilingStats();
-
-				ImGui.End();
-				Enabled = open;
+			}
+			ImGui.End();
+			if (!open)
+			{
+				SetEnabled(false);
 			}
 		}
 

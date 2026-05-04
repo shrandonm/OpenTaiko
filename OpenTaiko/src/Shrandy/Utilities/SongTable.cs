@@ -413,7 +413,7 @@ namespace OpenTaiko.Shrandy.Utilities
 			CActSelect曲リスト songList = OpenTaiko.stageSongSelect.actSongList;
 			songList.rCurrentlySelectedSong = song;
 
-			OpenTaiko.stageSongSelect.t曲を選択する(difficulty, 0);
+			OpenTaiko.ShrandyExtension.SetToolEnabled<Tools.SongBrowserTool>(false);
 			OpenTaiko.ShrandyExtension.GetTool<Tools.PreviewTool>()?.Show(song, difficulty);
 		}
 

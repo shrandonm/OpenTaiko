@@ -10,6 +10,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private CSongListNode? m_Song;
 		private int m_Difficulty;
+		private DateTime m_ConfirmAllowedAfter = DateTime.MinValue;
 
 		// Cached display data
 		private string m_Title = "";
@@ -38,8 +39,27 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			m_Song = song;
 			m_Difficulty = difficulty;
+			m_ConfirmAllowedAfter = DateTime.UtcNow.AddMilliseconds(300);
 			RefreshData();
 			base.SetEnabled(true);
+		}
+
+		private void Confirm()
+		{
+			if (m_Song == null || OpenTaiko.stageSongSelect == null)
+			{
+				return;
+			}
+			int difficulty = m_Difficulty;
+			OpenTaiko.stageSongSelect.t曲を選択する(difficulty, 0);
+			SetEnabled(false);
+		}
+
+		private void Cancel()
+		{
+			SetEnabled(false);
+			OpenTaiko.ShrandyExtension.SetToolEnabled<SongBrowserTool>(true);
+			m_Song = null;
 		}
 
 		public override void SetEnabled(bool enabled)
@@ -56,8 +76,28 @@ namespace OpenTaiko.Shrandy.Tools
 			return Enabled;
 		}
 
+		protected override void Update()
+		{
+			if (DateTime.UtcNow < m_ConfirmAllowedAfter)
+			{
+				return;
+			}
+
+			if (OpenTaiko.Pad.IsPressingCancel(forceAllowGameInput: true))
+			{
+				Cancel();
+			}
+			else if (OpenTaiko.Pad.IsPressingDecide(forceAllowGameInput: true))
+			{
+				Confirm();
+			}
+		}
+
 		public override void DrawWindow()
 		{
+			Update();
+			if (!Enabled) return;
+
 			var displaySize = ImGui.GetIO().DisplaySize;
 			ImGui.SetNextWindowSize(new Vector2(380, 0), ImGuiCond.Appearing);
 			ImGui.SetNextWindowPos(new Vector2(displaySize.X * 0.5f, displaySize.Y * 0.5f), ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
@@ -133,6 +173,9 @@ namespace OpenTaiko.Shrandy.Tools
 
 				ImGui.EndTable();
 			}
+
+			ImGui.Spacing();
+			ImGui.TextDisabled("Don / Enter to start  |  Esc to cancel");
 		}
 
 		private void RefreshData()
