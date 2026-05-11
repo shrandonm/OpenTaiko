@@ -31,19 +31,6 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 		}
 
-		public override void DrawWindow()
-		{
-			Vector2 displaySize = ImGui.GetIO().DisplaySize;
-			ImGui.SetNextWindowPos(displaySize * 0.5f, ImGuiCond.Appearing, new Vector2(0.5f, 0.5f));
-			bool open = Enabled;
-			if (ImGui.Begin("Results##resultstool", ref open, ImGuiWindowFlags.AlwaysAutoResize))
-			{
-				Draw();
-			}
-			ImGui.End();
-			SetEnabled(open);
-		}
-
 		protected override void Draw()
 		{
 			ResultsSnapshot? snapshot = OpenTaiko.ShrandyExtension.GetTool<SongBrowserTool>()?.Data.CurrentResultsSnapshot;
