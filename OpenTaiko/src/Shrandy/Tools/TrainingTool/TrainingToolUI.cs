@@ -8,17 +8,15 @@ namespace OpenTaiko.Shrandy.Tools
 	internal class TrainingToolUI
 	{
 		private TrainingTool m_Tool;
-		private ExtraSongMods m_SongMods;
 
 		private const string BookmarkPopupName = "Edit Bookmark";
 		private string m_BookmarkNameInput = "";
 		private int m_StartMeasureInput;
 		private int m_EndMeasureInput;
 
-		public TrainingToolUI(TrainingTool tool, ExtraSongMods songMods)
+		public TrainingToolUI(TrainingTool tool)
 		{
 			m_Tool = tool;
-			m_SongMods = songMods;
 		}
 
 		public void Draw()
@@ -38,12 +36,6 @@ namespace OpenTaiko.Shrandy.Tools
 						ImGui.EndTabItem();
 					}
 
-					if (ImGui.BeginTabItem("Song Mods"))
-					{
-						m_SongMods.Draw();
-						ImGui.EndTabItem();
-					}
-
 					ImGui.EndTabBar();
 				}
 			}
@@ -52,7 +44,6 @@ namespace OpenTaiko.Shrandy.Tools
 		private void DrawTrainingTab()
 		{
 			DrawSpeedControls();
-			ImGui.Checkbox("Constant Scroll Speed", ref OpenTaiko.ConfigIni.bTokkunConstantScrollSpeed);
 
 			int modeInt = (int)m_Tool.CurrentMode;
 			if (ImGui.Combo("Mode", ref modeInt, Enum.GetNames(typeof(TrainingTool.Mode)), Enum.GetValues(typeof(TrainingTool.Mode)).Length))

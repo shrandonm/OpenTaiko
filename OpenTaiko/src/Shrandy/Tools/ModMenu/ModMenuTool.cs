@@ -6,6 +6,9 @@ namespace OpenTaiko.Shrandy.Tools
 {
 	internal class ModMenuTool : Tool
 	{
+		private bool m_RemoveEvenNotes = false;
+		private bool m_RemoveOddNotes = false;
+
 		private static string[] RandomModeNames => Enum.GetValues<ERandomMode>()
 			.Select(m => m switch
 			{
@@ -33,6 +36,8 @@ namespace OpenTaiko.Shrandy.Tools
 			DrawSongSpeed();
 			DrawRandom();
 			DrawTiming();
+			DrawConstantScrollSpeed();
+			DrawNoteRemoval();
 		}
 
 		public static void DrawScrollSpeed()
@@ -67,6 +72,45 @@ namespace OpenTaiko.Shrandy.Tools
 			if (ImGui.Combo("Timing", ref timingIndex, TimingNames, TimingNames.Length))
 			{
 				OpenTaiko.ConfigIni.nTimingZones[OpenTaiko.SaveFile] = timingIndex;
+			}
+		}
+
+		private static void DrawConstantScrollSpeed()
+		{
+			ImGui.Checkbox("Constant Scroll Speed", ref OpenTaiko.ConfigIni.bTokkunConstantScrollSpeed);
+		}
+
+		private void DrawNoteRemoval()
+		{
+			ImGui.SeparatorText("Note Removal");
+
+			if (ImGui.Checkbox("Remove Even Notes", ref m_RemoveEvenNotes))
+			{
+				ApplyNoteMods();
+			}
+
+			if (ImGui.Checkbox("Remove Odd Notes", ref m_RemoveOddNotes))
+			{
+				ApplyNoteMods();
+			}
+		}
+
+		private void ApplyNoteMods()
+		{
+			var listChip = OpenTaiko.TJA?.listChip;
+			if (listChip == null) return;
+
+			int noteIndex = 0;
+			foreach (var chip in listChip)
+			{
+				if (NotesManager.IsMissableNote(chip))
+				{
+					noteIndex++;
+					bool isEven = noteIndex % 2 == 0;
+					bool shouldRemove = (isEven && m_RemoveEvenNotes) || (!isEven && m_RemoveOddNotes);
+					chip.bVisible = !shouldRemove;
+					chip.bShow = !shouldRemove;
+				}
 			}
 		}
 	}

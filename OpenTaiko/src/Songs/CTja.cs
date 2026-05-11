@@ -4260,7 +4260,7 @@ internal class CTja : CActivity {
 		double th16DBeat = chip.fBMSCROLLTime - th16NowBeat + OpenTaiko.ConfigIni.nVisualOffsetMs;
 		// [End Divergence]
 
-		bool constantScroll = OpenTaiko.ConfigIni.bTokkunMode && OpenTaiko.ConfigIni.bTokkunConstantScrollSpeed;
+		bool constantScroll = OpenTaiko.ConfigIni.bTokkunConstantScrollSpeed;
 		EScrollMode scrollModeForced = constantScroll ? EScrollMode.Normal : velocityRefChip.eScrollMode;
 
 		double effectiveBPM = constantScroll ? this.BPM : velocityRefChip.dbBPM;
