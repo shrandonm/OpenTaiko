@@ -46,6 +46,7 @@ namespace OpenTaiko.Shrandy
 			m_Tools.Add(new Tools.SongBrowserTool("Song Browser", SlimDXKeys.Key.S));
 			m_Tools.Add(new Tools.HitErrorBarTool("Hit Error Bar", SlimDXKeys.Key.E));
 			m_Tools.Add(new Tools.ModMenuTool("Game Mods", SlimDXKeys.Key.M));
+			m_Tools.Add(new Tools.MarathonTool(SlimDXKeys.Key.P));
 			
 			m_Tools.Add(new Tools.ResultsTool("Results Tool"));
 			m_Tools.Add(new Tools.PreviewTool("Preview Tool"));
@@ -67,6 +68,26 @@ namespace OpenTaiko.Shrandy
 			{
 				tool.OnStageChanged(stage);
 			}
+		}
+		
+		public void OnSongComplete()
+		{
+			foreach (Tool tool in m_Tools)
+			{
+				tool.OnSongComplete();
+			}
+		}
+		
+		public bool HandleSongCompleteTransition()
+		{
+			foreach (Tool tool in m_Tools)
+			{
+				if (tool.HandleSongCompleteTransition())
+				{
+					return true;
+				}
+			}
+			return false;
 		}
 
 		public void OnTrainingModeResumePlay()

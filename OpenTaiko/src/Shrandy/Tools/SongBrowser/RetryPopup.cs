@@ -74,14 +74,14 @@ namespace OpenTaiko.Shrandy.Tools
 						var random = m_Data.GetRandomFilteredSong();
 						if (random != null)
 						{
-							Utilities.SongTable.PlaySong(random.Value.song, random.Value.difficulty);
+							Utilities.SongHelper.PlaySong(new Chart(random.Value.song, random.Value.difficulty));
 						}
 						break;
 					case 1: // Retry
 						var chosen = OpenTaiko.stageSongSelect.rChoosenSong;
 						if (chosen != null)
 						{
-							Utilities.SongTable.PlaySong(chosen, m_Data.GetLastChosenDifficulty());
+							Utilities.SongHelper.PlaySong(new Chart(chosen, m_Data.GetLastChosenDifficulty()));
 						}
 						break;
 					case 2: // Close

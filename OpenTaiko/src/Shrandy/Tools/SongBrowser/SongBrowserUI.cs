@@ -253,7 +253,7 @@ namespace OpenTaiko.Shrandy.Tools
 				var random = m_Data.GetRandomFilteredSong();
 				if (random != null)
 				{
-					Utilities.SongTable.PlaySong(random.Value.song, random.Value.difficulty);
+					Utilities.SongHelper.PlaySong(new Chart { Song = random.Value.song, Difficulty = random.Value.difficulty });
 				}
 			}
 		}
@@ -297,7 +297,7 @@ namespace OpenTaiko.Shrandy.Tools
 					ImGui.PushID(i);
 					if (ImGui.Selectable(row.Title))
 					{
-						Utilities.SongTable.PlaySong(song, difficulty);
+						Utilities.SongHelper.PlaySong(new Chart { Song = song, Difficulty = difficulty });
 					}
 					ImGui.PopID();
 
@@ -414,7 +414,7 @@ namespace OpenTaiko.Shrandy.Tools
 						if (song != null)
 						{
 							int diff = Utilities.SongTable.GetDifficultyFromLabel(entry.Difficulty);
-							Utilities.SongTable.PlaySong(song, diff);
+							Utilities.SongHelper.PlaySong(new Chart { Song = song, Difficulty = diff });
 						}
 					}
 					ImGui.PopID();

@@ -71,9 +71,9 @@ namespace OpenTaiko.Shrandy.Tools
 			m_Data.ResetCurrentNoteStats();
 		}
 
-		public override void OnResultsActivate(CStage結果 resultsScreen)
+		public override void OnSongComplete()
 		{
-			base.OnResultsActivate(resultsScreen);
+			base.OnSongComplete();
 			m_Data.TryAddCurrentSongStats();
 			m_Data.SaveHistory();
 			m_Data.RebuildBestPlaysCache();

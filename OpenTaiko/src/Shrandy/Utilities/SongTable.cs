@@ -187,7 +187,7 @@ namespace OpenTaiko.Shrandy.Utilities
 			ImGui.TextUnformatted(row.TimeSinceLastPB);
 
 			ImGui.TableSetColumnIndex(col++);
-			ScoreHelper.DrawScoreRank(row.ScoreRank, 16.0f);
+			SongHelper.DrawScoreRank(row.ScoreRank, 16.0f);
 
 			ImGui.TableSetColumnIndex(col++);
 			ImGui.TextUnformatted(row.ChartLevel.ToString());
@@ -223,7 +223,7 @@ namespace OpenTaiko.Shrandy.Utilities
 			ImGui.Text($"{totalNotes}");
 
 			ImGui.TableSetColumnIndex(col++);
-			ScoreHelper.DrawDifficultyIcon(row.DifficultyIndex, 16.0f);
+			SongHelper.DrawDifficultyIcon(row.DifficultyIndex, 16.0f);
 
 			ImGui.TableSetColumnIndex(col++);
 			ImGui.TextUnformatted(row.Speed);
@@ -326,7 +326,7 @@ namespace OpenTaiko.Shrandy.Utilities
 				Rolls = 0,
 				MaxCombo = 0,
 				Duration = info.Duration > 0 ? FormatDuration(info.Duration) : "",
-				Difficulty = GetDifficultyLabel(difficulty),
+				Difficulty = SongHelper.GetDifficultyLabel(difficulty),
 				DifficultyIndex = difficulty,
 				Speed = "",
 				RandomMod = "",
@@ -372,21 +372,6 @@ namespace OpenTaiko.Shrandy.Utilities
 			return 0;
 		}
 
-		public static string GetDifficultyLabel(int difficulty)
-		{
-			return difficulty switch
-			{
-				(int)Difficulty.Easy => "Easy",
-				(int)Difficulty.Normal => "Normal",
-				(int)Difficulty.Hard => "Hard",
-				(int)Difficulty.Oni => "Oni",
-				(int)Difficulty.Edit => "Ura",
-				(int)Difficulty.Tower => "Tower",
-				(int)Difficulty.Dan => "Dan",
-				_ => difficulty.ToString()
-			};
-		}
-
 		public static string FormatDuration(int totalMs)
 		{
 			if (totalMs <= 0)
@@ -401,20 +386,6 @@ namespace OpenTaiko.Shrandy.Utilities
 			}
 
 			return $"{duration.Minutes:D2}:{duration.Seconds:D2}";
-		}
-
-		public static void PlaySong(CSongListNode song, int difficulty)
-		{
-			if (OpenTaiko.stageSongSelect == null)
-			{
-				return;
-			}
-
-			CActSelect曲リスト songList = OpenTaiko.stageSongSelect.actSongList;
-			songList.rCurrentlySelectedSong = song;
-
-			OpenTaiko.ShrandyExtension.SetToolEnabled<Tools.SongBrowserTool>(false);
-			OpenTaiko.ShrandyExtension.GetTool<Tools.PreviewTool>()?.Show(song, difficulty);
 		}
 
 		public static CSongListNode? FindSongByTitle(string title)

@@ -61,8 +61,17 @@ namespace OpenTaiko.Shrandy
 		{
 		}
 
+		public virtual void OnSongComplete()
+		{
+		}
+		
 		public virtual void OnResultsActivate(CStage結果 resultsScreen)
 		{
+		}
+		
+		public virtual bool HandleSongCompleteTransition()
+		{
+			return false;
 		}
 
 		public virtual void OnTrainingModeResumePlay()

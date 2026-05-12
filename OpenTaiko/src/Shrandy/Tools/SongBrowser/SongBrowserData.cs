@@ -455,7 +455,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		public SongEntry? GetBestPlayNoMods(string title, int difficulty)
 		{
-			string diffLabel = Utilities.SongTable.GetDifficultyLabel(difficulty);
+			string diffLabel = Utilities.SongHelper.GetDifficultyLabel(difficulty);
 			SongEntry? best = null;
 			foreach (SongEntry e in m_SaveData.SongEntries)
 			{
@@ -469,7 +469,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		public SongEntry? GetBestPlayMatchingMods(string title, int difficulty, string randomMod, int judgement)
 		{
-			string diffLabel = Utilities.SongTable.GetDifficultyLabel(difficulty);
+			string diffLabel = Utilities.SongHelper.GetDifficultyLabel(difficulty);
 			SongEntry? best = null;
 			foreach (SongEntry e in m_SaveData.SongEntries)
 			{
@@ -483,7 +483,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		public SongAggregateStats GetAggregateStatsNoMods(string title, int difficulty)
 		{
-			string diffLabel = Utilities.SongTable.GetDifficultyLabel(difficulty);
+			string diffLabel = Utilities.SongHelper.GetDifficultyLabel(difficulty);
 			SongAggregateStats agg = default;
 			foreach (SongEntry e in m_SaveData.SongEntries)
 			{
@@ -498,7 +498,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		public SongAggregateStats GetAggregateStatsMatchingMods(string title, int difficulty, string randomMod, int judgement)
 		{
-			string diffLabel = Utilities.SongTable.GetDifficultyLabel(difficulty);
+			string diffLabel = Utilities.SongHelper.GetDifficultyLabel(difficulty);
 			SongAggregateStats agg = default;
 			foreach (SongEntry e in m_SaveData.SongEntries)
 			{
@@ -513,7 +513,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		public SongEntry? GetLastPlayNoMods(string title, int difficulty)
 		{
-			string diffLabel = Utilities.SongTable.GetDifficultyLabel(difficulty);
+			string diffLabel = Utilities.SongHelper.GetDifficultyLabel(difficulty);
 			SongEntry? last = null;
 			foreach (SongEntry e in m_SaveData.SongEntries)
 			{
@@ -527,7 +527,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		public SongEntry? GetLastPlayMatchingMods(string title, int difficulty, string randomMod, int judgement)
 		{
-			string diffLabel = Utilities.SongTable.GetDifficultyLabel(difficulty);
+			string diffLabel = Utilities.SongHelper.GetDifficultyLabel(difficulty);
 			SongEntry? last = null;
 			foreach (SongEntry e in m_SaveData.SongEntries)
 			{
@@ -619,12 +619,12 @@ namespace OpenTaiko.Shrandy.Tools
 			int chartLevel = difficulty >= 0 && difficulty < song.nLevel.Length ? song.nLevel[difficulty] : 0;
 			int actualPlayer = OpenTaiko.GetActualPlayer(player);
 			int currentScore = (int)OpenTaiko.stageGameScreen.actScore.Get(player);
-			int scoreRank = Utilities.ScoreHelper.GetScoreRank(player, currentScore);
+			int scoreRank = Utilities.SongHelper.GetScoreRank(player, currentScore);
 
 			SongEntry entry = new()
 			{
 				SongTitle = song.ldTitle.GetString(""),
-				Difficulty = Utilities.SongTable.GetDifficultyLabel(difficulty),
+				Difficulty = Utilities.SongHelper.GetDifficultyLabel(difficulty),
 				Timestamp = DateTime.Now,
 				Score = score.nScore,
 				Goods = score.nGreat,
@@ -632,7 +632,7 @@ namespace OpenTaiko.Shrandy.Tools
 				Bads = score.nMiss,
 				Rolls = score.nRoll,
 				MaxCombo = OpenTaiko.stageGameScreen.actCombo?.nCurrentCombo.最高値[player] ?? 0,
-				DurationMs = Utilities.ScoreHelper.GetSongDurationMs(),
+				DurationMs = Utilities.SongHelper.GetSongDurationMs(),
 				ScoreRank = scoreRank,
 				ChartLevel = chartLevel,
 				BaseBpm = song.score[difficulty]?.譜面情報.BaseBpm ?? 0,

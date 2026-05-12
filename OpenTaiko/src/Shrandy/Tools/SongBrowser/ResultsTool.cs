@@ -184,7 +184,7 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			if (rank <= 0) return;
 			ImGui.SameLine();
-			Utilities.ScoreHelper.DrawScoreRank(rank);
+			Utilities.SongHelper.DrawScoreRank(rank);
 		}
 
 		private static void DrawIntDelta(int currentValue, int? previousValue, bool invertColors)

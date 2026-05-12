@@ -139,7 +139,7 @@ namespace OpenTaiko.Shrandy.Tools
 					BeginStatRow("Best Score (No Mods)");
 					if (m_BestPlayNoMods != null)
 					{
-						Utilities.ScoreHelper.DrawScoreRank(m_BestPlayNoMods.ScoreRank, 14f);
+						Utilities.SongHelper.DrawScoreRank(m_BestPlayNoMods.ScoreRank, 14f);
 						ImGui.SameLine();
 						ImGui.TextUnformatted($"{m_BestPlayNoMods.Score:N0}");
 					}
@@ -177,7 +177,7 @@ namespace OpenTaiko.Shrandy.Tools
 					BeginStatRow("Best Score");
 					if (m_BestPlayMatchingMods != null)
 					{
-						Utilities.ScoreHelper.DrawScoreRank(m_BestPlayMatchingMods.ScoreRank, 14f);
+						Utilities.SongHelper.DrawScoreRank(m_BestPlayMatchingMods.ScoreRank, 14f);
 						ImGui.SameLine();
 						ImGui.TextUnformatted($"{m_BestPlayMatchingMods.Score:N0}");
 					}
@@ -207,7 +207,7 @@ namespace OpenTaiko.Shrandy.Tools
 					BeginStatRow("Best Score");
 					if (m_BestPlayNoMods != null)
 					{
-						Utilities.ScoreHelper.DrawScoreRank(m_BestPlayNoMods.ScoreRank, 14f);
+						Utilities.SongHelper.DrawScoreRank(m_BestPlayNoMods.ScoreRank, 14f);
 						ImGui.SameLine();
 						ImGui.TextUnformatted($"{m_BestPlayNoMods.Score:N0}");
 					}
@@ -245,7 +245,7 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 
 			m_Title = m_Song.ldTitle.GetString("");
-			m_DifficultyLabel = Utilities.SongTable.GetDifficultyLabel(m_Difficulty);
+			m_DifficultyLabel = Utilities.SongHelper.GetDifficultyLabel(m_Difficulty);
 			m_ChartLevel = m_Difficulty >= 0 && m_Difficulty < m_Song.nLevel.Length
 				? m_Song.nLevel[m_Difficulty]
 				: 0;
