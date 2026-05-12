@@ -1076,6 +1076,13 @@ internal class OpenTaiko : Game {
 								#region [ Stage completed (go to results) ]
 								//-----------------------------
 
+								// [Divergence] Allow shrandy tools to override the transition
+								if (ShrandyExtension.HandleSongCompleteTransition())
+								{
+									break;
+								}
+								// [End Divergence]
+								
 								// Fetch the results of the finished play
 								CScoreIni.C演奏記録 c演奏記録_Drums;
 								stageGameScreen.t演奏結果を格納する(out c演奏記録_Drums);
