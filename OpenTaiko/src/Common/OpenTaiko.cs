@@ -1049,7 +1049,6 @@ internal class OpenTaiko : Game {
 								//-----------------------------
 
 								// [Divergence] Allow shrandy tools to override the transition
-								ShrandyExtension.OnSongComplete();
 								if (ShrandyExtension.HandleSongCompleteTransition())
 								{
 									break;
@@ -1084,7 +1083,6 @@ internal class OpenTaiko : Game {
 								//-----------------------------
 
 								// [Divergence] Allow shrandy tools to override the transition
-								ShrandyExtension.OnSongComplete();
 								if (ShrandyExtension.HandleSongCompleteTransition())
 								{
 									break;
