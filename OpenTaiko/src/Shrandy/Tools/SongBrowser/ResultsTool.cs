@@ -18,14 +18,21 @@ namespace OpenTaiko.Shrandy.Tools
 			return false;
 		}
 
+		public override void OnSongComplete()
+		{
+			base.OnSongComplete();
+			SetEnabled(true);
+		}
+
 		public override void OnResultsActivate(CStage結果 resultsScreen)
 		{
+			base.OnResultsActivate(resultsScreen);
 			SetEnabled(true);
 		}
 
 		public override void OnStageChanged(CStage stage)
 		{
-			if (stage is not CStage結果)
+			if (stage is not CStage結果 && stage is not CStage曲読み込み)
 			{
 				SetEnabled(false);
 			}
