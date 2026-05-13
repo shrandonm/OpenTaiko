@@ -256,6 +256,12 @@ namespace OpenTaiko.Shrandy.Tools
 					Utilities.SongHelper.PlaySong(new Chart { Song = random.Value.song, Difficulty = random.Value.difficulty });
 				}
 			}
+			
+			ImGui.SameLine();
+			if (ImGui.Button("Marathon"))
+			{
+				OpenTaiko.ShrandyExtension.SetToolEnabled<MarathonTool>(true);
+			}
 		}
 
 		private void DrawAllSongsTable()

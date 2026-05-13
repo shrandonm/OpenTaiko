@@ -13,9 +13,9 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 		}
 
-		public override void DrawWindow()
+		protected override void Draw()
 		{
-			base.DrawWindow();
+			base.Draw();
 
 			if (ImGui.InputInt("Target Duration (minutes)", ref m_TargetDurationMinutes))
 			{
@@ -43,6 +43,8 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 
 			ImGui.TextUnformatted("Upcoming songs:");
+			ImGui.SameLine();
+			ImGui.Text("Duration: " + SongTable.FormatDuration(m_ChartQueue.Sum(c => SongHelper.GetSongDurationMs(c))));
 			ImGui.Spacing();
 			foreach (Chart chart in m_ChartQueue)
 			{
@@ -72,7 +74,15 @@ namespace OpenTaiko.Shrandy.Tools
 							charts.Add(chart);
 						}
 					}
-					//CreateQueue(charts, m_TargetDurationMinutes * 60 * 1000);
+					
+					if (charts.Count > 0)
+					{
+						CreateQueue(charts, m_TargetDurationMinutes * 60 * 1000);
+					}
+					else
+					{
+						ImGui.OpenPopup("No Valid Songs");
+					}
 				}
 			}
 		}
@@ -84,24 +94,27 @@ namespace OpenTaiko.Shrandy.Tools
 			int remainingMs = targetDurationMs;
 			List<Chart> shuffledCharts = charts.Shuffle();
 			
-			int index = 0;
-			while (remainingMs > 0)
+			const int maxIterations = 1000;
+			const int graceDurationMs = 30 * 1000; // Allow 30 seconds over the target duration to find a good fit
+			for (int i = 0; i < maxIterations; ++i)
 			{
-				if (index >= shuffledCharts.Count)
+				if (i % shuffledCharts.Count == 0)
 				{
 					shuffledCharts = charts.Shuffle();
-					index = 0;
 				}
 				
-				Chart chart = shuffledCharts[index];
+				Chart chart = shuffledCharts[i % shuffledCharts.Count];
 				
 				int durationMs = SongHelper.GetSongDurationMs(chart);
-				if (durationMs <= remainingMs)
+				if (durationMs <= remainingMs + graceDurationMs)
 				{
 					m_ChartQueue.Enqueue(chart);
 					remainingMs -= durationMs;
 				}
-				index++;
+				else
+				{
+					break;
+				}
 			}
 		}
 		

@@ -74,7 +74,14 @@ namespace OpenTaiko.Shrandy.Utilities
 			{
 				return 0;
 			}
-			return chart.Song.score[chart.Difficulty].譜面情報.Duration;
+
+			CScore? score = chart.Song.score[chart.Difficulty];
+			if (score == null)
+			{
+				return 0;
+			}
+
+			return score.譜面情報.Duration;
 		}
 
 		public static void DrawScoreRank(int scoreRank, float iconHeight = 16.0f)
