@@ -17,7 +17,7 @@ internal class CActImplClearAnimation : CActivity {
 
 		bSongsPlayed = false;
 
-		this.ct進行メイン = new CCounter(0, 300, 22, OpenTaiko.Timer);
+		this.ct進行メイン = new CCounter(0, 50, 22, OpenTaiko.Timer);
 
 		/*
         this.ctEnd_ClearFailed = new CCounter(0, 69, 30, TJAPlayer3.Timer);

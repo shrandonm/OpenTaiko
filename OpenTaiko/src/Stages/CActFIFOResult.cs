@@ -7,7 +7,7 @@ internal class CActFIFOResult : CActivity {
 
 	public void tフェードアウト開始() {
 		this.mode = EFIFOMode.FadeOut;
-		this.counter = new CCounter(0, 100, 30, OpenTaiko.Timer);
+		this.counter = new CCounter(0, 25, 30, OpenTaiko.Timer);
 	}
 	public void tフェードイン開始() {
 		this.mode = EFIFOMode.FadeIn;
@@ -38,13 +38,15 @@ internal class CActFIFOResult : CActivity {
 		// Size clientSize = CDTXMania.app.Window.ClientSize;	// #23510 2010.10.31 yyagi: delete as of no one use this any longer.
 		if (OpenTaiko.Tx.Tile_Black != null) {
 			if (this.mode == EFIFOMode.FadeIn) {
-				if (counter.CurrentValue >= 200) {
-					OpenTaiko.Tx.Tile_Black.Opacity = (((100 - (this.counter.CurrentValue - 200)) * 0xff) / 100);
+				int fadeStart = (int)(this.counter.EndValue * 2 / 3);
+				int fadeRange = (int)this.counter.EndValue - fadeStart;
+				if (this.counter.CurrentValue >= fadeStart) {
+					OpenTaiko.Tx.Tile_Black.Opacity = (((fadeRange - (this.counter.CurrentValue - fadeStart)) * 0xff) / fadeRange);
 				} else {
 					OpenTaiko.Tx.Tile_Black.Opacity = 255;
 				}
 			} else {
-				OpenTaiko.Tx.Tile_Black.Opacity = (((this.counter.CurrentValue) * 0xff) / 100);
+				OpenTaiko.Tx.Tile_Black.Opacity = ((this.counter.CurrentValue * 0xff) / (int)this.counter.EndValue);
 			}
 
 			for (int i = 0; i <= (GameWindowSize.Width / OpenTaiko.Tx.Tile_Black.szTextureSize.Width); i++)      // #23510 2010.10.31 yyagi: change "clientSize.Width" to "640" to fix FIFO drawing size
@@ -55,14 +57,8 @@ internal class CActFIFOResult : CActivity {
 				}
 			}
 		}
-		if (this.mode == EFIFOMode.FadeOut) {
-			if (this.counter.CurrentValue != 100) {
-				return 0;
-			}
-		} else {
-			if (this.counter.CurrentValue != 300) {
-				return 0;
-			}
+		if (!this.counter.IsEnded) {
+			return 0;
 		}
 		return 1;
 	}
