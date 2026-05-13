@@ -13,18 +13,25 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 		}
 
+		public override void OnStageChanged(CStage stage)
+		{
+			base.OnStageChanged(stage);
+			if (stage is CStage演奏ドラム画面)
+			{
+				SetEnabled(false);
+			}
+		}
+
 		protected override void Draw()
 		{
 			base.Draw();
-
-			if (ImGui.InputInt("Target Duration (minutes)", ref m_TargetDurationMinutes))
+			
+			if (!ImGui.IsWindowFocused())
 			{
-				if (m_TargetDurationMinutes < 1)
-				{
-					m_TargetDurationMinutes = 1;
-				}
+				SetEnabled(false);
 			}
-
+			
+			DrawTimeControls();
 			DrawGeneratePlaylistButton();
 
 			if (m_ChartQueue.Count == 0)
@@ -35,6 +42,7 @@ namespace OpenTaiko.Shrandy.Tools
 			if (ImGui.Button("Play"))
 			{
 				PlayNextSong();
+				SetEnabled(false);
 			}
 
 			if (m_ChartQueue.Count == 0)
@@ -51,6 +59,37 @@ namespace OpenTaiko.Shrandy.Tools
 				string songTitle = chart.Song?.score[chart.Difficulty].譜面情報.タイトル ?? "Unknown Song";
 				string difficultyName = SongHelper.GetDifficultyLabel(chart.Difficulty);
 				ImGui.TextUnformatted($"{songTitle} - {difficultyName}");
+			}
+		}
+
+		private void DrawTimeControls()
+		{
+			if (ImGui.Button("5m"))
+			{
+				m_TargetDurationMinutes = 5;
+			}
+			ImGui.SameLine();
+			if (ImGui.Button("10m"))
+			{
+				m_TargetDurationMinutes = 10;
+			}
+			ImGui.SameLine();
+			if (ImGui.Button("15m"))
+			{
+				m_TargetDurationMinutes = 15;
+			}
+			ImGui.SameLine();
+			if (ImGui.Button("25m"))
+			{
+				m_TargetDurationMinutes = 25;
+			}
+			
+			if (ImGui.InputInt("Target Duration (minutes)", ref m_TargetDurationMinutes))
+			{
+				if (m_TargetDurationMinutes < 1)
+				{
+					m_TargetDurationMinutes = 1;
+				}
 			}
 		}
 
