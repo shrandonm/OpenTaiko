@@ -277,42 +277,52 @@ namespace OpenTaiko.Shrandy.Tools
 			float availableHeight = ImGui.GetContentRegionAvail().Y - 30;
 			if (Utilities.SongTable.BeginTable("SongList", ImGuiTableFlags.ScrollY, availableHeight, showAggregates: true))
 			{
-				for (int i = 0; i < m_Data.FilteredSongs.Count; i++)
+				unsafe
 				{
-					(CSongListNode song, int difficulty) = m_Data.FilteredSongs[i];
-					Utilities.SongTableRow row = Utilities.SongTable.FromSongNode(song, difficulty);
-					string creator = song.strNotesDesigner?[difficulty] ?? "";
-
-					SongEntry? bestPlay = m_Data.GetBestPlay(row.Title, difficulty);
-					if (bestPlay != null)
+					ImGuiListClipperPtr clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+					clipper.Begin(m_Data.FilteredSongs.Count);
+					while (clipper.Step())
 					{
-						Utilities.SongTable.MergeHistoryEntry(ref row, bestPlay);
-						row.TimeSinceLastPB = StringHelpers.GetTimeSinceString(bestPlay.Timestamp);
+						for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+						{
+							(CSongListNode song, int difficulty) = m_Data.FilteredSongs[i];
+							Utilities.SongTableRow row = Utilities.SongTable.FromSongNode(song, difficulty);
+							string creator = song.strNotesDesigner?[difficulty] ?? "";
+
+							SongEntry? bestPlay = m_Data.GetBestPlay(row.Title, difficulty);
+							if (bestPlay != null)
+							{
+								Utilities.SongTable.MergeHistoryEntry(ref row, bestPlay);
+								row.TimeSinceLastPB = StringHelpers.GetTimeSinceString(bestPlay.Timestamp);
+							}
+
+							SongEntry? lastPlay = m_Data.GetLastPlay(row.Title, difficulty);
+							if (lastPlay != null)
+							{
+								row.TimeSince = StringHelpers.GetTimeSinceString(lastPlay.Timestamp);
+							}
+
+							SongAggregateStats aggStats = m_Data.GetAggregateStats(row.Title, difficulty);
+
+							ImGui.TableNextRow();
+							ImGui.TableSetColumnIndex(0);
+							ImGui.PushID(i);
+							if (ImGui.Selectable(row.Title))
+							{
+								Utilities.SongHelper.PlaySong(new Chart { Song = song, Difficulty = difficulty });
+							}
+							ImGui.PopID();
+
+							Utilities.SongTable.DrawRow(in row, creator);
+
+							m_TagsUI.DrawCell(row.Title, difficulty, i);
+
+							Utilities.SongTable.DrawAggregateColumns(aggStats.PlayCount, aggStats.FCCount, aggStats.DFCCount);
+						}
 					}
-
-					SongEntry? lastPlay = m_Data.GetLastPlay(row.Title, difficulty);
-					if (lastPlay != null)
-					{
-						row.TimeSince = StringHelpers.GetTimeSinceString(lastPlay.Timestamp);
-					}
-
-					SongAggregateStats aggStats = m_Data.GetAggregateStats(row.Title, difficulty);
-
-					ImGui.TableNextRow();
-					ImGui.TableSetColumnIndex(0);
-					ImGui.PushID(i);
-					if (ImGui.Selectable(row.Title))
-					{
-						Utilities.SongHelper.PlaySong(new Chart { Song = song, Difficulty = difficulty });
-					}
-					ImGui.PopID();
-
-					Utilities.SongTable.DrawRow(in row, creator);
-
-					m_TagsUI.DrawCell(row.Title, difficulty, i);
-
-					Utilities.SongTable.DrawAggregateColumns(aggStats.PlayCount, aggStats.FCCount, aggStats.DFCCount);
-				}
+					clipper.End();
+					clipper.Destroy();
+				} // unsafe
 
 				Utilities.SongTable.EndTable();
 				m_TagsUI.DrawPopup();
@@ -400,32 +410,47 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				int startIndex = m_Data.CalculateHistoryStartIndex();
 				string filterLower = m_Data.HistoryFilterText.ToLowerInvariant();
+
+				// Pre-filter so the clipper has a fixed item count to work with.
+				var filteredEntries = new System.Collections.Generic.List<(SongEntry entry, int originalIndex)>();
 				for (int i = startIndex; i < m_Data.SaveData.SongEntries.Count; ++i)
 				{
 					SongEntry entry = m_Data.SaveData.SongEntries[i];
-
 					if (!string.IsNullOrEmpty(filterLower) && !entry.SongTitle.ToLowerInvariant().Contains(filterLower))
-					{
 						continue;
-					}
+					filteredEntries.Add((entry, i));
+				}
 
-					Utilities.SongTableRow row = Utilities.SongTable.FromSongEntry(entry);
-
-					ImGui.TableNextRow();
-					ImGui.TableSetColumnIndex(0);
-					ImGui.PushID(i);
-					if (ImGui.Selectable(row.Title))
+				unsafe
+				{
+					ImGuiListClipperPtr clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+					clipper.Begin(filteredEntries.Count);
+					while (clipper.Step())
 					{
-						CSongListNode? song = Utilities.SongTable.FindSongByTitle(entry.SongTitle);
-						if (song != null)
+						for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
 						{
-							int diff = Utilities.SongTable.GetDifficultyFromLabel(entry.Difficulty);
-							Utilities.SongHelper.PlaySong(new Chart { Song = song, Difficulty = diff });
+							(SongEntry entry, int originalIndex) = filteredEntries[i];
+							Utilities.SongTableRow row = Utilities.SongTable.FromSongEntry(entry);
+
+							ImGui.TableNextRow();
+							ImGui.TableSetColumnIndex(0);
+							ImGui.PushID(originalIndex);
+							if (ImGui.Selectable(row.Title))
+							{
+								CSongListNode? song = Utilities.SongTable.FindSongByTitle(entry.SongTitle);
+								if (song != null)
+								{
+									int diff = Utilities.SongTable.GetDifficultyFromLabel(entry.Difficulty);
+									Utilities.SongHelper.PlaySong(new Chart { Song = song, Difficulty = diff });
+								}
+							}
+							ImGui.PopID();
+
+							Utilities.SongTable.DrawRow(in row);
 						}
 					}
-					ImGui.PopID();
-
-					Utilities.SongTable.DrawRow(in row);
+					clipper.End();
+					clipper.Destroy();
 				}
 
 				Utilities.SongTable.EndTable();
