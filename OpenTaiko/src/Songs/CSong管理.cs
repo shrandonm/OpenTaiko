@@ -153,6 +153,29 @@ internal class CSongs管理 {
 						CSongDict.tAddSongNode(value.uniqueId, value);
 						value.rParentNode = node親;
 
+						// Backfill Duration for songs cached before Duration tracking was added.
+						// BinaryFormatter deserializes missing fields as their default (0), so we
+						// detect and re-parse those here to populate the field without losing the
+						// rest of the cached data (play history, scores, etc.).
+						bool needsDurationBackfill = false;
+						for (int i = 0; i < value.score.Length; i++) {
+							if (value.score[i] != null && value.score[i].譜面情報.Duration == 0) {
+								needsDurationBackfill = true;
+								break;
+							}
+						}
+						if (needsDurationBackfill) {
+							CTja backfillDtx = new CTja(filePath, false, 0, 0);
+							int duration = (backfillDtx.listChip == null || backfillDtx.listChip.Count == 0) ? 0
+								: (int)Math.Round(CTja.TjaDurationToGameDuration(backfillDtx.listChip[backfillDtx.listChip.Count - 1].n発声時刻ms));
+							for (int i = 0; i < value.score.Length; i++) {
+								if (value.score[i] != null && value.score[i].譜面情報.Duration == 0) {
+									value.score[i].譜面情報.Duration = duration;
+								}
+							}
+							backfillDtx.DeActivate();
+						}
+
 						if (value.rParentNode != null) {
 							value.strScenePreset = value.rParentNode.strScenePreset;
 							if (value.rParentNode.IsChangedForeColor) {
@@ -538,7 +561,7 @@ internal class CSongs管理 {
 					c曲リストノード.score[i].譜面情報.BaseBpm = cdtx.BASEBPM;
 					c曲リストノード.score[i].譜面情報.MinBpm = cdtx.MinBPM;
 					c曲リストノード.score[i].譜面情報.MaxBpm = cdtx.MaxBPM;
-					c曲リストノード.score[i].譜面情報.Duration = 0;    //  (cdtx.listChip == null)? 0 : cdtx.listChip[ cdtx.listChip.Count - 1 ].n発声時刻ms;
+					c曲リストノード.score[i].譜面情報.Duration = (cdtx.listChip == null || cdtx.listChip.Count == 0) ? 0 : (int)Math.Round(CTja.TjaDurationToGameDuration(cdtx.listChip[cdtx.listChip.Count - 1].n発声時刻ms));
 					c曲リストノード.score[i].譜面情報.strBGMファイル名 = cdtx.strBGM_PATH;
 					c曲リストノード.score[i].譜面情報.SongVol = cdtx.SongVol;
 					c曲リストノード.score[i].譜面情報.SongLoudnessMetadata = cdtx.SongLoudnessMetadata;
