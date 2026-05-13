@@ -1048,6 +1048,13 @@ internal class OpenTaiko : Game {
 								#region [ Stage failed (skip results) ]
 								//-----------------------------
 
+								// [Divergence] Allow shrandy tools to override the transition
+								ShrandyExtension.OnSongComplete();
+								if (ShrandyExtension.HandleSongCompleteTransition())
+								{
+									break;
+								}
+								// [End Divergence]
 								TJA.tStopAllChips();
 								TJA.DeActivate();
 								TJA.ReleaseManagedResource();
@@ -1077,6 +1084,7 @@ internal class OpenTaiko : Game {
 								//-----------------------------
 
 								// [Divergence] Allow shrandy tools to override the transition
+								ShrandyExtension.OnSongComplete();
 								if (ShrandyExtension.HandleSongCompleteTransition())
 								{
 									break;
