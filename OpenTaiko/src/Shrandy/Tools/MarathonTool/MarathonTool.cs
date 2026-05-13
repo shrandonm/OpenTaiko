@@ -120,13 +120,6 @@ namespace OpenTaiko.Shrandy.Tools
 		
 		public override bool HandleSongCompleteTransition()
 		{
-			OpenTaiko.rCurrentStage.DeActivate();
-			if (!OpenTaiko.ConfigIni.PreAssetsLoading)
-			{
-				OpenTaiko.rCurrentStage.ReleaseManagedResource();
-				OpenTaiko.rCurrentStage.ReleaseUnmanagedResource();
-			}
-			
 			if (m_ChartQueue.Count > 0)
 			{
 				PlayNextSong();
@@ -149,7 +142,7 @@ namespace OpenTaiko.Shrandy.Tools
 			OpenTaiko.stageSongSelect.nChoosenSongDifficulty[0] = nextChart.Difficulty;
 			OpenTaiko.stageSongSelect.r確定されたスコア = nextChart.Song.score[nextChart.Difficulty];
 			
-			OpenTaiko.app.ChangeStage(OpenTaiko.rCurrentStage);
+			OpenTaiko.app.ChangeStage(OpenTaiko.stageSongLoading);
 		}
 		
 		public void Stop()
