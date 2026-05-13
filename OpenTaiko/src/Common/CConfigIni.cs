@@ -1196,6 +1196,7 @@ internal class CConfigIni : INotifyPropertyChanged {
 	public bool bSuperHard = false;
 	public bool bTokkunMode = false;
 	public bool bTokkunConstantScrollSpeed = false;
+	public int nFadingNoteTime = 0;
 	public int[] bJust = new int[5] { 0, 0, 0, 0, 0 };
 
 	public int[] nHitSounds = new int[5] { 0, 0, 0, 0, 0 };

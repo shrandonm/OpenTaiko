@@ -992,10 +992,10 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 							case 0x14:
 							case 0x1C:
 							case 0x101: {
-									NotesManager.DisplayNote(nPlayer, x, y, pChip, num9);
-									NotesManager.DisplaySENotes(nPlayer, x + nSenotesX, y + nSenotesY, pChip);
 
 									//TJAPlayer3.Tx.SENotes[(int)_gt]?.t2D描画(device, x - 2, y + nSenotesY, new Rectangle(0, 30 * pChip.nSenote, 136, 30));
+									NotesManager.DisplayNote(nPlayer, x, y, pChip, num9, timeToHit: time);
+									NotesManager.DisplaySENotes(nPlayer, x + nSenotesX, y + nSenotesY, pChip, timeToHit: time);
 									break;
 								}
 
@@ -1022,14 +1022,14 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 												x + OpenTaiko.Skin.Game_Notes_Arm_Offset_Right_X[1] - moveX,
 												y + OpenTaiko.Skin.Game_Notes_Arm_Offset_Right_Y[1] - moveY);
 										}
-										NotesManager.DisplayNote(nPlayer, x, y, pChip, num9);
-										NotesManager.DisplaySENotes(nPlayer, x + nSenotesX, y + nSenotesY, pChip);
+										NotesManager.DisplayNote(nPlayer, x, y, pChip, num9, timeToHit: time);
+										NotesManager.DisplaySENotes(nPlayer, x + nSenotesX, y + nSenotesY, pChip, timeToHit: time);
 									}
 									break;
 								}
 
 							case 0x1F: {
-									NotesManager.DisplayNote(nPlayer, x, y, pChip, num9);
+									NotesManager.DisplayNote(nPlayer, x, y, pChip, num9, timeToHit: time);
 								}
 								break;
 							default: {
@@ -1235,7 +1235,7 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 								}
 								OpenTaiko.Tx.SENotes[(int)_gt].t2D描画(x - (_shift / 13), y + nSenotesY, new Rectangle(0, _size[1] * senote, _size[0], _size[1]));
 							} else {
-								NotesManager.DisplaySENotes(nPlayer, x + nSenotesX, y + nSenotesY, pChip);
+								NotesManager.DisplaySENotes(nPlayer, x + nSenotesX, y + nSenotesY, pChip, timeToHit: pChip.n発声時刻ms - nowTime);
 							}
 
 						}
@@ -1244,8 +1244,9 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 
 					if (NotesManager.IsBalloon(pChip) || NotesManager.IsKusudama(pChip)) {
 						if (pChip.bShow) {
-							NotesManager.DisplayNote(nPlayer, x, y, pChip, num9, OpenTaiko.Skin.Game_Notes_Size[0] * 2);
-							NotesManager.DisplaySENotes(nPlayer, x + nSenotesX, y + nSenotesY, pChip);
+							long balloonTimeToHit = pChip.n発声時刻ms - nowTime;
+							NotesManager.DisplayNote(nPlayer, x, y, pChip, num9, OpenTaiko.Skin.Game_Notes_Size[0] * 2, timeToHit: balloonTimeToHit);
+							NotesManager.DisplaySENotes(nPlayer, x + nSenotesX, y + nSenotesY, pChip, timeToHit: balloonTimeToHit);
 
 							/*
                             if (TJAPlayer3.ConfigIni.eSTEALTH != Eステルスモード.DORON)
@@ -1365,12 +1366,34 @@ internal class CStage演奏ドラム画面 : CStage演奏画面共通 {
 
 		if ((pChip.bVisible && !pChip.bHideBarLine) && (OpenTaiko.Tx.Bar != null)) {
 			if (x >= 0 && x <= GameWindowSize.Width) {
+				int barFadeOpacity = 255;
+				int fadingNoteTime = OpenTaiko.ConfigIni.nFadingNoteTime;
+				if (fadingNoteTime > 0) {
+					long timeToHit = pChip.n発声時刻ms - (long)tja.GameTimeToTjaTime(SoundManager.PlayTimer.NowTimeMs);
+					const long FADE_DURATION_MS = 300;
+					long fadeEnd = fadingNoteTime - FADE_DURATION_MS;
+					if (timeToHit <= fadeEnd) {
+						barFadeOpacity = 0;
+					} else if (timeToHit < fadingNoteTime) {
+						barFadeOpacity = (int)((double)(timeToHit - fadeEnd) / FADE_DURATION_MS * 255);
+					}
+				}
 				if (pChip.bBranch) {
-					//this.tx小節線_branch.t2D描画( CDTXMania.app.Device, x - 3, y, new Rectangle( 0, 0, 3, 130 ) );
-					OpenTaiko.Tx.Bar_Branch?.t2D描画(x + ((OpenTaiko.Skin.Game_Notes_Size[0] - OpenTaiko.Tx.Bar_Branch.szTextureSize.Width) / 2), y, new Rectangle(0, 0, OpenTaiko.Tx.Bar_Branch.szTextureSize.Width, OpenTaiko.Skin.Game_Notes_Size[1]));
+					var barTex = OpenTaiko.Tx.Bar_Branch;
+					if (barTex != null) {
+						//this.tx小節線_branch.t2D描画( CDTXMania.app.Device, x - 3, y, new Rectangle( 0, 0, 3, 130 ) );
+						int prev = barTex.Opacity; barTex.Opacity = (int)(prev * barFadeOpacity / 255.0);
+						barTex.t2D描画(x + ((OpenTaiko.Skin.Game_Notes_Size[0] - barTex.szTextureSize.Width) / 2), y, new Rectangle(0, 0, barTex.szTextureSize.Width, OpenTaiko.Skin.Game_Notes_Size[1]));
+						barTex.Opacity = prev;
+					}
 				} else {
-					//this.tx小節線.t2D描画( CDTXMania.app.Device, x - 3, y, new Rectangle( 0, 0, 3, 130 ) );
-					OpenTaiko.Tx.Bar?.t2D描画(x + ((OpenTaiko.Skin.Game_Notes_Size[0] - OpenTaiko.Tx.Bar.szTextureSize.Width) / 2), y, new Rectangle(0, 0, OpenTaiko.Tx.Bar.szTextureSize.Width, OpenTaiko.Skin.Game_Notes_Size[1]));
+					var barTex = OpenTaiko.Tx.Bar;
+					if (barTex != null) {
+						//this.tx小節線.t2D描画( CDTXMania.app.Device, x - 3, y, new Rectangle( 0, 0, 3, 130 ) );
+						int prev = barTex.Opacity; barTex.Opacity = (int)(prev * barFadeOpacity / 255.0);
+						barTex.t2D描画(x + ((OpenTaiko.Skin.Game_Notes_Size[0] - barTex.szTextureSize.Width) / 2), y, new Rectangle(0, 0, barTex.szTextureSize.Width, OpenTaiko.Skin.Game_Notes_Size[1]));
+						barTex.Opacity = prev;
+					}
 				}
 			}
 		}

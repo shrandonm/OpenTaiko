@@ -429,7 +429,7 @@ internal class CActImplLaneTaiko : CActivity {
 
 	public void ゴーゴー炎() {
 		//判定枠
-		if (OpenTaiko.Tx.Judge_Frame != null) {
+		if (OpenTaiko.Tx.Judge_Frame != null && OpenTaiko.ConfigIni.nFadingNoteTime == 0) {
 			OpenTaiko.Tx.Judge_Frame.b加算合成 = OpenTaiko.Skin.Game_JudgeFrame_AddBlend;
 			for (int i = 0; i < OpenTaiko.ConfigIni.nPlayerCount; i++) {
 				OpenTaiko.Tx.Judge_Frame.t2D描画(

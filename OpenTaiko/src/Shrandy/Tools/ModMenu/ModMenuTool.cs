@@ -37,6 +37,7 @@ namespace OpenTaiko.Shrandy.Tools
 			DrawRandom();
 			DrawTiming();
 			DrawConstantScrollSpeed();
+			DrawFadingNoteTime();
 			DrawNoteRemoval();
 		}
 
@@ -78,6 +79,16 @@ namespace OpenTaiko.Shrandy.Tools
 		private static void DrawConstantScrollSpeed()
 		{
 			ImGui.Checkbox("Constant Scroll Speed", ref OpenTaiko.ConfigIni.bTokkunConstantScrollSpeed);
+		}
+
+		private static void DrawFadingNoteTime()
+		{
+			int fadingNoteTime = OpenTaiko.ConfigIni.nFadingNoteTime;
+			ImGui.SetNextItemWidth(120);
+			if (ImGui.InputInt("Fading Note Time (ms)", ref fadingNoteTime, 10, 100))
+			{
+				OpenTaiko.ConfigIni.nFadingNoteTime = Math.Max(0, fadingNoteTime);
+			}
 		}
 
 		private void DrawNoteRemoval()

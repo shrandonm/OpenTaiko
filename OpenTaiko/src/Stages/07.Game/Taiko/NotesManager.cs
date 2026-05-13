@@ -284,12 +284,24 @@ class NotesManager {
 	}
 
 	// Regular display
-	public static void DisplayNote(int player, int x, int y, CChip chip, int frame, int length = -1) {
+	public static void DisplayNote(int player, int x, int y, CChip chip, int frame, int length = -1, long timeToHit = long.MaxValue) {
 		if (OpenTaiko.ConfigIni.eSTEALTH[OpenTaiko.GetActualPlayer(player)] != EStealthMode.Off || !chip.bShow)
 			return;
 
 		if (length == -1) {
 			length = OpenTaiko.Skin.Game_Notes_Size[0];
+		}
+
+		int fadeOpacity = 255;
+		int fadingNoteTime = OpenTaiko.ConfigIni.nFadingNoteTime;
+		if (fadingNoteTime > 0 && timeToHit != long.MaxValue) {
+			long FADE_DURATION_MS = OpenTaiko.ConfigIni.nFadingNoteTime / 2;
+			long fadeEnd = fadingNoteTime - FADE_DURATION_MS;
+			if (timeToHit <= fadeEnd) {
+				fadeOpacity = 0;
+			} else if (timeToHit < fadingNoteTime) {
+				fadeOpacity = (int)((double)(timeToHit - fadeEnd) / FADE_DURATION_MS * 255);
+			}
 		}
 
 		EGameType _gt = chip.eGameType ?? OpenTaiko.ConfigIni.nGameType[OpenTaiko.GetActualPlayer(player)];
@@ -301,13 +313,31 @@ class NotesManager {
 		else if (IsBalloon(chip)) noteType = 11;
 
 		else if (IsMine(chip)) {
-			OpenTaiko.Tx.Note_Mine?.t2D描画(x, y);
+			var mineTex = OpenTaiko.Tx.Note_Mine;
+			if (mineTex != null) {
+				int prev = mineTex.Opacity;
+				mineTex.Opacity = (int)(prev * fadeOpacity / 255.0);
+				mineTex.t2D描画(x, y);
+				mineTex.Opacity = prev;
+			}
 			return;
 		} else if (IsPurpleNoteTaiko(chip, _gt)) {
-			OpenTaiko.Tx.Note_Swap?.t2D描画(x, y, new Rectangle(0, frame, OpenTaiko.Skin.Game_Notes_Size[0], OpenTaiko.Skin.Game_Notes_Size[1]));
+			var swapTex = OpenTaiko.Tx.Note_Swap;
+			if (swapTex != null) {
+				int prev = swapTex.Opacity;
+				swapTex.Opacity = (int)(prev * fadeOpacity / 255.0);
+				swapTex.t2D描画(x, y, new Rectangle(0, frame, OpenTaiko.Skin.Game_Notes_Size[0], OpenTaiko.Skin.Game_Notes_Size[1]));
+				swapTex.Opacity = prev;
+			}
 			return;
 		} else if (IsKusudama(chip)) {
-			OpenTaiko.Tx.Note_Kusu?.t2D描画(x, y, new Rectangle(0, frame, length, OpenTaiko.Skin.Game_Notes_Size[1]));
+			var kusuTex = OpenTaiko.Tx.Note_Kusu;
+			if (kusuTex != null) {
+				int prev = kusuTex.Opacity;
+				kusuTex.Opacity = (int)(prev * fadeOpacity / 255.0);
+				kusuTex.t2D描画(x, y, new Rectangle(0, frame, length, OpenTaiko.Skin.Game_Notes_Size[1]));
+				kusuTex.Opacity = prev;
+			}
 			return;
 		} else if (IsADLIB(chip)) {
 			var puchichara = OpenTaiko.Tx.Puchichara[PuchiChara.tGetPuchiCharaIndexByName(OpenTaiko.GetActualPlayer(player))];
@@ -318,7 +348,13 @@ class NotesManager {
 			return;
 		}
 
-		OpenTaiko.Tx.Notes[(int)_gt]?.t2D描画(x, y, new Rectangle(noteType * OpenTaiko.Skin.Game_Notes_Size[0], frame, length, OpenTaiko.Skin.Game_Notes_Size[1]));
+		var notesTex = OpenTaiko.Tx.Notes[(int)_gt];
+		if (notesTex != null) {
+			int prev = notesTex.Opacity;
+			notesTex.Opacity = (int)(prev * fadeOpacity / 255.0);
+			notesTex.t2D描画(x, y, new Rectangle(noteType * OpenTaiko.Skin.Game_Notes_Size[0], frame, length, OpenTaiko.Skin.Game_Notes_Size[1]));
+			notesTex.Opacity = prev;
+		}
 	}
 
 	// Roll display
@@ -405,22 +441,39 @@ class NotesManager {
 	}
 
 	// SENotes
-	public static void DisplaySENotes(int player, int x, int y, CChip chip) {
+	public static void DisplaySENotes(int player, int x, int y, CChip chip, long timeToHit = long.MaxValue) {
 		if (OpenTaiko.ConfigIni.eSTEALTH[OpenTaiko.GetActualPlayer(player)] == EStealthMode.Stealth)
 			return;
+
+		int fadeOpacity = 255;
+		int fadingNoteTime = OpenTaiko.ConfigIni.nFadingNoteTime;
+		if (fadingNoteTime > 0 && timeToHit != long.MaxValue) {
+			long FADE_DURATION_MS = fadingNoteTime / 2;
+			long fadeEnd = fadingNoteTime - FADE_DURATION_MS;
+			if (timeToHit <= fadeEnd) {
+				fadeOpacity = 0;
+			} else if (timeToHit < fadingNoteTime) {
+				fadeOpacity = (int)((double)(timeToHit - fadeEnd) / FADE_DURATION_MS * 255);
+			}
+		}
 
 		EGameType _gt = chip.eGameType ?? OpenTaiko.ConfigIni.nGameType[OpenTaiko.GetActualPlayer(player)];
 
 		if (IsMine(chip)) {
-			OpenTaiko.Tx.SENotesExtension?.t2D描画(x, y, new Rectangle(0, OpenTaiko.Skin.Game_SENote_Size[1], OpenTaiko.Skin.Game_SENote_Size[0], OpenTaiko.Skin.Game_SENote_Size[1]));
+			var tex = OpenTaiko.Tx.SENotesExtension;
+			if (tex != null) { int prev = tex.Opacity; tex.Opacity = (int)(prev * fadeOpacity / 255.0); tex.t2D描画(x, y, new Rectangle(0, OpenTaiko.Skin.Game_SENote_Size[1], OpenTaiko.Skin.Game_SENote_Size[0], OpenTaiko.Skin.Game_SENote_Size[1])); tex.Opacity = prev; }
 		} else if (IsPurpleNoteTaiko(chip, _gt)) {
-			OpenTaiko.Tx.SENotesExtension?.t2D描画(x, y, new Rectangle(0, 0, OpenTaiko.Skin.Game_SENote_Size[0], OpenTaiko.Skin.Game_SENote_Size[1]));
+			var tex = OpenTaiko.Tx.SENotesExtension;
+			if (tex != null) { int prev = tex.Opacity; tex.Opacity = (int)(prev * fadeOpacity / 255.0); tex.t2D描画(x, y, new Rectangle(0, 0, OpenTaiko.Skin.Game_SENote_Size[0], OpenTaiko.Skin.Game_SENote_Size[1])); tex.Opacity = prev; }
 		} else if (IsFuzeRoll(chip)) {
-			OpenTaiko.Tx.SENotesExtension?.t2D描画(x, y, new Rectangle(0, OpenTaiko.Skin.Game_SENote_Size[1] * 2, OpenTaiko.Skin.Game_SENote_Size[0], OpenTaiko.Skin.Game_SENote_Size[1]));
+			var tex = OpenTaiko.Tx.SENotesExtension;
+			if (tex != null) { int prev = tex.Opacity; tex.Opacity = (int)(prev * fadeOpacity / 255.0); tex.t2D描画(x, y, new Rectangle(0, OpenTaiko.Skin.Game_SENote_Size[1] * 2, OpenTaiko.Skin.Game_SENote_Size[0], OpenTaiko.Skin.Game_SENote_Size[1])); tex.Opacity = prev; }
 		} else if (IsKusudama(chip)) {
-			OpenTaiko.Tx.SENotesExtension?.t2D描画(x, y, new Rectangle(0, OpenTaiko.Skin.Game_SENote_Size[1] * 3, OpenTaiko.Skin.Game_SENote_Size[0], OpenTaiko.Skin.Game_SENote_Size[1]));
+			var tex = OpenTaiko.Tx.SENotesExtension;
+			if (tex != null) { int prev = tex.Opacity; tex.Opacity = (int)(prev * fadeOpacity / 255.0); tex.t2D描画(x, y, new Rectangle(0, OpenTaiko.Skin.Game_SENote_Size[1] * 3, OpenTaiko.Skin.Game_SENote_Size[0], OpenTaiko.Skin.Game_SENote_Size[1])); tex.Opacity = prev; }
 		} else {
-			OpenTaiko.Tx.SENotes[(int)_gt]?.t2D描画(x, y, new Rectangle(0, OpenTaiko.Skin.Game_SENote_Size[1] * chip.nSenote, OpenTaiko.Skin.Game_SENote_Size[0], OpenTaiko.Skin.Game_SENote_Size[1]));
+			var tex = OpenTaiko.Tx.SENotes[(int)_gt];
+			if (tex != null) { int prev = tex.Opacity; tex.Opacity = (int)(prev * fadeOpacity / 255.0); tex.t2D描画(x, y, new Rectangle(0, OpenTaiko.Skin.Game_SENote_Size[1] * chip.nSenote, OpenTaiko.Skin.Game_SENote_Size[0], OpenTaiko.Skin.Game_SENote_Size[1])); tex.Opacity = prev; }
 		}
 	}
 
