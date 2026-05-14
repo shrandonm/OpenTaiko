@@ -437,6 +437,7 @@ namespace OpenTaiko.Shrandy.Tools
 				"lastplayed" => GetDaysSinceLastPlayed(song.ldTitle.GetString(""), difficulty),
 				"lastpb" => GetDaysSinceLastPB(song.ldTitle.GetString(""), difficulty),
 				"judgement" => bestPlay?.Judgement,
+				"fadingnote" => bestPlay?.UsedFadingNote == true ? 1 : 0,
 				_ => null,
 			};
 		}
@@ -647,10 +648,11 @@ namespace OpenTaiko.Shrandy.Tools
 				AvgRightHandError = CurrentNoteStats.RightHandStats?.AverageHitError ?? 0,
 				LeftHandOkays = CurrentNoteStats.LeftHandStats?.OkayCount ?? 0,
 				RightHandOkays = CurrentNoteStats.RightHandStats?.OkayCount ?? 0,
+				UsedFadingNote = OpenTaiko.ConfigIni.nFadingNoteTime > 0,
 			};
 
 			SongEntry? previousBest = GetBestPlayMatchingMods(entry.SongTitle, difficulty, entry.RandomMod, entry.Judgement);
-			bool hasMods = entry.RandomMod != "None" || entry.Judgement != 2 || entry.SongSpeed != CConfigIni.DefaultSongSpeed;
+			bool hasMods = entry.RandomMod != "None" || entry.Judgement != 2 || entry.SongSpeed != CConfigIni.DefaultSongSpeed || entry.UsedFadingNote;
 			SongEntry? noModBest = hasMods ? GetBestPlayMatchingMods(entry.SongTitle, difficulty, "None", 2) : null;
 
 			m_SaveData.SongEntries.Add(entry);

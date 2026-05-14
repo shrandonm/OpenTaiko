@@ -26,5 +26,6 @@ namespace OpenTaiko.Shrandy
 		public float AvgRightHandError { get; set; }
 		public int LeftHandOkays { get; set; }
 		public int RightHandOkays { get; set; }
+		public bool UsedFadingNote { get; set; }
 	}
 }
