@@ -14,6 +14,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private SongTagsUI m_TagsUI;
 		private TagFilterBar m_TagFilterBar;
+		private SongBrowserOverview m_Overview;
 		public RetryPopup RetryPopup { get; private set; }
 
 		public SongBrowserUI(SongBrowserData data)
@@ -22,6 +23,7 @@ namespace OpenTaiko.Shrandy.Tools
 			m_TagsUI = new SongTagsUI(data.Tags, data.SaveTags);
 			m_TagFilterBar = new TagFilterBar(data.Tags, () => data.FilterText, value => data.FilterText = value);
 			RetryPopup = new RetryPopup(data);
+			m_Overview = new SongBrowserOverview(data);
 		}
 		public void OnEnabled()
 		{
@@ -48,7 +50,7 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 
 			DrawSessionStats();
-			DrawGoals();
+			DrawGoalsAndOverview();
 
 			if (ImGui.BeginTabBar("SongBrowserTabs"))
 			{
@@ -118,23 +120,27 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 		}
 
-		// --- Goals ---
+		// --- Goals + Overview ---
+
+		private void DrawGoalsAndOverview()
+		{
+			ImGui.Columns(2, "##goals_overview_cols", false);
+			DrawGoals();
+			ImGui.NextColumn();
+			m_Overview.Draw();
+			ImGui.Columns(1);
+		}
 
 		private void DrawGoals()
 		{
 			ImGui.SeparatorText("Goals");
 
-			DrawGoalInput(ref m_Data.SessionTargetSongs, "Session");
-			ImGui.SameLine();
 			DrawGoalInput(ref m_Data.DailyTargetSongs, "Daily");
 
-			float barWidth = ImGui.GetWindowWidth() / 3.0f;
-			DrawProgressGoal(m_Data.SessionTargetSongs, "Session", m_Data.GetSessionSongCount(), barWidth);
-			
-			ImGui.SameLine();
+			float avail = ImGui.GetContentRegionAvail().X;
+			float barWidth = (avail - ImGui.GetStyle().ItemSpacing.X * 2) / 2.0f;
 			DrawProgressGoal(m_Data.DailyTargetSongs, "Daily", m_Data.GetDailySongCount(), barWidth);
-			
-			ImGui.SameLine();
+
 			int monthlyGoal = m_Data.DailyTargetSongs * DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month);
 			int expectedByToday = m_Data.DailyTargetSongs * DateTime.Now.Day;
 			float expectedProgress = monthlyGoal > 0 ? expectedByToday / (float)monthlyGoal : 0.0f;
@@ -244,7 +250,10 @@ namespace OpenTaiko.Shrandy.Tools
 
 			m_TagFilterBar.Draw();
 
-			m_Data.ApplyFiltersIfNeeded();
+			if (m_Data.ApplyFiltersIfNeeded())
+			{
+				m_Overview.Refresh();
+			}
 
 			ImGui.Text($"{m_Data.FilteredSongs.Count} / {m_Data.AllSongs.Count} songs");
 			ImGui.SameLine();
