@@ -1,5 +1,7 @@
 namespace OpenTaiko.Shrandy
 {
+	using System.Text.Json.Serialization;
+
 	internal class SongEntry
 	{
 		public string SongTitle { get; set; } = "";
@@ -27,5 +29,27 @@ namespace OpenTaiko.Shrandy
 		public int LeftHandOkays { get; set; }
 		public int RightHandOkays { get; set; }
 		public bool UsedFadingNote { get; set; }
+		
+		[JsonIgnore]
+		public int TotalNotes => Goods + Okays + Bads;
+		[JsonIgnore]
+		public string GoodPercentString => StringHelpers.GetPercentString(Goods, TotalNotes);
+		/// <summary>0 = no clear, 1 = pass, 2 = FC, 3 = DFC</summary>
+		public int Crown { get; set; }
+		/// <summary>Like Crown but infers pass/FC/DFC from note data for legacy entries where Crown was not stored.</summary>
+		[JsonIgnore]
+		public int EffectiveCrown
+		{
+			get
+			{
+				if (Crown > 0 || TotalNotes == 0)
+					return Crown;
+				if (Bads == 0 && Okays == 0)
+					return 3;
+				if (Bads == 0)
+					return 2;
+				return 1;
+			}
+		}
 	}
 }

@@ -646,6 +646,18 @@ namespace OpenTaiko.Shrandy.Tools
 			return 0;
 		}
 
+		private static int ComputeCrown(int player, CStage演奏画面共通.CBRANCHSCORE score)
+		{
+			if (!HGaugeMethods.UNSAFE_FastNormaCheck(player))
+				return 0;
+			bool assistedClear = OpenTaiko.stageSongSelect.actPlayOption.tGetModMultiplier(CActPlayOption.EBalancingType.SCORE, false, player) < 1f;
+			if (assistedClear)
+				return 0;
+			if (score.nMiss == 0 && score.nMine == 0)
+				return score.nGood == 0 ? 3 : 2;
+			return 1;
+		}
+
 		// --- Song recording ---
 
 		public void TryAddCurrentSongStats()
@@ -696,6 +708,7 @@ namespace OpenTaiko.Shrandy.Tools
 				LeftHandOkays = CurrentNoteStats.LeftHandStats?.OkayCount ?? 0,
 				RightHandOkays = CurrentNoteStats.RightHandStats?.OkayCount ?? 0,
 				UsedFadingNote = OpenTaiko.ConfigIni.nFadingNoteTime > 0,
+				Crown = ComputeCrown(player, score),
 			};
 
 			SongEntry? previousBest = GetBestPlayMatchingMods(entry.SongTitle, difficulty, entry.RandomMod, entry.Judgement);

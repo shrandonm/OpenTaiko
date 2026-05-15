@@ -103,6 +103,33 @@ namespace OpenTaiko.Shrandy.Utilities
 
 			ImGui.Image((nint)texture.Pointer, size, uv0, uv1);
 		}
+		
+		public static string GetCrownString(int crown)
+		{
+			return crown switch
+			{
+				1 => "Pass",
+				2 => "FC",
+				3 => "DFC",
+				_ => "No Crown"
+			};
+		}
+		
+		public static Vector4 GetCrownColor(int crown)
+		{
+			return crown switch
+			{
+				1 => new Vector4(0.8f, 0.8f, 0.8f, 1f), // Silver
+				2 => new Vector4(1f, 0.84f, 0f, 1f), // Gold
+				3 => new Vector4(1f, 0.5f, 0f, 1f), // Orange (for DFC)
+				_ => new Vector4(0.5f, 0.5f, 0.5f, 1f) // Gray for no crown
+			};
+		}
+
+		public static void DrawCrown(int crown)
+		{
+			ImGui.TextColored(GetCrownColor(crown), GetCrownString(crown));
+		}
 
 		public static void DrawDifficultyIcon(int difficultyIndex, float iconHeight = 16.0f)
 		{
