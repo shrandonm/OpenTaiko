@@ -45,6 +45,13 @@ namespace OpenTaiko.Shrandy.Tools
 				SetEnabled(false);
 			}
 
+			ImGui.SameLine();
+
+			if (ImGui.Button("Clear Playlist"))
+			{
+				m_ChartQueue.Clear();
+			}
+
 			if (m_ChartQueue.Count == 0)
 			{
 				ImGui.EndDisabled();
