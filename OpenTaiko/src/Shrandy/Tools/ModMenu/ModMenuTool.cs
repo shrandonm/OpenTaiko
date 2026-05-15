@@ -39,6 +39,24 @@ namespace OpenTaiko.Shrandy.Tools
 			DrawConstantScrollSpeed();
 			DrawFadingNoteTime();
 			DrawNoteRemoval();
+			ImGui.Separator();
+			if (ImGui.Button("Reset to Defaults"))
+			{
+				ResetToDefaults();
+			}
+		}
+
+		private void ResetToDefaults()
+		{
+			OpenTaiko.ConfigIni.nScrollSpeed[OpenTaiko.SaveFile] = 9;
+			OpenTaiko.ConfigIni.nSongSpeed = CConfigIni.DefaultSongSpeed;
+			OpenTaiko.ConfigIni.eRandom[OpenTaiko.SaveFile] = ERandomMode.Off;
+			OpenTaiko.ConfigIni.nTimingZones[OpenTaiko.SaveFile] = 2;
+			OpenTaiko.ConfigIni.bTokkunConstantScrollSpeed = false;
+			OpenTaiko.ConfigIni.nFadingNoteTime = 0;
+			m_RemoveEvenNotes = false;
+			m_RemoveOddNotes = false;
+			ApplyNoteMods();
 		}
 
 		public static void DrawScrollSpeed()
