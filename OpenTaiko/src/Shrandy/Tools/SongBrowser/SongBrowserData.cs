@@ -428,6 +428,8 @@ namespace OpenTaiko.Shrandy.Tools
 			SongEntry? bestPlay = GetBestPlay(song.ldTitle.GetString(""), difficulty);
 			int scoreRank = bestPlay?.ScoreRank ?? 0;
 
+			SongAggregateStats agg = GetAggregateStats(song.ldTitle.GetString(""), difficulty);
+
 			return field switch
 			{
 				"bpm" => score.譜面情報.BaseBpm,
@@ -438,6 +440,9 @@ namespace OpenTaiko.Shrandy.Tools
 				"lastpb" => GetDaysSinceLastPB(song.ldTitle.GetString(""), difficulty),
 				"judgement" => bestPlay?.Judgement,
 				"fadingnote" => bestPlay?.UsedFadingNote == true ? 1 : 0,
+				"plays" => agg.PlayCount,
+				"fc" => agg.FCCount,
+				"dfc" => agg.DFCCount,
 				_ => null,
 			};
 		}
@@ -563,7 +568,7 @@ namespace OpenTaiko.Shrandy.Tools
 				return badgeVal;
 			}
 
-			if ((field == "fc" || field == "clear") && ClearNames.TryGetValue(value, out int clearVal))
+			if (field == "clear" && ClearNames.TryGetValue(value, out int clearVal))
 			{
 				return clearVal;
 			}
