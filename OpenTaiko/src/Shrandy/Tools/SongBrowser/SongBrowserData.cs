@@ -396,29 +396,72 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private bool PassesAllFilters(CSongListNode song, CScore score, int level, int difficulty, List<(string field, string op, string value)> filters)
 		{
+			// Tag filters are evaluated with AND semantics (each tag token must independently pass).
+			// Numeric filters with the same (field, op) pair are grouped and evaluated with OR semantics
+			// so that e.g. "level=7 level=8" shows songs at level 7 OR 8.
+			// Groups with different (field, op) pairs are still AND'd together.
+
+			var numericGroups = new Dictionary<(string field, string op), List<string>>();
+
 			foreach ((string field, string op, string value) in filters)
 			{
 				if (field == "tag")
 				{
 					bool hasTag = Tags.SongHasTag(song.ldTitle.GetString(""), difficulty, value);
-					if (op == "!="  && hasTag) return false;
+					if (op == "!=" && hasTag) return false;
 					if (op != "!=" && !hasTag) return false;
 					continue;
 				}
 
-				double? songValue = GetFieldValue(song, score, level, field, difficulty);
-				double? targetValue = ResolveValue(field, value);
+				var key = (field, op);
+				if (!numericGroups.TryGetValue(key, out List<string>? group))
+				{
+					group = new List<string>();
+					numericGroups[key] = group;
+				}
+				group.Add(value);
+			}
 
-				if (songValue == null || targetValue == null)
+			double? songValue = null;
+			string? lastField = null;
+
+			foreach (var kvp in numericGroups)
+			{
+				string field = kvp.Key.field;
+				string op = kvp.Key.op;
+
+				if (field != lastField)
+				{
+					songValue = GetFieldValue(song, score, level, field, difficulty);
+					lastField = field;
+				}
+
+				if (songValue == null)
 				{
 					continue;
 				}
 
-				if (!CompareValues(songValue.Value, op, targetValue.Value))
+				bool groupPassed = false;
+				foreach (string value in kvp.Value)
+				{
+					double? targetValue = ResolveValue(field, value);
+					if (targetValue == null)
+					{
+						continue;
+					}
+					if (CompareValues(songValue.Value, op, targetValue.Value))
+					{
+						groupPassed = true;
+						break;
+					}
+				}
+
+				if (!groupPassed)
 				{
 					return false;
 				}
 			}
+
 			return true;
 		}
 

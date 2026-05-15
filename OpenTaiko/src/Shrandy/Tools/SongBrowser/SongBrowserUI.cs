@@ -12,6 +12,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private SongTagsUI m_TagsUI;
 		private TagFilterBar m_TagFilterBar;
+		private LevelFilterBar m_LevelFilterBar;
 		private SongBrowserOverview m_OverviewWidget;
 		public RetryPopup RetryPopup { get; private set; }
 
@@ -20,6 +21,7 @@ namespace OpenTaiko.Shrandy.Tools
 			m_Data = data;
 			m_TagsUI = new SongTagsUI(data.Tags, data.SaveTags);
 			m_TagFilterBar = new TagFilterBar(data.Tags, () => data.FilterText, value => data.FilterText = value);
+			m_LevelFilterBar = new LevelFilterBar(() => data.FilterText, value => data.FilterText = value);
 			RetryPopup = new RetryPopup(data);
 			m_OverviewWidget = new SongBrowserOverview(data);
 		}
@@ -76,15 +78,13 @@ namespace OpenTaiko.Shrandy.Tools
 				m_Data.RefreshSongList();
 			}
 
-			DrawDifficultySelector();
 			DrawFilters();
+			DrawDifficultySelector();
 			DrawAllSongsTable();
 		}
 
 		private void DrawDifficultySelector()
 		{
-			ImGui.SeparatorText("Difficulty");
-
 			for (int i = 0; i < SongBrowserData.DifficultyNames.Length; i++)
 			{
 				if (i > 0)
@@ -129,6 +129,7 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 
 			m_TagFilterBar.Draw();
+			m_LevelFilterBar.Draw();
 
 			if (m_Data.ApplyFiltersIfNeeded())
 			{
