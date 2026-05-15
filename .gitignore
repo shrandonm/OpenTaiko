@@ -55,3 +55,4 @@
 
 /OpenTaiko Launcher
 /OpenTaiko Launcher/node_modules
+*.lscache
