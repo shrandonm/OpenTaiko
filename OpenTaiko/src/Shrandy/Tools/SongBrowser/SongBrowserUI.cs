@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Numerics;
 using ImGuiNET;
 
 namespace OpenTaiko.Shrandy.Tools
@@ -14,7 +12,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private SongTagsUI m_TagsUI;
 		private TagFilterBar m_TagFilterBar;
-		private SongBrowserOverview m_Overview;
+		private SongBrowserOverview m_OverviewWidget;
 		public RetryPopup RetryPopup { get; private set; }
 
 		public SongBrowserUI(SongBrowserData data)
@@ -23,7 +21,7 @@ namespace OpenTaiko.Shrandy.Tools
 			m_TagsUI = new SongTagsUI(data.Tags, data.SaveTags);
 			m_TagFilterBar = new TagFilterBar(data.Tags, () => data.FilterText, value => data.FilterText = value);
 			RetryPopup = new RetryPopup(data);
-			m_Overview = new SongBrowserOverview(data);
+			m_OverviewWidget = new SongBrowserOverview(data);
 		}
 		public void OnEnabled()
 		{
@@ -43,14 +41,7 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 			
 			RetryPopup.Draw();
-			
-			if (ImGui.Button("Song Mods"))
-			{
-				OpenTaiko.ShrandyExtension.SetToolEnabled<ModMenuTool>(true);
-			}
-
-			DrawSessionStats();
-			DrawGoalsAndOverview();
+			m_OverviewWidget.Draw();
 
 			if (ImGui.BeginTabBar("SongBrowserTabs"))
 			{
@@ -67,117 +58,6 @@ namespace OpenTaiko.Shrandy.Tools
 				}
 
 				ImGui.EndTabBar();
-			}
-		}
-
-		// --- Session Stats ---
-
-		private void DrawSessionStats()
-		{
-			ImGui.SeparatorText("Session Stats");
-
-			TimeSpan elapsed = m_Data.GetSessionElapsed();
-			int sessionSongCount = m_Data.GetSessionSongCount();
-			int sessionDurationMs = m_Data.GetSessionDurationMs();
-			float uptime = sessionDurationMs / (float)elapsed.TotalMilliseconds;
-			float songsPerHour = sessionSongCount / (float)elapsed.TotalHours;
-
-			ImGuiTableFlags flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg;
-			if (ImGui.BeginTable("Session Stats", 6, flags))
-			{
-				ImGui.TableSetupColumn("Time Since Start", ImGuiTableColumnFlags.WidthFixed, 120);
-				ImGui.TableSetupColumn("Session Playtime", ImGuiTableColumnFlags.WidthFixed, 120);
-				ImGui.TableSetupColumn("Session Song Count", ImGuiTableColumnFlags.WidthFixed, 120);
-				ImGui.TableSetupColumn("Uptime", ImGuiTableColumnFlags.WidthFixed, 100);
-				ImGui.TableSetupColumn("Songs Per Hour", ImGuiTableColumnFlags.WidthFixed, 120);
-				ImGui.TableSetupColumn("Reset", ImGuiTableColumnFlags.WidthFixed, 120);
-				ImGui.TableHeadersRow();
-
-				ImGui.TableNextRow();
-
-				ImGui.TableSetColumnIndex(0);
-				ImGui.TextUnformatted($"{elapsed:hh\\:mm\\:ss}");
-
-				ImGui.TableSetColumnIndex(1);
-				ImGui.TextUnformatted(Utilities.SongTable.FormatDuration(sessionDurationMs));
-
-				ImGui.TableSetColumnIndex(2);
-				ImGui.TextUnformatted($"{sessionSongCount}");
-
-				ImGui.TableSetColumnIndex(3);
-				ImGui.Text($"{(int)(uptime * 100)}%%");
-
-				ImGui.TableSetColumnIndex(4);
-				ImGui.Text($"{(int)songsPerHour}");
-
-				ImGui.TableSetColumnIndex(5);
-				if (ImGui.Button("Reset Session Stats"))
-				{
-					m_Data.ResetSessionStats();
-				}
-
-				ImGui.EndTable();
-			}
-		}
-
-		// --- Goals + Overview ---
-
-		private void DrawGoalsAndOverview()
-		{
-			ImGui.Columns(2, "##goals_overview_cols", false);
-			DrawGoals();
-			ImGui.NextColumn();
-			m_Overview.Draw();
-			ImGui.Columns(1);
-		}
-
-		private void DrawGoals()
-		{
-			ImGui.SeparatorText("Goals");
-
-			DrawGoalInput(ref m_Data.DailyTargetSongs, "Daily");
-
-			float avail = ImGui.GetContentRegionAvail().X;
-			float barWidth = (avail - ImGui.GetStyle().ItemSpacing.X * 2) / 2.0f;
-			DrawProgressGoal(m_Data.DailyTargetSongs, "Daily", m_Data.GetDailySongCount(), barWidth);
-
-			int monthlyGoal = m_Data.DailyTargetSongs * DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month);
-			int expectedByToday = m_Data.DailyTargetSongs * DateTime.Now.Day;
-			float expectedProgress = monthlyGoal > 0 ? expectedByToday / (float)monthlyGoal : 0.0f;
-			DrawProgressGoal(monthlyGoal, "Monthly", m_Data.GetMonthlySongCount(), barWidth, expectedProgress);
-		}
-
-		private static void DrawGoalInput(ref int goal, string label)
-		{
-			ImGui.SetNextItemWidth(100);
-			ImGui.InputInt($"{label}TargetSongs", ref goal, 1, 5);
-
-			goal = Math.Max(0, goal);
-		}
-
-		private static void DrawProgressGoal(int goal, string label, int current, float barWidth, float expectedProgress = -1.0f)
-		{
-			float progress = goal > 0
-				? MathF.Min(1.0f, current / (float)goal)
-				: 0.0f;
-
-			string overlay = goal > 0
-				? $"{current} / {goal}"
-				: $"{current} / -";
-
-			Vector2 cursorPos = ImGui.GetCursorScreenPos();
-			ImGui.ProgressBar(progress, new Vector2(barWidth, 0.0f), $"{label} Goal: {overlay}");
-
-			if (expectedProgress >= 0.0f && goal > 0)
-			{
-				float barHeight = ImGui.GetFrameHeight();
-				float markerX = cursorPos.X + barWidth * MathF.Min(1.0f, expectedProgress);
-				var drawList = ImGui.GetWindowDrawList();
-				uint markerColor = ImGui.GetColorU32(new Vector4(1.0f, 1.0f, 1.0f, 0.9f));
-				drawList.AddLine(
-					new Vector2(markerX, cursorPos.Y),
-					new Vector2(markerX, cursorPos.Y + barHeight),
-					markerColor, 2.0f);
 			}
 		}
 
@@ -252,7 +132,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 			if (m_Data.ApplyFiltersIfNeeded())
 			{
-				m_Overview.Refresh();
+				m_OverviewWidget.Refresh();
 			}
 
 			ImGui.Text($"{m_Data.FilteredSongs.Count} / {m_Data.AllSongs.Count} songs");

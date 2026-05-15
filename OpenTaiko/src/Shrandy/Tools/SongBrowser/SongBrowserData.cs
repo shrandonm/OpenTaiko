@@ -36,7 +36,6 @@ namespace OpenTaiko.Shrandy.Tools
 		// Session tracking
 		private int m_SongCountAtStartOfSession = 0;
 		private DateTime m_SessionStartTime = DateTime.Now;
-		public int DailyTargetSongs = 50;
 
 		// History filter
 		public int FilterDays = 0;

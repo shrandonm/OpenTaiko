@@ -75,13 +75,30 @@ namespace OpenTaiko.Shrandy.Tools
 
 		public void Draw()
 		{
+			if (!ImGui.BeginTable("##stats_outer", 2, ImGuiTableFlags.None))
+				return;
+
+			ImGui.TableSetupColumn("##stats_left", ImGuiTableColumnFlags.WidthStretch);
+			ImGui.TableSetupColumn("##stats_right", ImGuiTableColumnFlags.WidthStretch);
+
+			ImGui.TableNextRow();
+
+			ImGui.TableSetColumnIndex(0);
+			DrawOverview();
+
+			ImGui.TableSetColumnIndex(1);
+			DrawSessionStats();
+
+			ImGui.EndTable();
+		}
+
+		private void DrawOverview()
+		{
 			ImGui.SeparatorText("Filter Overview");
 
 			ImGuiTableFlags flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg;
 			if (!ImGui.BeginTable("##overview_table", 2, flags))
-			{
 				return;
-			}
 
 			ImGui.TableSetupColumn("##ovlabel", ImGuiTableColumnFlags.WidthFixed, 80);
 			ImGui.TableSetupColumn("##ovvalue", ImGuiTableColumnFlags.WidthStretch);
@@ -103,6 +120,40 @@ namespace OpenTaiko.Shrandy.Tools
 			ImGui.TextDisabled("Badges");
 			ImGui.TableSetColumnIndex(1);
 			DrawBadgeBreakdown();
+
+			ImGui.EndTable();
+		}
+
+		private void DrawSessionStats()
+		{
+			ImGui.SeparatorText("Session Stats");
+
+			TimeSpan elapsed = m_Data.GetSessionElapsed();
+			int sessionSongCount = m_Data.GetSessionSongCount();
+			int sessionDurationMs = m_Data.GetSessionDurationMs();
+			float uptime = sessionDurationMs / (float)elapsed.TotalMilliseconds;
+			float songsPerHour = sessionSongCount / (float)elapsed.TotalHours;
+
+			ImGuiTableFlags flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg;
+			if (!ImGui.BeginTable("##session_table", 2, flags))
+				return;
+
+			ImGui.TableSetupColumn("##sslabel", ImGuiTableColumnFlags.WidthFixed, 110);
+			ImGui.TableSetupColumn("##ssvalue", ImGuiTableColumnFlags.WidthStretch);
+
+			DrawLabelValueRow("Time Since Start", $"{elapsed:hh\\:mm\\:ss}");
+			DrawLabelValueRow("Session Playtime", Utilities.SongTable.FormatDuration(sessionDurationMs));
+			DrawLabelValueRow("Song Count",       $"{sessionSongCount}");
+			DrawLabelValueRow("Uptime",           $"{(int)(uptime * 100)}%");
+			DrawLabelValueRow("Songs / Hour",     $"{(int)songsPerHour}");
+
+			ImGui.TableNextRow();
+			ImGui.TableSetColumnIndex(0);
+			ImGui.TableSetColumnIndex(1);
+			if (ImGui.Button("Reset Session Stats"))
+			{
+				m_Data.ResetSessionStats();
+			}
 
 			ImGui.EndTable();
 		}
