@@ -427,6 +427,24 @@ public abstract class Game : IDisposable {
 	}
 
 
+	private static int GCD(int a, int b) => b == 0 ? a : GCD(b, a % b);
+
+	private unsafe void ApplyAspectRatioLock() {
+		int gcd = GCD(GameWindowSize.Width, GameWindowSize.Height);
+		int ratioW = GameWindowSize.Width / gcd;
+		int ratioH = GameWindowSize.Height / gcd;
+
+		if (Window_.Native?.Glfw.HasValue == true) {
+			var glfwWindow = (WindowHandle*)Window_.Native.Glfw.Value;
+			GlfwProvider.GLFW.Value.SetWindowAspectRatio(glfwWindow, ratioW, ratioH);
+			return;
+		}
+
+		if (OperatingSystem.IsWindows() && Window_.Native?.Win32.HasValue == true) {
+			Win32AspectRatioLock.Apply(Window_.Native.Win32.Value.Hwnd, ratioW, ratioH);
+		}
+	}
+
 	public void Window_Load() {
 		Window_.SetWindowIcon(new ReadOnlySpan<RawImage>(GetIconData(strIconFileName)));
 
@@ -476,6 +494,8 @@ public abstract class Game : IDisposable {
 
 		Initialize();
 		LoadContent();
+
+		ApplyAspectRatioLock();
 	}
 
 	protected virtual int GetFrameRenderDelay()
