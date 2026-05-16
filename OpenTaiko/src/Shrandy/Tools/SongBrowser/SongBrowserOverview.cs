@@ -94,7 +94,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private void DrawOverview()
 		{
-			ImGui.SeparatorText("Filter Overview");
+			ImGui.SeparatorText("Overview");
 
 			ImGuiTableFlags flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg;
 			if (!ImGui.BeginTable("##overview_table", 2, flags))
@@ -121,6 +121,15 @@ namespace OpenTaiko.Shrandy.Tools
 			ImGui.TableSetColumnIndex(1);
 			DrawBadgeBreakdown();
 
+			ImGui.TableNextRow();
+			ImGui.TableSetColumnIndex(0);
+			ImGui.TextDisabled("Milestone");
+			ImGui.TableSetColumnIndex(1);
+			int lifetimePlayCount = m_Data.SaveData.SongEntries.Count;
+			int nextMilestone = (lifetimePlayCount / 1000 + 1) * 1000;
+			float progress = (lifetimePlayCount % 1000) / 1000f;
+			ImGui.ProgressBar(progress, new Vector2(-1, 0), $"{lifetimePlayCount:N0} / {nextMilestone:N0} lifetime plays");
+			
 			ImGui.EndTable();
 		}
 
@@ -133,6 +142,7 @@ namespace OpenTaiko.Shrandy.Tools
 			int sessionDurationMs = m_Data.GetSessionDurationMs();
 			float uptime = sessionDurationMs / (float)elapsed.TotalMilliseconds;
 			float songsPerHour = sessionSongCount / (float)elapsed.TotalHours;
+			int todayPlayCount = m_Data.GetDailySongCount();
 
 			ImGuiTableFlags flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg;
 			if (!ImGui.BeginTable("##session_table", 2, flags))
@@ -144,6 +154,7 @@ namespace OpenTaiko.Shrandy.Tools
 			DrawLabelValueRow("Time Since Start", $"{elapsed:hh\\:mm\\:ss}");
 			DrawLabelValueRow("Session Playtime", Utilities.SongTable.FormatDuration(sessionDurationMs));
 			DrawLabelValueRow("Song Count",       $"{sessionSongCount}");
+			DrawLabelValueRow("Today's Plays",    $"{todayPlayCount}");
 			DrawLabelValueRow("Uptime",           $"{(int)(uptime * 100)}%");
 			DrawLabelValueRow("Songs / Hour",     $"{(int)songsPerHour}");
 
