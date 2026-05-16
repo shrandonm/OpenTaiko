@@ -89,6 +89,11 @@ namespace OpenTaiko.Shrandy.Tools
 			ImGui.TableHeadersRow();
 
 			DrawScoreRow("Score",     current.Score, current.ScoreRank, previous?.Score, previous?.ScoreRank, noMod?.Score, noMod?.ScoreRank, showNoMod);
+			DrawGoodPercentRow(
+				StringHelpers.GetPercent(current.Goods, current.TotalNotes),
+				previous != null ? StringHelpers.GetPercent(previous.Goods, previous.TotalNotes) : null,
+				noMod    != null ? StringHelpers.GetPercent(noMod.Goods, noMod.TotalNotes): null,
+				showNoMod);
 			DrawIntRow("Goods",       current.Goods,       previous?.Goods,       noMod?.Goods,       showNoMod, invertColors: false);
 			DrawIntRow("Okays",       current.Okays,       previous?.Okays,       noMod?.Okays,       showNoMod, invertColors: true);
 			DrawIntRow("Bads",        current.Bads,        previous?.Bads,        noMod?.Bads,        showNoMod, invertColors: true);
@@ -161,6 +166,38 @@ namespace OpenTaiko.Shrandy.Tools
 
 			ImGui.TableSetColumnIndex(col);
 			DrawIntDelta(currentValue, previousValue, invertColors);
+		}
+
+		private static void DrawGoodPercentRow(float currentValue, float? previousValue, float? noModValue, bool showNoMod)
+		{
+			ImGui.TableNextRow();
+
+			ImGui.TableSetColumnIndex(0);
+			ImGui.TextUnformatted("Good %");
+
+			int col = 1;
+			if (showNoMod)
+			{
+				ImGui.TableSetColumnIndex(col++);
+				ImGui.TextUnformatted(noModValue.HasValue ? StringHelpers.GetPercentString(noModValue.Value) : "\u2014");
+			}
+
+			ImGui.TableSetColumnIndex(col++);
+			ImGui.TextUnformatted(previousValue.HasValue ? StringHelpers.GetPercentString(previousValue.Value) : "\u2014");
+
+			ImGui.TableSetColumnIndex(col++);
+			ImGui.TextUnformatted(StringHelpers.GetPercentString(currentValue));
+
+			ImGui.TableSetColumnIndex(col);
+			if (previousValue.HasValue)
+			{
+				float delta = currentValue - previousValue.Value;
+				DrawDeltaText(delta, StringHelpers.GetPercentString(delta), invertColors: false);
+			}
+			else
+			{
+				ImGui.TextUnformatted("\u2014");
+			}
 		}
 
 		private static void DrawHitErrorRow(float currentValue, float? previousValue, float? noModValue, bool showNoMod, bool invertColors)
