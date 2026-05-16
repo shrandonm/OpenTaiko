@@ -29,6 +29,8 @@ namespace OpenTaiko.Shrandy
 		public int LeftHandOkays { get; set; }
 		public int RightHandOkays { get; set; }
 		public bool UsedFadingNote { get; set; }
+		public int EarlyHits { get; set; }
+		public int LateHits { get; set; }
 		
 		[JsonIgnore]
 		public int TotalNotes => Goods + Okays + Bads;

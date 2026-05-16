@@ -34,15 +34,17 @@ namespace OpenTaiko.Shrandy.Utilities
 		public int RightHandOkays;
 		public int Judgement;
 		public bool UsedFadingNote;
+		public int EarlyHits;
+		public int LateHits;
 
 		public int TotalNotes => Goods + Okays + Bads;
 	}
 
 	internal static class SongTable
 	{
-		private const int BaseColumnCount = 28;
+		private const int BaseColumnCount = 30;
 		private const int AggregateColumnCount = 3;
-		public const int TagsColumnIndex = 27;
+		public const int TagsColumnIndex = 29;
 
 		private struct ColumnDef
 		{
@@ -105,6 +107,8 @@ namespace OpenTaiko.Shrandy.Utilities
 				new ColumnDef("L.Okays",		hidden:true),
 				new ColumnDef("R.Okays",		hidden:true),
 				new ColumnDef("Fading Note",	hidden:true),
+				new ColumnDef("Early",			hidden:true),
+				new ColumnDef("Late",			hidden:true),
 				new ColumnDef("Tags",			hidden:false, useLargeSize:true),
 			};
 			ColumnDef[] aggregateColumns =
@@ -259,6 +263,12 @@ namespace OpenTaiko.Shrandy.Utilities
 
 			ImGui.TableSetColumnIndex(col++);
 			ImGui.TextUnformatted(row.UsedFadingNote ? "Yes" : "-");
+
+			ImGui.TableSetColumnIndex(col++);
+			ImGui.Text($"{row.EarlyHits}");
+
+			ImGui.TableSetColumnIndex(col++);
+			ImGui.Text($"{row.LateHits}");
 		}
 
 		private static void DrawBpm(double baseBpm, double minBpm, double maxBpm)
@@ -308,6 +318,8 @@ namespace OpenTaiko.Shrandy.Utilities
 				LeftHandOkays = entry.LeftHandOkays,
 				RightHandOkays = entry.RightHandOkays,
 				UsedFadingNote = entry.UsedFadingNote,
+				EarlyHits = entry.EarlyHits,
+				LateHits = entry.LateHits,
 			};
 		}
 
@@ -360,6 +372,8 @@ namespace OpenTaiko.Shrandy.Utilities
 			row.LeftHandOkays = entry.LeftHandOkays;
 			row.RightHandOkays = entry.RightHandOkays;
 			row.UsedFadingNote = entry.UsedFadingNote;
+			row.EarlyHits = entry.EarlyHits;
+			row.LateHits = entry.LateHits;
 		}
 
 		public static int GetScoreRank(CSongListNode song, int difficulty)

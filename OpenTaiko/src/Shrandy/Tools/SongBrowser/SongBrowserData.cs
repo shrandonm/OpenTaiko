@@ -708,6 +708,8 @@ namespace OpenTaiko.Shrandy.Tools
 				LeftHandOkays = CurrentNoteStats.LeftHandStats?.OkayCount ?? 0,
 				RightHandOkays = CurrentNoteStats.RightHandStats?.OkayCount ?? 0,
 				UsedFadingNote = OpenTaiko.ConfigIni.nFadingNoteTime > 0,
+				EarlyHits = CurrentNoteStats.EarlyCount,
+				LateHits = CurrentNoteStats.LateCount,
 				Crown = ComputeCrown(player, score),
 			};
 

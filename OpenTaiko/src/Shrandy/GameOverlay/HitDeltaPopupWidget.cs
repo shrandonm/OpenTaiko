@@ -35,7 +35,7 @@ namespace OpenTaiko.Shrandy
 				const float textScale = 1.5f;
 				int delta = hitParams.Chip.nLag;
 
-				const int errorThresholdMs = 20;
+				const int errorThresholdMs = 25;
 				bool isLate = delta > errorThresholdMs;
 				bool isEarly = delta < -errorThresholdMs;
 				string message = isLate ? "Late"

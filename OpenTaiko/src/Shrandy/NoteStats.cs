@@ -64,12 +64,12 @@ namespace OpenTaiko.Shrandy
 
 			if (hitParams.JudgeResult == ENoteJudge.Perfect || hitParams.JudgeResult == ENoteJudge.Good)
 			{
-				const int threshold = 10;
-				if (error >= threshold)
+				const int threshold = 25;
+				if (error > threshold)
 				{
 					LateCount++;
 				}
-				else if (error <= -threshold)
+				else if (error < -threshold)
 				{
 					EarlyCount++;
 				}
