@@ -467,7 +467,16 @@ internal class OpenTaiko : Game {
 
 
 		WindowPosition = new Silk.NET.Maths.Vector2D<int>(ConfigIni.nWindowBaseXPosition, ConfigIni.nWindowBaseYPosition);
-		WindowSize = new Silk.NET.Maths.Vector2D<int>(ConfigIni.nWindowWidth, ConfigIni.nWindowHeight);
+
+		// [Divergence] Allow command line arguments to override window size settings in Config.ini
+		int windowWidth = ConfigIni.nWindowWidth;
+		int windowHeight = ConfigIni.nWindowHeight;
+		if (int.TryParse(GetParameterValue("--width"), out int argWidth) && argWidth > 0)
+			windowWidth = argWidth;
+		if (int.TryParse(GetParameterValue("--height"), out int argHeight) && argHeight > 0)
+			windowHeight = argHeight;
+		WindowSize = new Silk.NET.Maths.Vector2D<int>(windowWidth, windowHeight);
+		// [End Divergence]
 		FullScreen = ConfigIni.bFullScreen;
 		VSync = ConfigIni.bEnableVSync;
 		Framerate = 0;

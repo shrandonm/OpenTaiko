@@ -42,7 +42,7 @@ public abstract class Game : IDisposable {
 	public static Silk.NET.Core.Contexts.IGLContext Context { get; private set; }
 
 	private static string[] parameters;
-	private static string GetParameterValue(string parameter = "", string parameter_full = "") {
+	protected static string GetParameterValue(string parameter = "", string parameter_full = "") {
 		if (parameters.Length == 0) return "";
 		int index = parameters.Contains(parameter) || parameters.Contains(parameter_full)
 		? Array.FindIndex(parameters, x => x.Equals(parameter) || x.Equals(parameter_full))
