@@ -162,6 +162,7 @@ namespace OpenTaiko.Shrandy.Tools
 			float uptime = sessionDurationMs / (float)elapsed.TotalMilliseconds;
 			float songsPerHour = sessionSongCount / (float)elapsed.TotalHours;
 			int todayPlayCount = m_Data.GetDailySongCount();
+			int todayFCCount = m_Data.GetDailyFCCount();
 
 			ImGuiTableFlags flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg;
 			if (!ImGui.BeginTable("##session_table", 2, flags))
@@ -174,6 +175,7 @@ namespace OpenTaiko.Shrandy.Tools
 			DrawLabelValueRow("Session Playtime", Utilities.SongTable.FormatDuration(sessionDurationMs));
 			DrawLabelValueRow("Song Count",       $"{sessionSongCount}");
 			DrawLabelValueRow("Today's Plays",    $"{todayPlayCount}");
+			DrawLabelValueRow("Today's FCs",      $"{todayFCCount}");
 			DrawLabelValueRow("Uptime",           $"{(int)(uptime * 100)}%");
 			DrawLabelValueRow("Songs / Hour",     $"{(int)songsPerHour}");
 

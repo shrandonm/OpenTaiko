@@ -203,6 +203,11 @@ namespace OpenTaiko.Shrandy.Tools
 			return GetSongCountSince(DateTime.Today);
 		}
 
+		public int GetDailyFCCount()
+		{
+			return m_SaveData.SongEntries.Count(x => x.Timestamp >= DateTime.Today && x.EffectiveCrown >= 2);
+		}
+
 		public int GetWeeklySongCount()
 		{
 			DayOfWeek today = DateTime.Today.DayOfWeek;
