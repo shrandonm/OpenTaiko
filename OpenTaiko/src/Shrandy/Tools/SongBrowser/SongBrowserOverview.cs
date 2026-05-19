@@ -25,6 +25,7 @@ namespace OpenTaiko.Shrandy.Tools
 		private int m_PlayedSongs;
 		private int m_TotalPlays;
 		private long m_TotalPlaytimeMs;
+		private int m_TotalClears;
 		private int m_TotalFCs;
 		private int m_TotalDFCs;
 		private int[] m_BadgeCounts = new int[8];
@@ -39,6 +40,7 @@ namespace OpenTaiko.Shrandy.Tools
 			m_MatchedSongs = m_Data.FilteredSongs.Count;
 			m_PlayedSongs = 0;
 			m_TotalPlays = 0;
+			m_TotalClears = 0;
 			m_TotalFCs = 0;
 			m_TotalDFCs = 0;
 			Array.Clear(m_BadgeCounts, 0, m_BadgeCounts.Length);
@@ -52,9 +54,10 @@ namespace OpenTaiko.Shrandy.Tools
 
 				SongAggregateStats agg = m_Data.GetAggregateStats(song.ldTitle.GetString(""), diff);
 				m_TotalPlays += agg.PlayCount;
-				m_TotalFCs += agg.FCCount;
-				m_TotalDFCs += agg.DFCCount;
 				if (agg.PlayCount > 0) m_PlayedSongs++;
+				if (agg.ClearCount > 0) m_TotalClears++;
+				if (agg.FCCount > 0) m_TotalFCs++;
+				if (agg.DFCCount > 0) m_TotalDFCs++;
 
 				SongEntry? best = m_Data.GetBestPlay(song.ldTitle.GetString(""), diff);
 				int rank = best?.ScoreRank ?? 0;
@@ -104,15 +107,31 @@ namespace OpenTaiko.Shrandy.Tools
 			ImGui.TableSetupColumn("##ovvalue", ImGuiTableColumnFlags.WidthStretch);
 
 			int unplayed = m_MatchedSongs - m_PlayedSongs;
-			int fcPct = m_PlayedSongs > 0 ? (int)(m_TotalFCs * 100f / m_PlayedSongs + 0.5f) : 0;
-			int dfcPct = m_PlayedSongs > 0 ? (int)(m_TotalDFCs * 100f / m_PlayedSongs + 0.5f) : 0;
+			int clearPct = m_MatchedSongs > 0 ? (int)(m_TotalClears * 100f / m_MatchedSongs + 0.5f) : 0;
+			int fcPct    = m_MatchedSongs > 0 ? (int)(m_TotalFCs    * 100f / m_MatchedSongs + 0.5f) : 0;
+			int dfcPct   = m_MatchedSongs > 0 ? (int)(m_TotalDFCs   * 100f / m_MatchedSongs + 0.5f) : 0;
 			string playtime = Utilities.SongTable.FormatDuration((int)Math.Min(m_TotalPlaytimeMs, int.MaxValue));
 
 			DrawLabelValueRow("Songs",    $"{m_PlayedSongs} / {m_MatchedSongs}" + (unplayed > 0 ? $"  ({unplayed} new)" : ""));
 			DrawLabelValueRow("Plays",    $"{m_TotalPlays:N0}");
 			DrawLabelValueRow("Playtime", playtime);
-			DrawLabelValueRow("FC",       $"{m_TotalFCs}  ({fcPct}%)");
-			DrawLabelValueRow("DFC",      $"{m_TotalDFCs}  ({dfcPct}%)");
+
+			// Crowns row
+			ImGui.TableNextRow();
+			ImGui.TableSetColumnIndex(0);
+			ImGui.TextDisabled("Crowns");
+			ImGui.TableSetColumnIndex(1);
+			ImGui.TextColored(Utilities.SongHelper.GetCrownColor(1), Utilities.SongHelper.GetCrownString(1));
+			ImGui.SameLine();
+			ImGui.TextUnformatted($"{m_TotalClears} ({clearPct}%)");
+			ImGui.SameLine(0, 16);
+			ImGui.TextColored(Utilities.SongHelper.GetCrownColor(2), Utilities.SongHelper.GetCrownString(2));
+			ImGui.SameLine();
+			ImGui.TextUnformatted($"{m_TotalFCs} ({fcPct}%)");
+			ImGui.SameLine(0, 16);
+			ImGui.TextColored(Utilities.SongHelper.GetCrownColor(3), Utilities.SongHelper.GetCrownString(3));
+			ImGui.SameLine();
+			ImGui.TextUnformatted($"{m_TotalDFCs} ({dfcPct}%)");
 
 			// Badges row
 			ImGui.TableNextRow();

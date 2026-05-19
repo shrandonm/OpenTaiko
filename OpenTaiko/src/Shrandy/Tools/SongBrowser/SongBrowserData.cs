@@ -8,6 +8,7 @@ namespace OpenTaiko.Shrandy.Tools
 	internal struct SongAggregateStats
 	{
 		public int PlayCount;
+		public int ClearCount;
 		public int FCCount;
 		public int DFCCount;
 	}
@@ -285,14 +286,10 @@ namespace OpenTaiko.Shrandy.Tools
 
 				m_AggregateStats.TryGetValue(key, out SongAggregateStats agg);
 				agg.PlayCount++;
-				if (entry.Bads == 0)
-				{
-					agg.FCCount++;
-					if (entry.Okays == 0)
-					{
-						agg.DFCCount++;
-					}
-				}
+				int crown = entry.EffectiveCrown;
+				if (crown >= 1) agg.ClearCount++;
+				if (crown >= 2) agg.FCCount++;
+				if (crown >= 3) agg.DFCCount++;
 				m_AggregateStats[key] = agg;
 			}
 		}
@@ -539,7 +536,10 @@ namespace OpenTaiko.Shrandy.Tools
 				if (e.Difficulty != diffLabel) continue;
 				if (e.RandomMod != "None" || e.Judgement != 2) continue;
 				agg.PlayCount++;
-				if (e.Bads == 0) { agg.FCCount++; if (e.Okays == 0) agg.DFCCount++; }
+				int cn = e.EffectiveCrown;
+				if (cn >= 1) agg.ClearCount++;
+				if (cn >= 2) agg.FCCount++;
+				if (cn >= 3) agg.DFCCount++;
 			}
 			return agg;
 		}
@@ -554,7 +554,10 @@ namespace OpenTaiko.Shrandy.Tools
 				if (e.Difficulty != diffLabel) continue;
 				if (e.RandomMod != randomMod || e.Judgement != judgement) continue;
 				agg.PlayCount++;
-				if (e.Bads == 0) { agg.FCCount++; if (e.Okays == 0) agg.DFCCount++; }
+				int cn = e.EffectiveCrown;
+				if (cn >= 1) agg.ClearCount++;
+				if (cn >= 2) agg.FCCount++;
+				if (cn >= 3) agg.DFCCount++;
 			}
 			return agg;
 		}
