@@ -86,11 +86,11 @@ namespace OpenTaiko.Shrandy
 				}
 				summary.AverageHitDelta += hit.Delta;
 
-				if (hit.Delta > 10)
+				if (hit.Delta > 25)
 				{
 					summary.LateHits++;
 				}
-				else if (hit.Delta < -10)
+				else if (hit.Delta < -25)
 				{
 					summary.EarlyHits++;
 				}
@@ -137,8 +137,8 @@ namespace OpenTaiko.Shrandy
 			{
 				Summary summary = CalculateSummary(m_NoteHistory);
 				y = PrintText(x, y, $"Hit Count: {m_NoteHistory.Count}");
-				y = PrintText(x, y, $"Early hits: {summary.EarlyHits}");
-				y = PrintText(x, y, $"Late hits: {summary.LateHits}");
+				y = PrintText(x, y, $"Early Okays: {summary.EarlyHits}");
+				y = PrintText(x, y, $"Late Okays: {summary.LateHits}");
 				y = PrintText(x, y, $"Sync: {summary.AverageHitDelta:F2} ms");
 				y = PrintText(x, y, $"Average Left Error: {summary.AverageLeftHandGoodError:F2} ms");
 				y = PrintText(x, y, $"Average Right Error: {summary.AverageRightHandGoodError:F2} ms");
