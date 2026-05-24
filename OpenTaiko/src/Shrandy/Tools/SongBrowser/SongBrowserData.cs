@@ -90,7 +90,7 @@ namespace OpenTaiko.Shrandy.Tools
 			["loose"] = 0, ["lenient"] = 1, ["normal"] = 2, ["strict"] = 3, ["rigorous"] = 4,
 		};
 
-		private static readonly Regex FilterTokenRegex = new(@"(\w+)\s*(!=|>=|<=|>|<|=)\s*(\S+)", RegexOptions.Compiled);
+		private static readonly Regex FilterTokenRegex = new(@"([\w%]+)\s*(!=|>=|<=|>|<|=)\s*(\S+)", RegexOptions.Compiled);
 
 		// Public accessors
 		public SongHistorySaveData SaveData => m_SaveData;
@@ -487,6 +487,11 @@ namespace OpenTaiko.Shrandy.Tools
 				"plays" => agg.PlayCount,
 				"fc" => agg.FCCount,
 				"dfc" => agg.DFCCount,
+				"goods" => bestPlay?.Goods,
+				"okays" or "oks" => bestPlay?.Okays,
+				"bads" or "misses" => bestPlay?.Bads,
+				"rolls" => bestPlay?.Rolls,
+				"good%" => bestPlay == null || bestPlay.TotalNotes == 0 ? (double?)null : (double)bestPlay.Goods / bestPlay.TotalNotes * 100,
 				_ => null,
 			};
 		}
