@@ -456,7 +456,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 				if (songValue == null)
 				{
-					continue;
+					songValue = 0.0;
 				}
 
 				bool groupPassed = false;
