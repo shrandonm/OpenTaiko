@@ -70,7 +70,18 @@ namespace OpenTaiko.Shrandy.Tools
 		private List<(CSongListNode song, int difficulty)> m_FilteredSongs = new();
 		private HashSet<int> m_SelectedDifficulties = new() { (int)Difficulty.Oni, (int)Difficulty.Edit };
 		private string m_FilterText = "";
+		private bool m_NoModOnly = false;
 		private bool m_NeedsRefresh = true;
+
+		public bool NoModOnly
+		{
+			get => m_NoModOnly;
+			set
+			{
+				m_NoModOnly = value;
+				m_NeedsRefresh = true;
+			}
+		}
 
 		public static readonly string[] DifficultyNames = { "Easy", "Normal", "Hard", "Oni", "Ura" };
 
@@ -398,6 +409,11 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private bool PassesAllFilters(CSongListNode song, CScore score, int level, int difficulty, List<(string field, string op, string value)> filters)
 		{
+			if (m_NoModOnly && GetBestPlayNoMods(song.ldTitle.GetString(""), difficulty) == null)
+			{
+				return false;
+			}
+
 			// Tag filters are evaluated with AND semantics (each tag token must independently pass).
 			// Numeric filters with the same (field, op) pair are grouped and evaluated with OR semantics
 			// so that e.g. "level=7 level=8" shows songs at level 7 OR 8.

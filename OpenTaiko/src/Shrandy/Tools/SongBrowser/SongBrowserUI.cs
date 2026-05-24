@@ -152,6 +152,13 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				OpenTaiko.ShrandyExtension.SetToolEnabled<MarathonTool>(true);
 			}
+
+			ImGui.SameLine();
+			bool noModOnly = m_Data.NoModOnly;
+			if (ImGui.Checkbox("No-mod only", ref noModOnly))
+			{
+				m_Data.NoModOnly = noModOnly;
+			}
 		}
 
 		private void DrawAllSongsTable()
