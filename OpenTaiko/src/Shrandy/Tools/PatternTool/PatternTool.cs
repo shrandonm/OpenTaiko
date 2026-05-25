@@ -1,42 +1,81 @@
-using ImGuiNET;
+using OpenTaiko.Shrandy.Utilities;
 using SlimDXKeys;
 
 namespace OpenTaiko.Shrandy.Tools
 {
 	internal class PatternTool : Tool
 	{
+		private PatternToolUI m_UI;
+		private PatternDatabase m_Database;
+
+		internal PatternDatabase Database => m_Database;
 
 		public PatternTool(string toolName, Key enableHotkey) : base(toolName, enableHotkey)
 		{
+			m_Database = SaveHelper.LoadOrCreate<PatternDatabase>("PatternDatabase.json");
+			m_UI = new PatternToolUI(this);
 		}
 
-		private bool IsActive()
+		internal void SaveDatabase()
 		{
-			return OpenTaiko.rCurrentStage is CStage演奏ドラム画面 && OpenTaiko.ConfigIni.bTokkunMode;
-		}
-		
-		protected override void Draw()
-		{
-			base.Draw();
-
-			bool inGameStage = IsActive();
-			if (!inGameStage)
-			{
-				if (ImGui.Button("Enter Pattern Mode"))
-				{
-					EnterPatternMode();
-				}
-			}
-			else
-			{
-				ImGui.Text("Pattern mode active.");
-			}
+			m_Database.Save();
 		}
 
-		private void EnterPatternMode()
+		internal void PlayPattern(PatternData pattern)
 		{
 			string tjaPath = Path.Combine(OpenTaiko.strEXEのあるフォルダ, "Songs", "PatternTool", "PatternTool.tja");
 			string folderPath = Path.GetDirectoryName(tjaPath) + Path.DirectorySeparatorChar;
+
+			string tjaContent =
+				$"TITLE:{pattern.Title}\n" +
+				"BPM:120\n" +
+				"WAVE:\n" +
+				"OFFSET:0.000\n" +
+				"COURSE:Easy\n" +
+				"LEVEL:1\n" +
+				"#START\n" +
+				pattern.TJA + ",\n" +
+				"#END\n";
+
+			var newTja = new CTja();
+			newTja.Activate();
+			newTja.t入力FromString(tjaContent, tjaPath, folderPath, 0, 0, true, 0);
+			newTja.tInitLocalStores(0);
+
+			OpenTaiko.TJA!.t全チップの再生停止とミキサーからの削除();
+			OpenTaiko.SetTJA(0, newTja);
+			OpenTaiko.stageGameScreen.RefreshChipListReferences();
+			OpenTaiko.stageGameScreen.actTokkun.Activate();
+			OpenTaiko.stageGameScreen.t演奏やりなおし();
+		}
+
+		internal bool IsActive()
+		{
+			return OpenTaiko.rCurrentStage is CStage演奏ドラム画面 && OpenTaiko.ConfigIni.bTokkunMode;
+		}
+
+		protected override void Draw()
+		{
+			base.Draw();
+			m_UI.Draw();
+		}
+
+		internal void EnterPatternMode()
+		{
+			string tjaPath = Path.Combine(OpenTaiko.strEXEのあるフォルダ, "Songs", "PatternTool", "PatternTool.tja");
+			string folderPath = Path.GetDirectoryName(tjaPath) + Path.DirectorySeparatorChar;
+
+			Directory.CreateDirectory(Path.GetDirectoryName(tjaPath)!);
+			File.WriteAllText(tjaPath,
+				"TITLE:PatternTool\n" +
+				"BPM:120\n" +
+				"WAVE:\n" +
+				"OFFSET:0.000\n" +
+				"COURSE:Easy\n" +
+				"LEVEL:1\n" +
+				"#START\n" +
+				",\n" +
+				"#END\n");
 
 			var score = new CScore();
 			score.ファイル情報.ファイルの絶対パス = tjaPath;

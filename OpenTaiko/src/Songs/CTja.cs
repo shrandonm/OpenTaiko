@@ -958,6 +958,21 @@ internal class CTja : CActivity {
 			Trace.TraceError("An exception occurred, but processing will continue. (79ff8639-9b3c-477f-bc4a-f2eea9784860)");
 		}
 	}
+
+	public void t入力FromString(string content, string fullPath, string folderPath, int nBGMAdjust, int nPlayerSide, bool bSession, int difficulty) {
+		this.bHeaderOnly = false;
+		this.strFullPath = fullPath;
+		this.strFileName = Path.GetFileName(fullPath);
+		this.strFolderPath = folderPath;
+		this.nPlayerSide = nPlayerSide;
+		this.bSession譜面を読み込む = bSession;
+		try {
+			this.tProcessAllText(content, nBGMAdjust, difficulty);
+		} catch (Exception ex) {
+			Trace.TraceError(ex.ToString());
+		}
+	}
+
 	public void tProcessAllText(string str全入力文字列, int nBGMAdjust, int Difficulty) {
 		if (!string.IsNullOrEmpty(str全入力文字列)) {
 			#region [ 初期化 ]

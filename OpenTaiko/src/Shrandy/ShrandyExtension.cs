@@ -151,9 +151,14 @@ namespace OpenTaiko.Shrandy
 		public void Draw()
 		{
 			Toolbar.Draw(m_Tools);
+			bool blockHotkeys = ImGui.IsPopupOpen("", ImGuiPopupFlags.AnyPopup)
+				|| m_Tools.Exists(x => x.Enabled && x.IsBlockingInput());
 			foreach (Tool tool in m_Tools)
 			{
-				tool.UpdateEnabledState();
+				if (!blockHotkeys)
+				{
+					tool.UpdateEnabledState();
+				}
 				if (tool.Enabled)
 				{
 					tool.DrawWindow();
