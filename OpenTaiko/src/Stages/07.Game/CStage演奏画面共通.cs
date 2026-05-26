@@ -3597,8 +3597,10 @@ internal abstract class CStage演奏画面共通 : CStage {
 
 
 	public void RefreshChipListReferences() {
-		for (int i = 0; i < OpenTaiko.ConfigIni.nPlayerCount; i++)
+		for (int i = 0; i < OpenTaiko.ConfigIni.nPlayerCount; i++) {
 			listChip[i] = OpenTaiko.GetTJA(i)!.listChip;
+			this.nCurrentTopChip[i] = listChip[i].Count - 1;   // 終端にシーク
+		}
 	}
 
 	public void t演奏やりなおし() {
@@ -3804,8 +3806,7 @@ internal abstract class CStage演奏画面共通 : CStage {
 			this.chip現在処理中の連打チップ[i].Clear();
 			this.actChara.ReturnDefaultAnime(i, true);
 
-			int chipResetLimit = Math.Min(iPrevTopChip[i], tja.listChip.Count);
-			for (int iChip = 0; iChip < chipResetLimit; ++iChip) {
+			for (int iChip = 0; iChip < iPrevTopChip[i]; ++iChip) {
 				CChip chip = tja.listChip[iChip];
 				if (!NotesManager.IsHittableNote(chip))
 					chip.bHit = false;
