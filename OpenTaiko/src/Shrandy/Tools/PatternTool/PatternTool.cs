@@ -7,18 +7,53 @@ namespace OpenTaiko.Shrandy.Tools
 	{
 		private PatternToolUI m_UI;
 		private PatternDatabase m_Database;
+		private Random m_Rng = new();
 
 		internal PatternDatabase Database => m_Database;
 
 		public PatternTool(string toolName, Key enableHotkey) : base(toolName, enableHotkey)
 		{
 			m_Database = SaveHelper.LoadOrCreate<PatternDatabase>("PatternDatabase.json");
+			m_Database.Reconcile();
 			m_UI = new PatternToolUI(this);
 		}
 
 		internal void SaveDatabase()
 		{
 			m_Database.Save();
+		}
+
+		internal void PlayDrill(DrillData drill, int count)
+		{
+			List<DrillData.PatternWeight> availablePatterns = drill.Patterns.Where(pw => pw.Weight > 0).ToList();
+			int totalWeight = availablePatterns.Sum(pw => pw.Weight);
+			if (totalWeight == 0 || availablePatterns.Count == 0)
+			{
+				return;
+			}
+
+			List<PatternData> selected = new(count);
+			for (int i = 0; i < count; i++)
+			{
+				int roll = m_Rng.Next(totalWeight);
+				int accumulatedWeight = 0;
+				foreach (DrillData.PatternWeight patternWeight in availablePatterns)
+				{
+					accumulatedWeight += patternWeight.Weight;
+					if (roll < accumulatedWeight)
+					{
+						selected.Add(patternWeight.Pattern);
+						break;
+					}
+				}
+			}
+
+			string combinedTJA = string.Join(",\n", selected.Select(p => p.TJA));
+			PlayPattern(new PatternData
+			{
+				Title = drill.Title,
+				TJA = combinedTJA
+			});
 		}
 
 		internal void PlayPattern(PatternData pattern)
