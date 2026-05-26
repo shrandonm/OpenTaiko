@@ -139,16 +139,17 @@ namespace OpenTaiko.Shrandy.Tools
 				// Two-column outer layout
 				if (ImGui.BeginTable("##DrillEditOuter", 2, ImGuiTableFlags.None))
 				{
-					ImGui.TableSetupColumn("##dleft", ImGuiTableColumnFlags.WidthFixed, 220);
-					ImGui.TableSetupColumn("##dright", ImGuiTableColumnFlags.WidthFixed, 300);
+					ImGui.TableSetupColumn("##dleft", ImGuiTableColumnFlags.WidthFixed, 354);
+					ImGui.TableSetupColumn("##dright", ImGuiTableColumnFlags.WidthFixed, 410);
 					ImGui.TableNextRow();
 
 					// Available patterns (left)
 					ImGui.TableSetColumnIndex(0);
 					ImGui.TextUnformatted("Available");
-					if (ImGui.BeginTable("##AvailableTable", 2, innerFlags, new Vector2(220, 200)))
+					if (ImGui.BeginTable("##AvailableTable", 3, innerFlags, new Vector2(354, 200)))
 					{
-						ImGui.TableSetupColumn("Pattern", ImGuiTableColumnFlags.WidthStretch);
+						ImGui.TableSetupColumn("Title", ImGuiTableColumnFlags.WidthFixed, 120);
+						ImGui.TableSetupColumn("Preview", ImGuiTableColumnFlags.WidthFixed, PatternBarVisualizer.PreviewWidth);
 						ImGui.TableSetupColumn("##add", ImGuiTableColumnFlags.WidthFixed, 28);
 						ImGui.TableHeadersRow();
 
@@ -159,6 +160,8 @@ namespace OpenTaiko.Shrandy.Tools
 							ImGui.TableSetColumnIndex(0);
 							ImGui.TextUnformatted(pattern.Title.Length > 0 ? pattern.Title : "(unnamed)");
 							ImGui.TableSetColumnIndex(1);
+							PatternBarVisualizer.DrawInline(pattern.TJA, PatternBarVisualizer.PreviewWidth, PatternBarVisualizer.DefaultHeight);
+							ImGui.TableSetColumnIndex(2);
 							if (ImGui.SmallButton($"+##add{i}"))
 							{
 								m_StagedDrill.Patterns.Add(new DrillData.PatternWeight { Pattern = pattern, Weight = 1 });
@@ -171,9 +174,10 @@ namespace OpenTaiko.Shrandy.Tools
 					// Included patterns (right)
 					ImGui.TableSetColumnIndex(1);
 					ImGui.TextUnformatted("Included");
-					if (ImGui.BeginTable("##IncludedTable", 3, innerFlags, new Vector2(300, 200)))
+					if (ImGui.BeginTable("##IncludedTable", 4, innerFlags, new Vector2(410, 200)))
 					{
-						ImGui.TableSetupColumn("Pattern", ImGuiTableColumnFlags.WidthStretch);
+						ImGui.TableSetupColumn("Title", ImGuiTableColumnFlags.WidthFixed, 120);
+						ImGui.TableSetupColumn("Preview", ImGuiTableColumnFlags.WidthFixed, PatternBarVisualizer.PreviewWidth);
 						ImGui.TableSetupColumn("Weight", ImGuiTableColumnFlags.WidthFixed, 58);
 						ImGui.TableSetupColumn("##rm", ImGuiTableColumnFlags.WidthFixed, 24);
 						ImGui.TableHeadersRow();
@@ -186,13 +190,15 @@ namespace OpenTaiko.Shrandy.Tools
 						ImGui.TableSetColumnIndex(0);
 						ImGui.TextUnformatted(staged.Pattern.Title.Length > 0 ? staged.Pattern.Title : "(unnamed)");
 						ImGui.TableSetColumnIndex(1);
+						PatternBarVisualizer.DrawInline(staged.Pattern.TJA, PatternBarVisualizer.PreviewWidth, PatternBarVisualizer.DefaultHeight);
+						ImGui.TableSetColumnIndex(2);
 						ImGui.SetNextItemWidth(54);
 						int adjustedWeight = staged.Weight;
 						if (ImGui.DragInt($"##iw{i}", ref adjustedWeight, 1, 1, 100))
 						{
 							m_StagedDrill.Patterns[i] = new DrillData.PatternWeight { Pattern = staged.Pattern, Weight = Math.Max(1, adjustedWeight) };
 							}
-							ImGui.TableSetColumnIndex(2);
+							ImGui.TableSetColumnIndex(3);
 							if (ImGui.SmallButton($"x##irm{i}"))
 							{
 								removeIdx = i;
@@ -230,8 +236,8 @@ namespace OpenTaiko.Shrandy.Tools
 
 				if (ImGui.BeginTable("##FillerEditOuter", 2, ImGuiTableFlags.None))
 				{
-					ImGui.TableSetupColumn("##fleft", ImGuiTableColumnFlags.WidthFixed, 220);
-					ImGui.TableSetupColumn("##fright", ImGuiTableColumnFlags.WidthFixed, 300);
+					ImGui.TableSetupColumn("##fleft", ImGuiTableColumnFlags.WidthFixed, 354);
+					ImGui.TableSetupColumn("##fright", ImGuiTableColumnFlags.WidthFixed, 410);
 					ImGui.TableNextRow();
 
 					HashSet<PatternData> fillerIncludedSet = m_StagedDrill.FillerPatterns.Select(s => s.Pattern).ToHashSet();
@@ -240,9 +246,10 @@ namespace OpenTaiko.Shrandy.Tools
 					// Available patterns (left)
 					ImGui.TableSetColumnIndex(0);
 					ImGui.TextUnformatted("Available");
-					if (ImGui.BeginTable("##FillerAvailableTable", 2, innerFlags, new Vector2(220, 150)))
+					if (ImGui.BeginTable("##FillerAvailableTable", 3, innerFlags, new Vector2(354, 150)))
 					{
-						ImGui.TableSetupColumn("Pattern", ImGuiTableColumnFlags.WidthStretch);
+						ImGui.TableSetupColumn("Title", ImGuiTableColumnFlags.WidthFixed, 120);
+						ImGui.TableSetupColumn("Preview", ImGuiTableColumnFlags.WidthFixed, PatternBarVisualizer.PreviewWidth);
 						ImGui.TableSetupColumn("##fadd", ImGuiTableColumnFlags.WidthFixed, 28);
 						ImGui.TableHeadersRow();
 
@@ -253,6 +260,8 @@ namespace OpenTaiko.Shrandy.Tools
 							ImGui.TableSetColumnIndex(0);
 							ImGui.TextUnformatted(pattern.Title.Length > 0 ? pattern.Title : "(unnamed)");
 							ImGui.TableSetColumnIndex(1);
+							PatternBarVisualizer.DrawInline(pattern.TJA, PatternBarVisualizer.PreviewWidth, PatternBarVisualizer.DefaultHeight);
+							ImGui.TableSetColumnIndex(2);
 							if (ImGui.SmallButton($"+##fadd{i}"))
 							{
 								m_StagedDrill.FillerPatterns.Add(new DrillData.PatternWeight { Pattern = pattern, Weight = 1 });
@@ -265,9 +274,10 @@ namespace OpenTaiko.Shrandy.Tools
 					// Included filler patterns (right)
 					ImGui.TableSetColumnIndex(1);
 					ImGui.TextUnformatted("Included");
-					if (ImGui.BeginTable("##FillerIncludedTable", 3, innerFlags, new Vector2(300, 150)))
+					if (ImGui.BeginTable("##FillerIncludedTable", 4, innerFlags, new Vector2(410, 150)))
 					{
-						ImGui.TableSetupColumn("Pattern", ImGuiTableColumnFlags.WidthStretch);
+						ImGui.TableSetupColumn("Title", ImGuiTableColumnFlags.WidthFixed, 120);
+						ImGui.TableSetupColumn("Preview", ImGuiTableColumnFlags.WidthFixed, PatternBarVisualizer.PreviewWidth);
 						ImGui.TableSetupColumn("Weight", ImGuiTableColumnFlags.WidthFixed, 58);
 						ImGui.TableSetupColumn("##frm", ImGuiTableColumnFlags.WidthFixed, 24);
 						ImGui.TableHeadersRow();
@@ -280,13 +290,15 @@ namespace OpenTaiko.Shrandy.Tools
 						ImGui.TableSetColumnIndex(0);
 						ImGui.TextUnformatted(staged.Pattern.Title.Length > 0 ? staged.Pattern.Title : "(unnamed)");
 						ImGui.TableSetColumnIndex(1);
+						PatternBarVisualizer.DrawInline(staged.Pattern.TJA, PatternBarVisualizer.PreviewWidth, PatternBarVisualizer.DefaultHeight);
+						ImGui.TableSetColumnIndex(2);
 						ImGui.SetNextItemWidth(54);
 						int adjustedWeight = staged.Weight;
 						if (ImGui.DragInt($"##fiw{i}", ref adjustedWeight, 1, 1, 100))
 						{
 							m_StagedDrill.FillerPatterns[i] = new DrillData.PatternWeight { Pattern = staged.Pattern, Weight = Math.Max(1, adjustedWeight) };
 							}
-							ImGui.TableSetColumnIndex(2);
+							ImGui.TableSetColumnIndex(3);
 							if (ImGui.SmallButton($"x##firm{i}"))
 							{
 								fillerRemoveIdx = i;

@@ -41,11 +41,6 @@ namespace OpenTaiko.Shrandy.Tools
 			if (ImGui.BeginPopupModal(MainPopupId, ref open, ImGuiWindowFlags.None))
 			{
 				DrawContents();
-				ImGui.Spacing();
-				if (ImGui.Button("Close##pmclose"))
-				{
-					ImGui.CloseCurrentPopup();
-				}
 				ImGui.EndPopup();
 			}
 		}
@@ -57,12 +52,14 @@ namespace OpenTaiko.Shrandy.Tools
 			ImGui.SeparatorText("Patterns");
 
 			ImGuiTableFlags tableFlags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg
-				| ImGuiTableFlags.ScrollY | ImGuiTableFlags.SizingFixedFit;
-			if (ImGui.BeginTable("##PatternTable", 3, tableFlags, new Vector2(0, 180)))
+				| ImGuiTableFlags.ScrollY | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Resizable;
+			float buttonRowHeight = ImGui.GetFrameHeightWithSpacing();
+			float tableHeight = ImGui.GetContentRegionAvail().Y - buttonRowHeight;
+			if (ImGui.BeginTable("##PatternTable", 3, tableFlags, new Vector2(0, tableHeight)))
 			{
 				ImGui.TableSetupScrollFreeze(0, 1);
-				ImGui.TableSetupColumn("Title", ImGuiTableColumnFlags.WidthFixed, 120);
-				ImGui.TableSetupColumn("TJA", ImGuiTableColumnFlags.WidthStretch);
+				ImGui.TableSetupColumn("Title", ImGuiTableColumnFlags.WidthFixed, 200);
+				ImGui.TableSetupColumn("Pattern", ImGuiTableColumnFlags.WidthFixed, PatternBarVisualizer.PreviewWidth);
 				ImGui.TableSetupColumn("##edit_col", ImGuiTableColumnFlags.WidthFixed, 40);
 				ImGui.TableHeadersRow();
 
@@ -80,9 +77,7 @@ namespace OpenTaiko.Shrandy.Tools
 					}
 
 					ImGui.TableSetColumnIndex(1);
-					string tja = patterns[i].TJA;
-					string preview = tja.Length > 32 ? tja[..32] + "..." : tja;
-					ImGui.TextUnformatted(preview);
+					PatternBarVisualizer.DrawInline(patterns[i].TJA, PatternBarVisualizer.PreviewWidth, PatternBarVisualizer.DefaultHeight);
 
 					ImGui.TableSetColumnIndex(2);
 					if (ImGui.SmallButton($"Edit##pe{i}"))
@@ -134,6 +129,12 @@ namespace OpenTaiko.Shrandy.Tools
 				}
 			}
 
+			ImGui.SameLine();
+			if (ImGui.Button("Close##pmclose"))
+			{
+				ImGui.CloseCurrentPopup();
+			}
+
 			DrawEditPopup();
 			DrawDeletePopup();
 		}
@@ -149,16 +150,17 @@ namespace OpenTaiko.Shrandy.Tools
 				}
 
 				if (m_EditIsBuiltIn)
-			{
-				ImGui.BeginDisabled();
-			}
-			ImGui.InputText("Title##ptitle", ref m_TitleInput, 256);
-			if (m_EditIsBuiltIn)
-			{
-				ImGui.EndDisabled();
-			}
+				{
+					ImGui.BeginDisabled();
+				}
+					ImGui.InputText("Title##ptitle", ref m_TitleInput, 256);
+				if (m_EditIsBuiltIn)
+				{
+					ImGui.EndDisabled();
+				}
+				ImGui.SeparatorText("Preview");
+				PatternBarVisualizer.DrawInline(m_TJAInput, PatternBarVisualizer.PreviewWidth, PatternBarVisualizer.DefaultHeight);
 				ImGui.InputTextMultiline("TJA##ptja", ref m_TJAInput, 8192, new Vector2(400, 200));
-
 				bool canApply = m_TitleInput.Length > 0;
 				if (!canApply)
 				{
