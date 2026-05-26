@@ -9,7 +9,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private int m_SelectedIndex = -1;
 		private string m_TitleInput = "";
-		private List<(PatternData Pattern, int Weight)> m_StagedPatterns = new();
+		private DrillData m_StagedDrill = new();
 		private bool m_EditIsNew = false;
 		private bool m_PendingEditOpen = false;
 		private int m_DrillCount = 100;
@@ -79,7 +79,13 @@ namespace OpenTaiko.Shrandy.Tools
 			if (ImGui.Button("Add##dadd"))
 			{
 				m_TitleInput = "";
-				m_StagedPatterns.Clear();
+				m_StagedDrill = new DrillData
+				{
+					FillerPatterns = m_Tool.Database.Patterns
+						.Where(p => PatternDatabase.IsBuiltIn(p))
+						.Select(p => new DrillData.PatternWeight { Pattern = p, Weight = 1 })
+						.ToList(),
+				};
 				m_EditIsNew = true;
 				ImGui.OpenPopup(EditPopupId);
 			}
@@ -104,9 +110,13 @@ namespace OpenTaiko.Shrandy.Tools
 		private void OpenEditPopup(DrillData drill)
 		{
 			m_TitleInput = drill.Title;
-			m_StagedPatterns = drill.Patterns
-				.Select(pw => (pw.Pattern, pw.Weight))
-				.ToList();
+			m_StagedDrill = new DrillData
+			{
+				Patterns = drill.Patterns.ToList(),
+				FillerPatterns = drill.FillerPatterns.ToList(),
+				MinFillerPatternFrequency = drill.MinFillerPatternFrequency,
+				MaxFillerPatternFrequency = drill.MaxFillerPatternFrequency,
+			};
 			m_EditIsNew = false;
 			m_PendingEditOpen = true;
 		}
@@ -120,7 +130,7 @@ namespace OpenTaiko.Shrandy.Tools
 				ImGui.Spacing();
 
 				List<PatternData> allPatterns = m_Tool.Database.Patterns;
-				HashSet<PatternData> includedSet = m_StagedPatterns.Select(s => s.Pattern).ToHashSet();
+				HashSet<PatternData> includedSet = m_StagedDrill.Patterns.Select(s => s.Pattern).ToHashSet();
 				List<PatternData> excluded = allPatterns.Where(p => !includedSet.Contains(p)).ToList();
 
 				ImGuiTableFlags innerFlags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg
@@ -151,7 +161,7 @@ namespace OpenTaiko.Shrandy.Tools
 							ImGui.TableSetColumnIndex(1);
 							if (ImGui.SmallButton($"+##add{i}"))
 							{
-								m_StagedPatterns.Add((pattern, 1));
+								m_StagedDrill.Patterns.Add(new DrillData.PatternWeight { Pattern = pattern, Weight = 1 });
 							}
 						}
 
@@ -169,18 +179,18 @@ namespace OpenTaiko.Shrandy.Tools
 						ImGui.TableHeadersRow();
 
 						int removeIdx = -1;
-						for (int i = 0; i < m_StagedPatterns.Count; i++)
+						for (int i = 0; i < m_StagedDrill.Patterns.Count; i++)
 						{
-							(PatternData pattern, int weight) = m_StagedPatterns[i];
-							ImGui.TableNextRow();
-							ImGui.TableSetColumnIndex(0);
-							ImGui.TextUnformatted(pattern.Title.Length > 0 ? pattern.Title : "(unnamed)");
-							ImGui.TableSetColumnIndex(1);
-							ImGui.SetNextItemWidth(54);
-							int adjustedWeight = weight;
-							if (ImGui.DragInt($"##iw{i}", ref adjustedWeight, 1, 1, 100))
-							{
-								m_StagedPatterns[i] = (pattern, Math.Max(1, adjustedWeight));
+						DrillData.PatternWeight staged = m_StagedDrill.Patterns[i];
+						ImGui.TableNextRow();
+						ImGui.TableSetColumnIndex(0);
+						ImGui.TextUnformatted(staged.Pattern.Title.Length > 0 ? staged.Pattern.Title : "(unnamed)");
+						ImGui.TableSetColumnIndex(1);
+						ImGui.SetNextItemWidth(54);
+						int adjustedWeight = staged.Weight;
+						if (ImGui.DragInt($"##iw{i}", ref adjustedWeight, 1, 1, 100))
+						{
+							m_StagedDrill.Patterns[i] = new DrillData.PatternWeight { Pattern = staged.Pattern, Weight = Math.Max(1, adjustedWeight) };
 							}
 							ImGui.TableSetColumnIndex(2);
 							if (ImGui.SmallButton($"x##irm{i}"))
@@ -190,7 +200,101 @@ namespace OpenTaiko.Shrandy.Tools
 						}
 						if (removeIdx >= 0)
 						{
-							m_StagedPatterns.RemoveAt(removeIdx);
+							m_StagedDrill.Patterns.RemoveAt(removeIdx);
+						}
+
+						ImGui.EndTable();
+					}
+
+					ImGui.EndTable();
+				}
+
+				ImGui.Spacing();
+				ImGui.SeparatorText("Filler Patterns");
+				ImGui.TextDisabled("A random filler is inserted every N regular patterns (min=0 disables)");
+
+				ImGui.SetNextItemWidth(80);
+				int fMin = m_StagedDrill.MinFillerPatternFrequency;
+				if (ImGui.DragInt("Min##fmin", ref fMin, 1, 0, 100))
+				{
+					m_StagedDrill.MinFillerPatternFrequency = Math.Max(0, fMin);
+					m_StagedDrill.MaxFillerPatternFrequency = Math.Max(m_StagedDrill.MinFillerPatternFrequency, m_StagedDrill.MaxFillerPatternFrequency);
+				}
+				ImGui.SameLine();
+				ImGui.SetNextItemWidth(80);
+				int fMax = m_StagedDrill.MaxFillerPatternFrequency;
+				if (ImGui.DragInt("Max##fmax", ref fMax, 1, 0, 100))
+				{
+					m_StagedDrill.MaxFillerPatternFrequency = Math.Max(m_StagedDrill.MinFillerPatternFrequency, Math.Max(0, fMax));
+				}
+
+				if (ImGui.BeginTable("##FillerEditOuter", 2, ImGuiTableFlags.None))
+				{
+					ImGui.TableSetupColumn("##fleft", ImGuiTableColumnFlags.WidthFixed, 220);
+					ImGui.TableSetupColumn("##fright", ImGuiTableColumnFlags.WidthFixed, 300);
+					ImGui.TableNextRow();
+
+					HashSet<PatternData> fillerIncludedSet = m_StagedDrill.FillerPatterns.Select(s => s.Pattern).ToHashSet();
+					List<PatternData> fillerExcluded = allPatterns.Where(p => !fillerIncludedSet.Contains(p)).ToList();
+
+					// Available patterns (left)
+					ImGui.TableSetColumnIndex(0);
+					ImGui.TextUnformatted("Available");
+					if (ImGui.BeginTable("##FillerAvailableTable", 2, innerFlags, new Vector2(220, 150)))
+					{
+						ImGui.TableSetupColumn("Pattern", ImGuiTableColumnFlags.WidthStretch);
+						ImGui.TableSetupColumn("##fadd", ImGuiTableColumnFlags.WidthFixed, 28);
+						ImGui.TableHeadersRow();
+
+						for (int i = 0; i < fillerExcluded.Count; i++)
+						{
+							PatternData pattern = fillerExcluded[i];
+							ImGui.TableNextRow();
+							ImGui.TableSetColumnIndex(0);
+							ImGui.TextUnformatted(pattern.Title.Length > 0 ? pattern.Title : "(unnamed)");
+							ImGui.TableSetColumnIndex(1);
+							if (ImGui.SmallButton($"+##fadd{i}"))
+							{
+								m_StagedDrill.FillerPatterns.Add(new DrillData.PatternWeight { Pattern = pattern, Weight = 1 });
+							}
+						}
+
+						ImGui.EndTable();
+					}
+
+					// Included filler patterns (right)
+					ImGui.TableSetColumnIndex(1);
+					ImGui.TextUnformatted("Included");
+					if (ImGui.BeginTable("##FillerIncludedTable", 3, innerFlags, new Vector2(300, 150)))
+					{
+						ImGui.TableSetupColumn("Pattern", ImGuiTableColumnFlags.WidthStretch);
+						ImGui.TableSetupColumn("Weight", ImGuiTableColumnFlags.WidthFixed, 58);
+						ImGui.TableSetupColumn("##frm", ImGuiTableColumnFlags.WidthFixed, 24);
+						ImGui.TableHeadersRow();
+
+						int fillerRemoveIdx = -1;
+						for (int i = 0; i < m_StagedDrill.FillerPatterns.Count; i++)
+						{
+						DrillData.PatternWeight staged = m_StagedDrill.FillerPatterns[i];
+						ImGui.TableNextRow();
+						ImGui.TableSetColumnIndex(0);
+						ImGui.TextUnformatted(staged.Pattern.Title.Length > 0 ? staged.Pattern.Title : "(unnamed)");
+						ImGui.TableSetColumnIndex(1);
+						ImGui.SetNextItemWidth(54);
+						int adjustedWeight = staged.Weight;
+						if (ImGui.DragInt($"##fiw{i}", ref adjustedWeight, 1, 1, 100))
+						{
+							m_StagedDrill.FillerPatterns[i] = new DrillData.PatternWeight { Pattern = staged.Pattern, Weight = Math.Max(1, adjustedWeight) };
+							}
+							ImGui.TableSetColumnIndex(2);
+							if (ImGui.SmallButton($"x##firm{i}"))
+							{
+								fillerRemoveIdx = i;
+							}
+						}
+						if (fillerRemoveIdx >= 0)
+						{
+							m_StagedDrill.FillerPatterns.RemoveAt(fillerRemoveIdx);
 						}
 
 						ImGui.EndTable();
@@ -258,19 +362,21 @@ namespace OpenTaiko.Shrandy.Tools
 		private void ApplyDrillChanges()
 		{
 			List<DrillData> drills = m_Tool.Database.Drills;
-			List<DrillData.PatternWeight> newPatterns = m_StagedPatterns
-				.Select(s => new DrillData.PatternWeight { Pattern = s.Pattern, Weight = s.Weight })
-				.ToList();
 
 			if (m_EditIsNew)
 			{
-				m_Tool.Database.AddDrill(new DrillData { Title = m_TitleInput, Patterns = newPatterns });
+				m_StagedDrill.Title = m_TitleInput;
+				m_Tool.Database.AddDrill(m_StagedDrill);
 				m_SelectedIndex = drills.Count - 1;
 			}
 			else if (m_SelectedIndex >= 0 && m_SelectedIndex < drills.Count)
 			{
-				drills[m_SelectedIndex].Title = m_TitleInput;
-				drills[m_SelectedIndex].Patterns = newPatterns;
+				DrillData drill = drills[m_SelectedIndex];
+				drill.Title = m_TitleInput;
+				drill.Patterns = m_StagedDrill.Patterns;
+				drill.FillerPatterns = m_StagedDrill.FillerPatterns;
+				drill.MinFillerPatternFrequency = m_StagedDrill.MinFillerPatternFrequency;
+				drill.MaxFillerPatternFrequency = m_StagedDrill.MaxFillerPatternFrequency;
 			}
 			m_Tool.SaveDatabase();
 		}

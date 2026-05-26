@@ -10,5 +10,8 @@ namespace OpenTaiko.Shrandy.Tools
 		
 		public string Title { get; set; } = "";
 		public List<PatternWeight> Patterns { get; set; } = new();
+		public List<PatternWeight> FillerPatterns { get; set; } = new();
+		public int MinFillerPatternFrequency { get; set; } = 4;
+		public int MaxFillerPatternFrequency { get; set; } = 8;
 	}
 }

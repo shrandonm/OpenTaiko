@@ -11,6 +11,7 @@ namespace OpenTaiko.Shrandy.Tools
 		private string m_TitleInput = "";
 		private string m_TJAInput = "";
 		private bool m_EditIsNew = false;
+		private bool m_EditIsBuiltIn = false;
 		private bool m_PendingEditOpen = false;
 		private bool m_MainPendingOpen = false;
 
@@ -90,6 +91,7 @@ namespace OpenTaiko.Shrandy.Tools
 						m_TitleInput = patterns[i].Title;
 						m_TJAInput = patterns[i].TJA;
 						m_EditIsNew = false;
+						m_EditIsBuiltIn = PatternDatabase.IsBuiltIn(patterns[i]);
 						m_PendingEditOpen = true;
 					}
 				}
@@ -110,15 +112,25 @@ namespace OpenTaiko.Shrandy.Tools
 				m_TitleInput = "";
 				m_TJAInput = "";
 				m_EditIsNew = true;
+				m_EditIsBuiltIn = false;
 				ImGui.OpenPopup(EditPopupId);
 			}
 
 			if (hasSelection)
 			{
 				ImGui.SameLine();
+				bool selectedIsBuiltIn = PatternDatabase.IsBuiltIn(patterns[m_SelectedIndex]);
+				if (selectedIsBuiltIn)
+				{
+					ImGui.BeginDisabled();
+				}
 				if (ImGui.Button("Delete##pdel"))
 				{
 					ImGui.OpenPopup(DeletePopupId);
+				}
+				if (selectedIsBuiltIn)
+				{
+					ImGui.EndDisabled();
 				}
 			}
 
@@ -136,7 +148,15 @@ namespace OpenTaiko.Shrandy.Tools
 					ImGui.SetKeyboardFocusHere();
 				}
 
-				ImGui.InputText("Title##ptitle", ref m_TitleInput, 256);
+				if (m_EditIsBuiltIn)
+			{
+				ImGui.BeginDisabled();
+			}
+			ImGui.InputText("Title##ptitle", ref m_TitleInput, 256);
+			if (m_EditIsBuiltIn)
+			{
+				ImGui.EndDisabled();
+			}
 				ImGui.InputTextMultiline("TJA##ptja", ref m_TJAInput, 8192, new Vector2(400, 200));
 
 				bool canApply = m_TitleInput.Length > 0;

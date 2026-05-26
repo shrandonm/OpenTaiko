@@ -32,20 +32,28 @@ namespace OpenTaiko.Shrandy.Tools
 				return;
 			}
 
-			List<PatternData> selected = new(count);
+			List<DrillData.PatternWeight> availableFillers = drill.FillerPatterns.Where(pw => pw.Weight > 0).ToList();
+			int totalFillerWeight = availableFillers.Sum(pw => pw.Weight);
+			bool hasFillers = availableFillers.Count > 0
+				&& totalFillerWeight > 0
+				&& drill.MinFillerPatternFrequency > 0
+				&& drill.MaxFillerPatternFrequency >= drill.MinFillerPatternFrequency;
+
+			List<PatternData> selected = new();
+			int regularSinceLastFiller = 0;
+			int nextFillerAfter = hasFillers ? RollFillerFrequency(drill) : int.MaxValue;
+
 			for (int i = 0; i < count; i++)
 			{
-				int roll = m_Rng.Next(totalWeight);
-				int accumulatedWeight = 0;
-				foreach (DrillData.PatternWeight patternWeight in availablePatterns)
+				if (hasFillers && regularSinceLastFiller >= nextFillerAfter)
 				{
-					accumulatedWeight += patternWeight.Weight;
-					if (roll < accumulatedWeight)
-					{
-						selected.Add(patternWeight.Pattern);
-						break;
-					}
+					selected.Add(PickWeightedRandom(availableFillers, totalFillerWeight));
+					regularSinceLastFiller = 0;
+					nextFillerAfter = RollFillerFrequency(drill);
 				}
+
+				selected.Add(PickWeightedRandom(availablePatterns, totalWeight));
+				regularSinceLastFiller++;
 			}
 
 			string combinedTJA = string.Join(",\n", selected.Select(p => p.TJA));
@@ -54,6 +62,28 @@ namespace OpenTaiko.Shrandy.Tools
 				Title = drill.Title,
 				TJA = combinedTJA
 			});
+		}
+
+		private PatternData PickWeightedRandom(List<DrillData.PatternWeight> patterns, int totalWeight)
+		{
+			int roll = m_Rng.Next(totalWeight);
+			int accumulated = 0;
+			foreach (DrillData.PatternWeight pw in patterns)
+			{
+				accumulated += pw.Weight;
+				if (roll < accumulated)
+				{
+					return pw.Pattern;
+				}
+			}
+			return patterns[^1].Pattern;
+		}
+
+		private int RollFillerFrequency(DrillData drill)
+		{
+			int min = Math.Max(1, drill.MinFillerPatternFrequency);
+			int max = Math.Max(min, drill.MaxFillerPatternFrequency);
+			return m_Rng.Next(min, max + 1);
 		}
 
 		internal void PlayPattern(PatternData pattern)
