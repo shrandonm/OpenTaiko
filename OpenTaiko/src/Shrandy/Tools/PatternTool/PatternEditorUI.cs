@@ -38,7 +38,7 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 
 			bool open = true;
-			if (ImGui.BeginPopupModal(MainPopupId, ref open, ImGuiWindowFlags.AlwaysAutoResize))
+			if (ImGui.BeginPopupModal(MainPopupId, ref open, ImGuiWindowFlags.None))
 			{
 				DrawContents();
 				ImGui.Spacing();
@@ -141,7 +141,7 @@ namespace OpenTaiko.Shrandy.Tools
 		private void DrawEditPopup()
 		{
 			bool open = true;
-			if (ImGui.BeginPopupModal(EditPopupId, ref open, ImGuiWindowFlags.AlwaysAutoResize))
+			if (ImGui.BeginPopupModal(EditPopupId, ref open, ImGuiWindowFlags.None))
 			{
 				if (ImGui.IsWindowAppearing())
 				{

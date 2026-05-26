@@ -124,7 +124,7 @@ namespace OpenTaiko.Shrandy.Tools
 		private void DrawEditPopup()
 		{
 			bool open = true;
-			if (ImGui.BeginPopupModal(EditPopupId, ref open, ImGuiWindowFlags.AlwaysAutoResize))
+			if (ImGui.BeginPopupModal(EditPopupId, ref open, ImGuiWindowFlags.None))
 			{
 				ImGui.InputText("Title##dtitle", ref m_TitleInput, 256);
 				ImGui.Spacing();
