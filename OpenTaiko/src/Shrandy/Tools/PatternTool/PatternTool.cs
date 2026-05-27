@@ -86,23 +86,31 @@ namespace OpenTaiko.Shrandy.Tools
 			return m_Rng.Next(min, max + 1);
 		}
 
-		internal void PlayPattern(PatternData pattern)
+		private static string GetTjaFilePath()
 		{
-			string tjaPath = Path.Combine(OpenTaiko.strEXEのあるフォルダ, "Songs", "PatternTool", "PatternTool.tja");
-			string folderPath = Path.GetDirectoryName(tjaPath) + Path.DirectorySeparatorChar;
+			return Path.Combine(OpenTaiko.strEXEのあるフォルダ, "Songs", "PatternTool", "PatternTool.tja");
+		}
 
-			string tjaContent =
-				$"TITLE:{pattern.Title}\n" +
+		private static string BuildTjaContent(string title, string body)
+		{
+			return $"TITLE:{title}\n" +
 				"BPM:120\n" +
 				"WAVE:\n" +
 				"OFFSET:0.000\n" +
 				"COURSE:Easy\n" +
 				"LEVEL:1\n" +
 				"#START\n" +
-				pattern.TJA + ",\n" +
+				body + ",\n" +
 				"#END\n";
+		}
 
-			var newTja = new CTja();
+		internal void PlayPattern(PatternData pattern)
+		{
+			string tjaPath = GetTjaFilePath();
+			string folderPath = Path.GetDirectoryName(tjaPath) + Path.DirectorySeparatorChar;
+			string tjaContent = BuildTjaContent(pattern.Title, pattern.TJA);
+
+			CTja newTja = new CTja();
 			newTja.Activate();
 			newTja.t入力FromString(tjaContent, tjaPath, folderPath, 0, 0, true, 0);
 			newTja.tInitLocalStores(0);
@@ -127,27 +135,18 @@ namespace OpenTaiko.Shrandy.Tools
 
 		internal void EnterPatternMode()
 		{
-			string tjaPath = Path.Combine(OpenTaiko.strEXEのあるフォルダ, "Songs", "PatternTool", "PatternTool.tja");
+			string tjaPath = GetTjaFilePath();
 			string folderPath = Path.GetDirectoryName(tjaPath) + Path.DirectorySeparatorChar;
 
 			Directory.CreateDirectory(Path.GetDirectoryName(tjaPath)!);
-			File.WriteAllText(tjaPath,
-				"TITLE:PatternTool\n" +
-				"BPM:120\n" +
-				"WAVE:\n" +
-				"OFFSET:0.000\n" +
-				"COURSE:Easy\n" +
-				"LEVEL:1\n" +
-				"#START\n" +
-				",\n" +
-				"#END\n");
+			File.WriteAllText(tjaPath, BuildTjaContent("PatternTool", ""));
 
-			var score = new CScore();
+			CScore score = new CScore();
 			score.ファイル情報.ファイルの絶対パス = tjaPath;
 			score.ファイル情報.フォルダの絶対パス = folderPath;
 			score.譜面情報.タイトル = "PatternTool";
 
-			var node = new CSongListNode();
+			CSongListNode node = new CSongListNode();
 			node.DanSongs = [];
 			node.nodeType = CSongListNode.ENodeType.SCORE;
 			node.ldTitle.SetString("default", "PatternTool");

@@ -221,7 +221,7 @@ namespace OpenTaiko.Shrandy.Tools
 			List<PatternData> patterns = m_Tool.Database.Patterns;
 			if (m_EditIsNew)
 			{
-				m_Tool.Database.AddPattern(new PatternData { Title = m_TitleInput, TJA = m_TJAInput });
+				m_Tool.Database.Patterns.Add(new PatternData { Title = m_TitleInput, TJA = m_TJAInput });
 				m_SelectedIndex = patterns.Count - 1;
 			}
 			else if (m_SelectedIndex >= 0 && m_SelectedIndex < patterns.Count)

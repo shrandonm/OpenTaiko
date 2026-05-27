@@ -15,14 +15,6 @@ namespace OpenTaiko.Shrandy.Tools
 		public List<PatternData> Patterns { get; set; } = new();
 		public List<DrillData> Drills { get; set; } = new();
 		
-		public void AddPattern(PatternData pattern)
-		{
-			Patterns.Add(pattern);
-		}
-		public void ClearPatterns()
-		{
-			Patterns.Clear();
-		}
 		public void RemovePattern(PatternData pattern)
 		{
 			if (IsBuiltIn(pattern))
@@ -30,15 +22,6 @@ namespace OpenTaiko.Shrandy.Tools
 				return;
 			}
 			Patterns.Remove(pattern);
-		}
-
-		public void AddDrill(DrillData drill)
-		{
-			Drills.Add(drill);
-		}
-		public void RemoveDrill(DrillData drill)
-		{
-			Drills.Remove(drill);
 		}
 
 		/// <summary>
@@ -56,23 +39,8 @@ namespace OpenTaiko.Shrandy.Tools
 
 			foreach (DrillData drill in Drills)
 			{
-				for (int i = 0; i < drill.Patterns.Count; i++)
-				{
-					DrillData.PatternWeight patternWeight = drill.Patterns[i];
-					if (patternMap.TryGetValue(patternWeight.Pattern.Title, out PatternData? canonical))
-					{
-						drill.Patterns[i] = new DrillData.PatternWeight { Pattern = canonical!, Weight = patternWeight.Weight };
-					}
-				}
-
-				for (int i = 0; i < drill.FillerPatterns.Count; i++)
-				{
-					DrillData.PatternWeight patternWeight = drill.FillerPatterns[i];
-					if (patternMap.TryGetValue(patternWeight.Pattern.Title, out PatternData? canonical))
-					{
-						drill.FillerPatterns[i] = new DrillData.PatternWeight { Pattern = canonical!, Weight = patternWeight.Weight };
-					}
-				}
+				ReconcileWeightList(drill.Patterns, patternMap);
+				ReconcileWeightList(drill.FillerPatterns, patternMap);
 			}
 		}
 
@@ -96,20 +64,30 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			foreach (DrillData drill in Drills)
 			{
-				for (int i = 0; i < drill.Patterns.Count; i++)
-				{
-					if (drill.Patterns[i].Pattern.Title == oldTitle)
-					{
-						drill.Patterns[i].Pattern.Title = newTitle;
-					}
-				}
+				PropagateRenameInWeightList(drill.Patterns, oldTitle, newTitle);
+				PropagateRenameInWeightList(drill.FillerPatterns, oldTitle, newTitle);
+			}
+		}
 
-				for (int i = 0; i < drill.FillerPatterns.Count; i++)
+		private static void ReconcileWeightList(List<DrillData.PatternWeight> list, Dictionary<string, PatternData> patternMap)
+		{
+			for (int i = 0; i < list.Count; i++)
+			{
+				DrillData.PatternWeight patternWeight = list[i];
+				if (patternMap.TryGetValue(patternWeight.Pattern.Title, out PatternData? canonical))
 				{
-					if (drill.FillerPatterns[i].Pattern.Title == oldTitle)
-					{
-						drill.FillerPatterns[i].Pattern.Title = newTitle;
-					}
+					list[i] = new DrillData.PatternWeight { Pattern = canonical!, Weight = patternWeight.Weight };
+				}
+			}
+		}
+
+		private static void PropagateRenameInWeightList(List<DrillData.PatternWeight> list, string oldTitle, string newTitle)
+		{
+			for (int i = 0; i < list.Count; i++)
+			{
+				if (list[i].Pattern.Title == oldTitle)
+				{
+					list[i].Pattern.Title = newTitle;
 				}
 			}
 		}
