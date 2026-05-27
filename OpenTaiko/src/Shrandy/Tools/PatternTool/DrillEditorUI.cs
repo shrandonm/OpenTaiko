@@ -96,13 +96,8 @@ namespace OpenTaiko.Shrandy.Tools
 
 			ImGui.SeparatorText("Play Controls");
 
-			ImGui.SetNextItemWidth(80);
 			ImGui.InputFloat("BPM##dbpm", ref m_Bpm, 5.0f, 20.0f);
-			ImGui.SameLine();
-			ImGui.SetNextItemWidth(60);
-			ImGui.InputInt("Count##dcount", ref m_DrillCount, 1, 10);
-			ImGui.SameLine();
-			ImGui.SetNextItemWidth(100);
+			ImGui.InputInt("Pattern Count##dcount", ref m_DrillCount, 1, 10);
 			int modeIdx = (int)m_RandomMode;
 			string[] modeNames = Enum.GetNames<DrillRandomMode>();
 			if (ImGui.Combo("Mode##dmode", ref modeIdx, modeNames, modeNames.Length))
