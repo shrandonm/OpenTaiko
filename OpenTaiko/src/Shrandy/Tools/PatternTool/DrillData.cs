@@ -1,5 +1,12 @@
 namespace OpenTaiko.Shrandy.Tools
 {
+	internal enum DrillRandomMode
+	{
+		Normal,
+		Messy,
+		RandomInvert,
+	}
+
 	internal class DrillData
 	{
 		public struct PatternWeight

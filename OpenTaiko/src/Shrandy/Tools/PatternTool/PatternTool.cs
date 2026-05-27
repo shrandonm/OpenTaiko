@@ -23,14 +23,21 @@ namespace OpenTaiko.Shrandy.Tools
 			m_Database.Save();
 		}
 
-		internal void PlayDrill(DrillData drill, int count)
+		internal void PlayDrill(DrillData drill, int count, DrillRandomMode mode = DrillRandomMode.Normal)
+		{
+			string? tja = BuildDrillTja(drill, count, mode);
+			if (tja != null)
+			{
+				PlayPattern(new PatternData { Title = drill.Title, TJA = tja });
+			}
+		}
+
+		internal string? BuildDrillTja(DrillData drill, int count, DrillRandomMode mode = DrillRandomMode.Normal)
 		{
 			List<DrillData.PatternWeight> availablePatterns = drill.Patterns.Where(pw => pw.Weight > 0).ToList();
 			int totalWeight = availablePatterns.Sum(pw => pw.Weight);
 			if (totalWeight == 0 || availablePatterns.Count == 0)
-			{
-				return;
-			}
+				return null;
 
 			List<DrillData.PatternWeight> availableFillers = drill.FillerPatterns.Where(pw => pw.Weight > 0).ToList();
 			int totalFillerWeight = availableFillers.Sum(pw => pw.Weight);
@@ -56,12 +63,81 @@ namespace OpenTaiko.Shrandy.Tools
 				regularSinceLastFiller++;
 			}
 
-			string combinedTJA = string.Join(",\n", selected.Select(p => p.TJA));
-			PlayPattern(new PatternData
+			return string.Join(",\n", selected.Select(p => ApplyRandomMode(p.TJA, mode)));
+		}
+
+		private string ApplyRandomMode(string tja, DrillRandomMode mode)
+		{
+			switch (mode)
 			{
-				Title = drill.Title,
-				TJA = combinedTJA
-			});
+				case DrillRandomMode.Messy:
+					return ApplyMessy(tja);
+				case DrillRandomMode.RandomInvert:
+					return m_Rng.Next(2) == 0 ? ApplyRandomInvert(tja) : tja;
+				default:
+					return tja;
+			}
+		}
+
+		private static string ApplyRandomInvert(string tja)
+		{
+			char[] chars = tja.ToCharArray();
+			for (int i = 0; i < chars.Length; i++)
+			{
+				switch (chars[i])
+				{
+					case '1':
+						chars[i] = '2';
+						break;
+					case '2':
+						chars[i] = '1';
+						break;
+					case '3':
+						chars[i] = '4';
+						break;
+					case '4':
+						chars[i] = '3';
+						break;
+				}
+			}
+			return new string(chars);
+		}
+
+		private string ApplyMessy(string tja)
+		{
+			char[] chars = tja.ToCharArray();
+			for (int i = 0; i < chars.Length; i++)
+			{
+				bool flip = m_Rng.Next(2) == 0;
+				switch (chars[i])
+				{
+					case '1':
+						if (flip)
+						{
+							chars[i] = '2';
+						}
+						break;
+					case '2':
+						if (flip)
+						{
+							chars[i] = '1';
+						}
+						break;
+					case '3':
+						if (flip)
+						{
+							chars[i] = '4';
+						}	
+						break;
+					case '4':
+						if (flip)
+						{
+							chars[i] = '3';
+						}
+						break;
+				}
+			}
+			return new string(chars);
 		}
 
 		private PatternData PickWeightedRandom(List<DrillData.PatternWeight> patterns, int totalWeight)

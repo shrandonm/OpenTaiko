@@ -13,6 +13,7 @@ namespace OpenTaiko.Shrandy.Tools
 		private bool m_EditIsNew = false;
 		private bool m_PendingEditOpen = false;
 		private int m_DrillCount = 100;
+		private DrillRandomMode m_RandomMode = DrillRandomMode.Normal;
 
 		private const string EditPopupId = "Edit Drill";
 		private const string DeletePopupId = "Delete Drill?";
@@ -54,14 +55,12 @@ namespace OpenTaiko.Shrandy.Tools
 					ImGui.TableSetColumnIndex(1);
 					if (ImGui.SmallButton($"Play##dplay{i}"))
 					{
-						m_Tool.PlayDrill(drills[i], m_DrillCount);
-					}
+					m_Tool.PlayDrill(drills[i], m_DrillCount, m_RandomMode);
+				}
 
-					ImGui.TableSetColumnIndex(2);
-					if (ImGui.SmallButton($"Edit##dedit{i}"))
-					{
-						m_SelectedIndex = i;
-						OpenEditPopup(drills[i]);
+				ImGui.TableSetColumnIndex(2);
+				if (ImGui.SmallButton($"Edit##dedit{i}"))
+				{
 					}
 				}
 
@@ -102,6 +101,12 @@ namespace OpenTaiko.Shrandy.Tools
 			ImGui.SameLine();
 			ImGui.SetNextItemWidth(60);
 			ImGui.DragInt("Count##dcount", ref m_DrillCount, 1, 1, 1000);
+			ImGui.SameLine();
+			ImGui.SetNextItemWidth(80);
+			int modeIdx = (int)m_RandomMode;
+			string[] modeNames = Enum.GetNames<DrillRandomMode>();
+			if (ImGui.Combo("Mode##dmode", ref modeIdx, modeNames, modeNames.Length))
+				m_RandomMode = (DrillRandomMode)modeIdx;
 
 			DrawEditPopup();
 			DrawDeletePopup();
