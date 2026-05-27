@@ -13,8 +13,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		public PatternTool(string toolName, Key enableHotkey) : base(toolName, enableHotkey)
 		{
-			m_Database = SaveHelper.LoadOrCreate<PatternDatabase>("pattern_database.json");
-			m_Database.Reconcile();
+			m_Database = PatternDatabase.LoadOrCreate();
 			m_UI = new PatternToolUI(this);
 		}
 

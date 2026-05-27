@@ -6,6 +6,7 @@ namespace OpenTaiko.Shrandy.Tools
 	{
 		public const string FillerOddTitle = "Filler_Odd";
 		public const string FillerEvenTitle = "Filler_Even";
+		private const string FileName = "pattern_database.json";
 
 		public static bool IsBuiltIn(PatternData p)
 		{
@@ -94,7 +95,14 @@ namespace OpenTaiko.Shrandy.Tools
 
 		public void Save()
 		{
-			SaveHelper.Save("PatternDatabase.json", this);
+			SaveHelper.Save(FileName, this);
+		}
+		
+		public static PatternDatabase LoadOrCreate()
+		{
+			PatternDatabase database = SaveHelper.LoadOrCreate<PatternDatabase>(FileName);
+			database.Reconcile();
+			return database;
 		}
 	}
 }
