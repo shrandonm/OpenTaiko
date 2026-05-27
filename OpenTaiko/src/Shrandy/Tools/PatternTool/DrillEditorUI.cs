@@ -12,6 +12,8 @@ namespace OpenTaiko.Shrandy.Tools
 		private DrillData m_StagedDrill = new();
 		private bool m_EditIsNew = false;
 		private bool m_PendingEditOpen = false;
+		private bool m_PendingDeleteOpen = false;
+		private float m_Bpm = 120.0f;
 		private int m_DrillCount = 100;
 		private DrillRandomMode m_RandomMode = DrillRandomMode.Normal;
 
@@ -44,24 +46,37 @@ namespace OpenTaiko.Shrandy.Tools
 					ImGui.TableNextRow();
 
 					ImGui.TableSetColumnIndex(0);
-					bool selected = m_SelectedIndex == i;
 					string title = drills[i].Title.Length > 0 ? drills[i].Title : "(unnamed)";
-					if (ImGui.Selectable(title + $"##drow{i}", selected,
-						ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap))
-					{
-						m_SelectedIndex = i;
-					}
+					ImGui.TextUnformatted(title);
 
 					ImGui.TableSetColumnIndex(1);
 					if (ImGui.SmallButton($"Play##dplay{i}"))
 					{
-					m_Tool.PlayDrill(drills[i], m_DrillCount, m_RandomMode);
+						m_Tool.PlayDrill(drills[i], m_DrillCount, m_RandomMode, m_Bpm);
+					}
+
+					ImGui.TableSetColumnIndex(2);
+					if (ImGui.SmallButton($"Edit##dedit{i}"))
+					{
+						m_SelectedIndex = i;
+						OpenEditPopup(drills[i]);
+					}
 				}
 
-				ImGui.TableSetColumnIndex(2);
-				if (ImGui.SmallButton($"Edit##dedit{i}"))
+				ImGui.TableNextRow();
+				ImGui.TableSetColumnIndex(0);
+				if (ImGui.Button("Create new drill##dadd", new Vector2(-1, 0)))
 				{
-					}
+					m_TitleInput = "";
+					m_StagedDrill = new DrillData
+					{
+						FillerPatterns = m_Tool.Database.Patterns
+							.Where(p => PatternDatabase.IsBuiltIn(p))
+							.Select(p => new DrillData.PatternWeight { Pattern = p, Weight = 1 })
+							.ToList(),
+					};
+					m_EditIsNew = true;
+					m_PendingEditOpen = true;
 				}
 
 				ImGui.EndTable();
@@ -73,40 +88,27 @@ namespace OpenTaiko.Shrandy.Tools
 				m_PendingEditOpen = false;
 			}
 
-			bool hasSelection = m_SelectedIndex >= 0 && m_SelectedIndex < drills.Count;
-
-			if (ImGui.Button("Add##dadd"))
+			if (m_PendingDeleteOpen)
 			{
-				m_TitleInput = "";
-				m_StagedDrill = new DrillData
-				{
-					FillerPatterns = m_Tool.Database.Patterns
-						.Where(p => PatternDatabase.IsBuiltIn(p))
-						.Select(p => new DrillData.PatternWeight { Pattern = p, Weight = 1 })
-						.ToList(),
-				};
-				m_EditIsNew = true;
-				ImGui.OpenPopup(EditPopupId);
+				ImGui.OpenPopup(DeletePopupId);
+				m_PendingDeleteOpen = false;
 			}
 
-			if (hasSelection)
-			{
-				ImGui.SameLine();
-				if (ImGui.Button("Delete##ddel"))
-				{
-					ImGui.OpenPopup(DeletePopupId);
-				}
-			}
+			ImGui.SeparatorText("Play Controls");
 
+			ImGui.SetNextItemWidth(80);
+			ImGui.DragFloat("BPM##dbpm", ref m_Bpm, 0.5f, 5.0f, 960.0f, "%.1f");
 			ImGui.SameLine();
 			ImGui.SetNextItemWidth(60);
 			ImGui.DragInt("Count##dcount", ref m_DrillCount, 1, 1, 1000);
 			ImGui.SameLine();
-			ImGui.SetNextItemWidth(80);
+			ImGui.SetNextItemWidth(100);
 			int modeIdx = (int)m_RandomMode;
 			string[] modeNames = Enum.GetNames<DrillRandomMode>();
 			if (ImGui.Combo("Mode##dmode", ref modeIdx, modeNames, modeNames.Length))
+			{
 				m_RandomMode = (DrillRandomMode)modeIdx;
+			}
 
 			DrawEditPopup();
 			DrawDeletePopup();
@@ -183,6 +185,16 @@ namespace OpenTaiko.Shrandy.Tools
 				if (ImGui.Button("Cancel##dcancel"))
 				{
 					ImGui.CloseCurrentPopup();
+				}
+
+				if (!m_EditIsNew)
+				{
+					ImGui.SameLine();
+					if (ImGui.Button("Delete##ddelinpopup"))
+					{
+						ImGui.CloseCurrentPopup();
+						m_PendingDeleteOpen = true;
+					}
 				}
 
 				ImGui.EndPopup();

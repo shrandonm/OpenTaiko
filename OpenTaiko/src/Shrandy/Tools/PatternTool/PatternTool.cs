@@ -13,7 +13,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		public PatternTool(string toolName, Key enableHotkey) : base(toolName, enableHotkey)
 		{
-			m_Database = SaveHelper.LoadOrCreate<PatternDatabase>("PatternDatabase.json");
+			m_Database = SaveHelper.LoadOrCreate<PatternDatabase>("pattern_database.json");
 			m_Database.Reconcile();
 			m_UI = new PatternToolUI(this);
 		}
@@ -23,12 +23,12 @@ namespace OpenTaiko.Shrandy.Tools
 			m_Database.Save();
 		}
 
-		internal void PlayDrill(DrillData drill, int count, DrillRandomMode mode = DrillRandomMode.Normal)
+		internal void PlayDrill(DrillData drill, int count, DrillRandomMode mode = DrillRandomMode.Normal, float bpm = 120f)
 		{
 			string? tja = BuildDrillTja(drill, count, mode);
 			if (tja != null)
 			{
-				PlayPattern(new PatternData { Title = drill.Title, TJA = tja });
+				PlayPattern(new PatternData { Title = drill.Title, TJA = tja }, bpm);
 			}
 		}
 
@@ -167,10 +167,10 @@ namespace OpenTaiko.Shrandy.Tools
 			return Path.Combine(OpenTaiko.strEXEのあるフォルダ, "Songs", "PatternTool", "PatternTool.tja");
 		}
 
-		private static string BuildTjaContent(string title, string body)
+		private static string BuildTjaContent(string title, string body, float bpm = 120f)
 		{
 			return $"TITLE:{title}\n" +
-				"BPM:120\n" +
+				$"BPM:{bpm:0.##}\n" +
 				"WAVE:\n" +
 				"OFFSET:0.000\n" +
 				"COURSE:Easy\n" +
@@ -180,11 +180,11 @@ namespace OpenTaiko.Shrandy.Tools
 				"#END\n";
 		}
 
-		internal void PlayPattern(PatternData pattern)
+		internal void PlayPattern(PatternData pattern, float bpm = 120f)
 		{
 			string tjaPath = GetTjaFilePath();
 			string folderPath = Path.GetDirectoryName(tjaPath) + Path.DirectorySeparatorChar;
-			string tjaContent = BuildTjaContent(pattern.Title, pattern.TJA);
+			string tjaContent = BuildTjaContent(pattern.Title, pattern.TJA, bpm);
 
 			CTja newTja = new CTja();
 			newTja.Activate();
