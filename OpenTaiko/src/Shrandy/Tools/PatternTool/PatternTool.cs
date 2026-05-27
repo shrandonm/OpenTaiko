@@ -173,7 +173,7 @@ namespace OpenTaiko.Shrandy.Tools
 				$"BPM:{bpm:0.##}\n" +
 				"WAVE:\n" +
 				"OFFSET:0.000\n" +
-				"COURSE:Easy\n" +
+				"COURSE:Oni\n" +
 				"LEVEL:1\n" +
 				"#START\n" +
 				body + ",\n" +
