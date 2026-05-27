@@ -97,10 +97,10 @@ namespace OpenTaiko.Shrandy.Tools
 			ImGui.SeparatorText("Play Controls");
 
 			ImGui.SetNextItemWidth(80);
-			ImGui.DragFloat("BPM##dbpm", ref m_Bpm, 0.5f, 5.0f, 960.0f, "%.1f");
+			ImGui.InputFloat("BPM##dbpm", ref m_Bpm, 5.0f, 20.0f);
 			ImGui.SameLine();
 			ImGui.SetNextItemWidth(60);
-			ImGui.DragInt("Count##dcount", ref m_DrillCount, 1, 1, 1000);
+			ImGui.InputInt("Count##dcount", ref m_DrillCount, 1, 10);
 			ImGui.SameLine();
 			ImGui.SetNextItemWidth(100);
 			int modeIdx = (int)m_RandomMode;
