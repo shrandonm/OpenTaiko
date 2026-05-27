@@ -187,7 +187,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 			CTja newTja = new CTja();
 			newTja.Activate();
-			newTja.t入力FromString(tjaContent, tjaPath, folderPath, 0, 0, true, 0);
+			newTja.t入力FromString(tjaContent, tjaPath, folderPath, 0, 0, true, (int)Difficulty.Oni);
 			newTja.tInitLocalStores(0);
 
 			OpenTaiko.TJA!.t全チップの再生停止とミキサーからの削除();
@@ -229,7 +229,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 			OpenTaiko.stageSongSelect.rChoosenSong = node;
 			OpenTaiko.stageSongSelect.r確定されたスコア = score;
-			OpenTaiko.stageSongSelect.nChoosenSongDifficulty[0] = 0;
+			OpenTaiko.stageSongSelect.nChoosenSongDifficulty[0] = (int)Difficulty.Oni;
 			OpenTaiko.ConfigIni.bTokkunMode = true;
 			OpenTaiko.ConfigIni.nPlayerCount = 1;
 
