@@ -21,6 +21,9 @@ namespace OpenTaiko.Shrandy
 		public NoteStats? RightHandStats { get; set; }
 
 		[JsonIgnore]
+		public Dictionary<int, int> HitDistribution { get; } = new();
+
+		[JsonIgnore]
 		public int TotalNotes { get { return GoodCount + OkayCount + BadCount; } }
 		[JsonIgnore]
 		public float AverageHitError { get { return TotalNotes > 0 ? TotalHitError / TotalNotes : 0.0f; } }
@@ -48,6 +51,8 @@ namespace OpenTaiko.Shrandy
 
 			int absError = Math.Abs(hitParams.Chip.nLag);
 			TotalHitError += absError;
+
+			IncrementBucket(HitDistribution, error);
 
 			if (hitParams.JudgeResult == ENoteJudge.Perfect)
 			{
@@ -91,7 +96,7 @@ namespace OpenTaiko.Shrandy
 			if (a.RightHandStats != null || b.RightHandStats != null)
 				rightHand = (a.RightHandStats ?? new()) + (b.RightHandStats ?? new());
 
-			return new NoteStats()
+			var merged = new NoteStats()
 			{
 				EarlyCount = a.EarlyCount + b.EarlyCount,
 				LateCount = a.LateCount + b.LateCount,
@@ -103,6 +108,21 @@ namespace OpenTaiko.Shrandy
 				LeftHandStats = leftHand,
 				RightHandStats = rightHand,
 			};
+			MergeDistributions(merged.HitDistribution, a.HitDistribution, b.HitDistribution);
+			return merged;
+		}
+
+		private static void IncrementBucket(Dictionary<int, int> dist, int key)
+		{
+			dist[key] = dist.GetValueOrDefault(key) + 1;
+		}
+
+		private static void MergeDistributions(Dictionary<int, int> dest, Dictionary<int, int> a, Dictionary<int, int> b)
+		{
+			foreach (var kvp in a)
+				dest[kvp.Key] = kvp.Value + b.GetValueOrDefault(kvp.Key);
+			foreach (var kvp in b)
+				dest.TryAdd(kvp.Key, kvp.Value);
 		}
 
 		public float GetGoodPercent()

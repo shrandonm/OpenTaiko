@@ -18,6 +18,7 @@ namespace OpenTaiko.Shrandy.Tools
 		public SongEntry CurrentEntry;
 		public SongEntry? PreviousBest;
 		public SongEntry? NoModBest;
+		public Dictionary<int, int>? HitDistribution;
 	}
 
 	internal class SongBrowserData
@@ -753,6 +754,7 @@ namespace OpenTaiko.Shrandy.Tools
 				CurrentEntry = entry,
 				PreviousBest = previousBest,
 				NoModBest = noModBest,
+				HitDistribution = new Dictionary<int, int>(CurrentNoteStats.HitDistribution),
 			};
 		}
 
