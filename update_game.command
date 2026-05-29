@@ -13,7 +13,7 @@ fi
 if [ "$STATUS" -eq 0 ]; then
     echo
     echo "Building macOS release..."
-    if ! /bin/bash "$SCRIPT_DIR/build-osx-x64.sh"; then
+    if ! /bin/bash "$SCRIPT_DIR/build-osx-arm64.sh"; then
         STATUS=$?
     fi
 fi
