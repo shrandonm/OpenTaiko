@@ -21,6 +21,12 @@ namespace OpenTaiko.Shrandy.Tools
 		public Dictionary<int, int>? HitDistribution;
 	}
 
+	internal struct DailySongCount
+	{
+		public DateTime Date;
+		public int Count;
+	}
+
 	internal class SongBrowserData
 	{
 		private const string SaveFileName = "song_history.json";
@@ -253,6 +259,43 @@ namespace OpenTaiko.Shrandy.Tools
 				startIndex = Math.Max(0, m_SaveData.SongEntries.Count - GetSongCountFromCutoff(FilterDays));
 			}
 			return startIndex;
+		}
+
+		/// <summary>
+		/// Returns an ordered list of songs played per day,
+		/// covering the last <paramref name="days"/> days (or all history when days == 0).
+		/// The list is ordered oldest-first.
+		/// </summary>
+		public List<DailySongCount> GetSongsPerDay(int days)
+		{
+			DateTime cutoff = days > 0 ? DateTime.Today.AddDays(-(days - 1)) : DateTime.MinValue;
+
+			Dictionary<DateTime, int> counts = new Dictionary<DateTime, int>();
+			foreach (SongEntry entry in m_SaveData.SongEntries)
+			{
+				DateTime day = entry.Timestamp.Date;
+				if (day < cutoff)
+				{
+					continue;
+				}
+				counts[day] = counts.TryGetValue(day, out int existingCount) ? existingCount + 1 : 1;
+			}
+
+			if (counts.Count == 0)
+			{
+				return new List<DailySongCount>();
+			}
+
+			DateTime firstDate = cutoff == DateTime.MinValue ? counts.Keys.Min() : cutoff;
+			DateTime lastDate  = DateTime.Today;
+
+			List<DailySongCount> result = new List<DailySongCount>();
+			for (DateTime currentDate = firstDate; currentDate <= lastDate; currentDate = currentDate.AddDays(1))
+			{
+				counts.TryGetValue(currentDate, out int dayCount);
+				result.Add(new DailySongCount { Date = currentDate, Count = dayCount });
+			}
+			return result;
 		}
 
 		// --- History lookup ---

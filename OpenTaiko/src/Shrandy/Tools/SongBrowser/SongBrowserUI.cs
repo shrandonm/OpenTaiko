@@ -14,6 +14,7 @@ namespace OpenTaiko.Shrandy.Tools
 		private TagFilterBar m_TagFilterBar;
 		private LevelFilterBar m_LevelFilterBar;
 		private SongBrowserOverview m_OverviewWidget;
+		private SongsPerDayGraph m_SongsPerDayGraph;
 		public RetryPopup RetryPopup { get; private set; }
 
 		public SongBrowserUI(SongBrowserData data)
@@ -24,6 +25,7 @@ namespace OpenTaiko.Shrandy.Tools
 			m_LevelFilterBar = new LevelFilterBar(() => data.FilterText, value => data.FilterText = value);
 			RetryPopup = new RetryPopup(data);
 			m_OverviewWidget = new SongBrowserOverview(data);
+			m_SongsPerDayGraph = new SongsPerDayGraph(data);
 		}
 		public void OnEnabled()
 		{
@@ -231,6 +233,7 @@ namespace OpenTaiko.Shrandy.Tools
 		private void DrawHistoryTab()
 		{
 			DrawFilterDaysInput();
+			m_SongsPerDayGraph.Draw();
 			DrawHistoryFilterInput();
 			DrawHistorySummary();
 			DrawHistoryTable();

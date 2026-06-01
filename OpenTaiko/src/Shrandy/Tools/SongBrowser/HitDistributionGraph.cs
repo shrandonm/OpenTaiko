@@ -13,10 +13,10 @@ namespace OpenTaiko.Shrandy.Tools
 	{
 		// ── Constants ─────────────────────────────────────────────────────────────
 		private const int   BucketMs   = 3;      // ms span per bar; center bucket covers {-1, 0, +1}
-		private const float GraphH     = 120f;
-		private const float GraphW     = 500f;
-		private const float StatsH     = 44f;
-		private const float LabelAreaH = 18f;
+		private const float GraphH     = 120.0f;
+		private const float GraphW     = 500.0f;
+		private const float StatsH     = 44.0f;
+		private const float LabelAreaH = 18.0f;
 		private const uint  ColorGood  = 0xFF20C820;
 		private const uint  ColorOkay  = 0xFF00D7FF;
 		private const uint  ColorBad   = 0xFF3232DC;
@@ -52,22 +52,26 @@ namespace OpenTaiko.Shrandy.Tools
 		public static void Draw(Dictionary<int, int>? distribution)
 		{
 			if (distribution == null || distribution.Count == 0)
+			{
 				return;
+			}
 
 			ImGui.Separator();
 
-			var stats = ComputeStats(distribution);
+			HitStats stats = ComputeStats(distribution);
 			DrawStatsHeader(stats);
 
-			var ctx = BuildRenderContext(distribution);
-			if (ctx.MaxCount == 0) return;
+			RenderContext context = BuildRenderContext(distribution);
+			if (context.MaxCount == 0)
+			{
+				return;
+			}
 
-			DrawBars(ctx);
-			DrawOverlays(ctx);
-			DrawHoverTooltip(ctx);
-			DrawZoneLabels(ctx);
+			BarGraph.Bar[] bars = BuildBars(context);
+			BarGraph.Draw(bars, BuildBarGraphOptions());
 
-			ImGui.Dummy(new Vector2(GraphW, GraphH + LabelAreaH));
+			DrawOverlays(context);
+			DrawZoneLabels(context);
 		}
 
 		// ── Stats computation ─────────────────────────────────────────────────────
@@ -191,27 +195,47 @@ namespace OpenTaiko.Shrandy.Tools
 			ImGui.Dummy(new Vector2(GraphW, StatsH));
 		}
 
-		private static void DrawBars(RenderContext ctx)
+		private static BarGraph.Bar[] BuildBars(RenderContext context)
 		{
-			ctx.DrawList.AddRectFilled(ctx.Cursor, new Vector2(ctx.Cursor.X + GraphW, ctx.Cursor.Y + GraphH), 0xAA000000);
-
-			for (int i = 0; i < ctx.NumBuckets; i++)
+			BarGraph.Bar[] bars = new BarGraph.Bar[context.NumBuckets];
+			for (int i = 0; i < bars.Length; i++)
 			{
-				if (ctx.Buckets[i] == 0) continue;
+				int bucketMs = (i - context.HalfBuckets) * BucketMs;
+				int absoluteMs = Math.Abs(bucketMs);
+				uint color = absoluteMs <= context.GoodMs ? ColorGood
+				           : absoluteMs <= context.OkayMs ? ColorOkay
+				           : ColorBad;
 
-				int  bucketMs = (i - ctx.HalfBuckets) * BucketMs;
-				int  absMs    = Math.Abs(bucketMs);
-				uint color    = absMs <= ctx.GoodMs ? ColorGood
-				              : absMs <= ctx.OkayMs ? ColorOkay
-				              :                       ColorBad;
-
-				float barH = GraphH * (ctx.Buckets[i] / (float)ctx.MaxCount);
-				float x0   = ctx.Cursor.X + i * ctx.BarW;
-				float x1   = x0 + ctx.BarW - 1f;
-				float y0   = ctx.Cursor.Y + GraphH - barH;
-				float y1   = ctx.Cursor.Y + GraphH;
-				ctx.DrawList.AddRectFilled(new Vector2(x0, y0), new Vector2(x1, y1), color);
+				bars[i] = new BarGraph.Bar
+				{
+					Value   = context.Buckets[i],
+					Color   = color,
+					Tooltip = BuildBucketTooltip(i, context),
+				};
 			}
+			return bars;
+		}
+
+		private static string BuildBucketTooltip(int bucketIndex, RenderContext context)
+		{
+			int bucketOffset     = bucketIndex - context.HalfBuckets;
+			int lowMilliseconds  = bucketOffset * BucketMs - 1;
+			int highMilliseconds = bucketOffset * BucketMs + 1;
+			int count            = context.Buckets[bucketIndex];
+			string FormatMilliseconds(int milliseconds) => milliseconds >= 0 ? $"+{milliseconds}" : $"{milliseconds}";
+			return $"{FormatMilliseconds(lowMilliseconds)} to {FormatMilliseconds(highMilliseconds)}ms: {count} hit{(count == 1 ? "" : "s")}";
+		}
+
+		private static BarGraph.Options BuildBarGraphOptions()
+		{
+			BarGraph.Options options = BarGraph.Options.Default;
+			options.Width           = GraphW;
+			options.Height          = GraphH;
+			options.BarGap          = 1.0f;
+			options.LabelAreaH      = LabelAreaH;
+			options.ShowValueLabels = false;
+			options.ShowMaxLine     = false;
+			return options;
 		}
 
 		private static void DrawOverlays(RenderContext ctx)
@@ -227,26 +251,6 @@ namespace OpenTaiko.Shrandy.Tools
 			ctx.DrawList.AddText(new Vector2(ctx.Cursor.X + 4f, ctx.Cursor.Y + 4f), 0xFFFFFFFF, "EARLY");
 			float lateW = ImGui.CalcTextSize("LATE").X;
 			ctx.DrawList.AddText(new Vector2(ctx.Cursor.X + GraphW - lateW - 4f, ctx.Cursor.Y + 4f), 0xFFFFFFFF, "LATE");
-		}
-
-		private static void DrawHoverTooltip(RenderContext ctx)
-		{
-			if (!ImGui.IsMouseHoveringRect(ctx.Cursor, new Vector2(ctx.Cursor.X + GraphW, ctx.Cursor.Y + GraphH)))
-				return;
-
-			int hovIdx = (int)((ImGui.GetMousePos().X - ctx.Cursor.X) / ctx.BarW);
-			if (hovIdx < 0 || hovIdx >= ctx.NumBuckets)
-				return;
-
-			float hx0 = ctx.Cursor.X + hovIdx * ctx.BarW;
-			ctx.DrawList.AddRectFilled(new Vector2(hx0, ctx.Cursor.Y), new Vector2(hx0 + ctx.BarW, ctx.Cursor.Y + GraphH), 0x33FFFFFF);
-
-			int    bi    = hovIdx - ctx.HalfBuckets;
-			int    bLow  = bi * BucketMs - 1;
-			int    bHigh = bi * BucketMs + 1;
-			int    count = ctx.Buckets[hovIdx];
-			string Fmt(int ms) => ms >= 0 ? $"+{ms}" : $"{ms}";
-			ImGui.SetTooltip($"{Fmt(bLow)} to {Fmt(bHigh)}ms: {count} hit{(count == 1 ? "" : "s")}");
 		}
 
 		private static void DrawZoneLabels(RenderContext ctx)
