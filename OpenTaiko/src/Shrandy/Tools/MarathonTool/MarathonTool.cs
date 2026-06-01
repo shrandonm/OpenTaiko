@@ -7,6 +7,7 @@ namespace OpenTaiko.Shrandy.Tools
 	{
 		private Queue<Chart> m_ChartQueue = new();
 		private int m_TargetDurationMinutes = 25;
+		private int m_ConsecutiveRepeats = 1;
 
 		public MarathonTool(SlimDXKeys.Key enableHotkey)
 			: base("Marathon Tool", enableHotkey)
@@ -98,6 +99,14 @@ namespace OpenTaiko.Shrandy.Tools
 					m_TargetDurationMinutes = 1;
 				}
 			}
+
+			if (ImGui.InputInt("Consecutive Repeats", ref m_ConsecutiveRepeats))
+			{
+				if (m_ConsecutiveRepeats < 1)
+				{
+					m_ConsecutiveRepeats = 1;
+				}
+			}
 		}
 
 		private void DrawGeneratePlaylistButton()
@@ -123,7 +132,7 @@ namespace OpenTaiko.Shrandy.Tools
 					
 					if (charts.Count > 0)
 					{
-						CreateQueue(charts, m_TargetDurationMinutes * 60 * 1000);
+						CreateQueue(charts, m_TargetDurationMinutes * 60 * 1000, m_ConsecutiveRepeats);
 					}
 					else
 					{
@@ -133,7 +142,7 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 		}
 
-		public void CreateQueue(List<Chart> charts, int targetDurationMs)
+		public void CreateQueue(List<Chart> charts, int targetDurationMs, int consecutiveRepeats)
 		{
 			m_ChartQueue.Clear();
 			
@@ -150,14 +159,24 @@ namespace OpenTaiko.Shrandy.Tools
 				}
 				
 				Chart chart = shuffledCharts[i % shuffledCharts.Count];
-				
 				int durationMs = SongHelper.GetSongDurationMs(chart);
-				if (durationMs <= remainingMs + graceDurationMs)
+				
+				bool addedAtLeastOne = false;
+				for (int repeat = 0; repeat < consecutiveRepeats; ++repeat)
 				{
-					m_ChartQueue.Enqueue(chart);
-					remainingMs -= durationMs;
+					if (durationMs <= remainingMs + graceDurationMs)
+					{
+						m_ChartQueue.Enqueue(chart);
+						remainingMs -= durationMs;
+						addedAtLeastOne = true;
+					}
+					else
+					{
+						break;
+					}
 				}
-				else
+				
+				if (!addedAtLeastOne)
 				{
 					break;
 				}
