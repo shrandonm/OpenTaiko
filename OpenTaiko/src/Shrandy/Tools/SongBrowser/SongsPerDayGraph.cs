@@ -21,10 +21,24 @@ namespace OpenTaiko.Shrandy.Tools
 				return;
 			}
 
+			double averageSongsPerDay = CalculateAverageSongsPerDay(dailyCounts);
 			BarGraph.Bar[] bars = BuildBars(dailyCounts);
 
 			ImGui.SeparatorText("Songs Per Day");
+			ImGui.Text($"Average: {averageSongsPerDay:0.00} songs/day");
 			BarGraph.Draw(bars, BuildOptions());
+		}
+
+		private static double CalculateAverageSongsPerDay(List<DailySongCount> dailyCounts)
+		{
+			int totalSongs = 0;
+
+			for (int i = 0; i < dailyCounts.Count; i++)
+			{
+				totalSongs += dailyCounts[i].Count;
+			}
+
+			return (double)totalSongs / dailyCounts.Count;
 		}
 
 		private static BarGraph.Bar[] BuildBars(List<DailySongCount> dailyCounts)
