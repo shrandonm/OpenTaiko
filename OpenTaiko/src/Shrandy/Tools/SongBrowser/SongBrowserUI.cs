@@ -125,7 +125,7 @@ namespace OpenTaiko.Shrandy.Tools
 				m_FocusFilterInput = false;
 			}
 			
-			if (ImGui.InputTextWithHint("##filter", "e.g. bpm>100 badge<purple lastplayed>7 lastpb>30 tag=rock tag!=rock song title words", ref filterText, 512))
+			if (ImGui.InputTextWithHint("##filter", "e.g. bpm>100 level=8 duration>120 combo>500 badge<purple lastplayed>7 lastpb>30 tag=rock tag!=rock song title words", ref filterText, 512))
 			{
 				m_Data.FilterText = filterText;
 			}
@@ -161,6 +161,7 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				m_Data.NoModOnly = noModOnly;
 			}
+
 		}
 
 		private void DrawAllSongsTable()
@@ -174,7 +175,12 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 
 			float availableHeight = ImGui.GetContentRegionAvail().Y - 30;
-			if (Utilities.SongTable.BeginTable("SongList", ImGuiTableFlags.ScrollY, availableHeight, showAggregates: true))
+			if (Utilities.SongTable.BeginTable("SongList", ImGuiTableFlags.ScrollY, availableHeight, showAggregates: true,
+				onSortChanged: (columnIndex, ascending) =>
+				{
+					m_Data.SortColumnIndex = columnIndex;
+					m_Data.SortAscending = ascending;
+				}))
 			{
 				unsafe
 				{

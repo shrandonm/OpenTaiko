@@ -60,13 +60,15 @@ namespace OpenTaiko.Shrandy.Utilities
 			}
 		}
 
-		public static bool BeginTable(string id, ImGuiTableFlags extraFlags = ImGuiTableFlags.None, float height = 0, bool showAggregates = false)
+		public static bool BeginTable(string id, ImGuiTableFlags extraFlags = ImGuiTableFlags.None, float height = 0, bool showAggregates = false, Action<int, bool>? onSortChanged = null)
 		{
 			int columnCount = showAggregates ? BaseColumnCount + AggregateColumnCount : BaseColumnCount;
 
 			ImGuiTableFlags flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg
 				| ImGuiTableFlags.Resizable | ImGuiTableFlags.ScrollX
-				| ImGuiTableFlags.Hideable | extraFlags;
+				| ImGuiTableFlags.Hideable
+				| (onSortChanged != null ? ImGuiTableFlags.Sortable : ImGuiTableFlags.None)
+				| extraFlags;
 
 			Vector2 size = height > 0 ? new Vector2(0, height) : Vector2.Zero;
 
@@ -157,6 +159,21 @@ namespace OpenTaiko.Shrandy.Utilities
 			}
 
 			ImGui.TableHeadersRow();
+
+			if (onSortChanged != null)
+			{
+				unsafe
+				{
+					ImGuiTableSortSpecsPtr sortSpecs = ImGui.TableGetSortSpecs();
+					if (sortSpecs.NativePtr != null && sortSpecs.SpecsDirty && sortSpecs.SpecsCount > 0)
+					{
+						ImGuiTableColumnSortSpecsPtr spec = sortSpecs.Specs;
+						bool ascending = spec.SortDirection != ImGuiSortDirection.Descending;
+						onSortChanged(spec.ColumnIndex, ascending);
+						sortSpecs.SpecsDirty = false;
+					}
+				}
+			}
 
 			return true;
 		}

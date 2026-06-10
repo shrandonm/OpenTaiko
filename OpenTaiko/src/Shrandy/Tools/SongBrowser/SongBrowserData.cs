@@ -78,6 +78,8 @@ namespace OpenTaiko.Shrandy.Tools
 		private HashSet<int> m_SelectedDifficulties = new() { (int)Difficulty.Oni, (int)Difficulty.Edit };
 		private string m_FilterText = "";
 		private bool m_NoModOnly = false;
+		private int m_SortColumnIndex = -1;
+		private bool m_SortAscending = true;
 		private bool m_NeedsRefresh = true;
 
 		public bool NoModOnly
@@ -86,6 +88,26 @@ namespace OpenTaiko.Shrandy.Tools
 			set
 			{
 				m_NoModOnly = value;
+				m_NeedsRefresh = true;
+			}
+		}
+
+		public int SortColumnIndex
+		{
+			get => m_SortColumnIndex;
+			set
+			{
+				m_SortColumnIndex = value;
+				m_NeedsRefresh = true;
+			}
+		}
+
+		public bool SortAscending
+		{
+			get => m_SortAscending;
+			set
+			{
+				m_SortAscending = value;
 				m_NeedsRefresh = true;
 			}
 		}
@@ -435,6 +457,101 @@ namespace OpenTaiko.Shrandy.Tools
 					m_FilteredSongs.Add((song, diff));
 				}
 			}
+
+			ApplySort();
+		}
+
+		private void ApplySort()
+		{
+			if (m_SortColumnIndex < 0)
+			{
+				return;
+			}
+
+			int direction = m_SortAscending ? 1 : -1;
+
+			m_FilteredSongs.Sort((a, b) =>
+			{
+				int result = CompareByColumn(a, b, m_SortColumnIndex);
+				return result * direction;
+			});
+		}
+
+		private int CompareByColumn(
+			(CSongListNode song, int difficulty) a,
+			(CSongListNode song, int difficulty) b,
+			int column)
+		{
+			if (column == 0)
+			{
+				return StringComparer.OrdinalIgnoreCase.Compare(
+					a.song.ldTitle.GetString(""),
+					b.song.ldTitle.GetString(""));
+			}
+
+			if (column == 19)
+			{
+				string creatorA = a.song.strNotesDesigner?[a.difficulty] ?? "";
+				string creatorB = b.song.strNotesDesigner?[b.difficulty] ?? "";
+				return StringComparer.OrdinalIgnoreCase.Compare(creatorA, creatorB);
+			}
+
+			double keyA = GetColumnSortKey(a.song, a.difficulty, column);
+			double keyB = GetColumnSortKey(b.song, b.difficulty, column);
+			return keyA.CompareTo(keyB);
+		}
+
+		private double GetColumnSortKey(CSongListNode song, int difficulty, int column)
+		{
+			string title = song.ldTitle.GetString("");
+			SongEntry? best = GetBestPlay(title, difficulty);
+			SongEntry? last = GetLastPlay(title, difficulty);
+			SongAggregateStats agg = GetAggregateStats(title, difficulty);
+
+			return column switch
+			{
+				1  => (double)(last?.Timestamp ?? DateTime.MinValue).Ticks,
+				2  => (double)(best?.Timestamp ?? DateTime.MinValue).Ticks,
+				3  => best?.ScoreRank ?? 0,
+				4  => song.nLevel[difficulty],
+				5  => GetBaseBpm(song, difficulty),
+				6  => best?.Score ?? 0,
+				7  => best == null || best.TotalNotes == 0
+					? 0.0
+					: (double)best.Goods / best.TotalNotes,
+				8  => best?.Goods ?? 0,
+				9  => best?.Okays ?? 0,
+				10 => best?.Bads ?? 0,
+				11 => best?.Rolls ?? 0,
+				12 => best?.MaxCombo ?? 0,
+				13 => GetDurationMs(song, difficulty),
+				14 => best?.TotalNotes ?? 0,
+				15 => difficulty,
+				18 => best?.Judgement ?? 0,
+				20 => best?.AvgHitError ?? 0,
+				21 => best?.AvgSync ?? 0,
+				22 => best?.AvgLeftHandError ?? 0,
+				23 => best?.AvgRightHandError ?? 0,
+				24 => best?.LeftHandOkays ?? 0,
+				25 => best?.RightHandOkays ?? 0,
+				26 => best?.UsedFadingNote == true ? 1.0 : 0.0,
+				27 => best?.EarlyHits ?? 0,
+				28 => best?.LateHits ?? 0,
+				30 => agg.PlayCount,
+				31 => agg.FCCount,
+				32 => agg.DFCCount,
+				_  => 0,
+			};
+		}
+
+		private static double GetBaseBpm(CSongListNode song, int difficulty)
+		{
+			return song.score[difficulty]?.譜面情報.BaseBpm ?? 0.0;
+		}
+
+		private static int GetDurationMs(CSongListNode song, int difficulty)
+		{
+			return song.score[difficulty]?.譜面情報.Duration ?? 0;
 		}
 
 		private static void ParseFilterText(string text, out List<(string field, string op, string value)> filters, out string titleSearch)
@@ -552,6 +669,9 @@ namespace OpenTaiko.Shrandy.Tools
 				"bads" or "misses" => bestPlay?.Bads,
 				"rolls" => bestPlay?.Rolls,
 				"good%" => bestPlay == null || bestPlay.TotalNotes == 0 ? (double?)null : (double)bestPlay.Goods / bestPlay.TotalNotes * 100,
+				"duration" => score.譜面情報.Duration / 1000.0,
+				"combo" => bestPlay?.MaxCombo,
+				"totalnotes" or "notes" => bestPlay?.TotalNotes,
 				_ => null,
 			};
 		}
