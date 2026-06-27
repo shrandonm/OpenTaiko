@@ -15,11 +15,6 @@ namespace OpenTaiko.Shrandy.Tools
 			m_UI = new SongBrowserUI(m_Data);
 		}
 
-		public override bool IsBlockingInput()
-		{
-			return true;
-		}
-
 		public override void SetEnabled(bool enabled)
 		{
 			base.SetEnabled(enabled);
@@ -32,6 +27,11 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				m_UI.OnDisabled();
 			}
+		}
+
+		public override bool IsBlockingInput()
+		{
+			return true;
 		}
 
 		public override void OnStageChanged(CStage stage)
