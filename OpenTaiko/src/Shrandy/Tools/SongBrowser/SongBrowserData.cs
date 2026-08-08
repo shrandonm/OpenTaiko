@@ -130,6 +130,13 @@ namespace OpenTaiko.Shrandy.Tools
 			["loose"] = 0, ["lenient"] = 1, ["normal"] = 2, ["strict"] = 3, ["rigorous"] = 4,
 		};
 
+		private static readonly Dictionary<string, int> DdrGradeNames = new(StringComparer.OrdinalIgnoreCase)
+		{
+			["e"] = 0, ["d"] = 1, ["d+"] = 2, ["c-"] = 3, ["c"] = 4, ["c+"] = 5,
+			["b-"] = 6, ["b"] = 7, ["b+"] = 8, ["a-"] = 9, ["a"] = 10, ["a+"] = 11,
+			["aa-"] = 12, ["aa"] = 13, ["aa+"] = 14, ["aaa"] = 15,
+		};
+
 		private static readonly Regex FilterTokenRegex = new(@"([\w%]+)\s*(!=|>=|<=|>|<|=)\s*(\S+)", RegexOptions.Compiled);
 
 		// Public accessors
@@ -537,9 +544,11 @@ namespace OpenTaiko.Shrandy.Tools
 				26 => best?.UsedFadingNote == true ? 1.0 : 0.0,
 				27 => best?.EarlyHits ?? 0,
 				28 => best?.LateHits ?? 0,
-				30 => agg.PlayCount,
-				31 => agg.FCCount,
-				32 => agg.DFCCount,
+				29 => best?.DdrScore ?? 0,
+				30 => GetDdrGradeRank(best?.DdrGrade) ?? 0,
+				32 => agg.PlayCount,
+				33 => agg.FCCount,
+				34 => agg.DFCCount,
 				_  => 0,
 			};
 		}
@@ -672,8 +681,19 @@ namespace OpenTaiko.Shrandy.Tools
 				"duration" => score.譜面情報.Duration / 1000.0,
 				"combo" => bestPlay?.MaxCombo,
 				"totalnotes" or "notes" => bestPlay?.TotalNotes,
+				"ddrscore" => bestPlay?.DdrScore,
+				"ddrgrade" => GetDdrGradeRank(bestPlay?.DdrGrade),
 				_ => null,
 			};
+		}
+
+		private static double? GetDdrGradeRank(string? grade)
+		{
+			if (grade == null || !DdrGradeNames.TryGetValue(grade, out int rank))
+			{
+				return null;
+			}
+			return rank;
 		}
 
 		public double GetDaysSinceLastPlayed(string title, int difficulty)
@@ -813,6 +833,11 @@ namespace OpenTaiko.Shrandy.Tools
 				return timingVal;
 			}
 
+			if (field == "ddrgrade" && DdrGradeNames.TryGetValue(value, out int ddrGradeVal))
+			{
+				return ddrGradeVal;
+			}
+
 			return null;
 		}
 
@@ -905,6 +930,11 @@ namespace OpenTaiko.Shrandy.Tools
 				LateHits = CurrentNoteStats.LateCount,
 				Crown = ComputeCrown(player, score),
 			};
+
+			float ddrStepScore = DdrScoreCalculator.CalculateStepScore(entry.TotalNotes);
+			DdrJudgementCounts ddrJudgements = DdrScoreCalculator.ClassifyHitDistribution(CurrentNoteStats.HitDistribution, entry.TotalNotes);
+			entry.DdrScore = DdrScoreCalculator.CalculateScore(ddrJudgements, ddrStepScore);
+			entry.DdrGrade = DdrScoreCalculator.CalculateGrade(entry.DdrScore, !HGaugeMethods.UNSAFE_FastNormaCheck(player));
 
 			SongEntry? previousBest = GetBestPlayMatchingMods(entry.SongTitle, difficulty, entry.RandomMod, entry.Judgement);
 			bool hasMods = entry.RandomMod != "None" || entry.Judgement != 2 || entry.SongSpeed != CConfigIni.DefaultSongSpeed || entry.UsedFadingNote;

@@ -36,15 +36,17 @@ namespace OpenTaiko.Shrandy.Utilities
 		public bool UsedFadingNote;
 		public int EarlyHits;
 		public int LateHits;
+		public int DdrScore;
+		public string DdrGrade;
 
 		public int TotalNotes => Goods + Okays + Bads;
 	}
 
 	internal static class SongTable
 	{
-		private const int BaseColumnCount = 30;
+		private const int BaseColumnCount = 32;
 		private const int AggregateColumnCount = 3;
-		public const int TagsColumnIndex = 29;
+		public const int TagsColumnIndex = 31;
 
 		private struct ColumnDef
 		{
@@ -111,6 +113,8 @@ namespace OpenTaiko.Shrandy.Utilities
 				new ColumnDef("Fading Note",	hidden:true),
 				new ColumnDef("Early",			hidden:true),
 				new ColumnDef("Late",			hidden:true),
+				new ColumnDef("DDR Score",		hidden:false),
+				new ColumnDef("DDR Grade",		hidden:false),
 				new ColumnDef("Tags",			hidden:false, useLargeSize:true),
 			};
 			ColumnDef[] aggregateColumns =
@@ -286,6 +290,12 @@ namespace OpenTaiko.Shrandy.Utilities
 
 			ImGui.TableSetColumnIndex(col++);
 			ImGui.Text($"{row.LateHits}");
+
+			ImGui.TableSetColumnIndex(col++);
+			ImGui.Text($"{row.DdrScore}");
+
+			ImGui.TableSetColumnIndex(col++);
+			ImGui.TextUnformatted(row.DdrGrade);
 		}
 
 		private static void DrawBpm(double baseBpm, double minBpm, double maxBpm)
@@ -337,6 +347,8 @@ namespace OpenTaiko.Shrandy.Utilities
 				UsedFadingNote = entry.UsedFadingNote,
 				EarlyHits = entry.EarlyHits,
 				LateHits = entry.LateHits,
+				DdrScore = entry.DdrScore,
+				DdrGrade = entry.DdrGrade,
 			};
 		}
 
@@ -391,6 +403,8 @@ namespace OpenTaiko.Shrandy.Utilities
 			row.UsedFadingNote = entry.UsedFadingNote;
 			row.EarlyHits = entry.EarlyHits;
 			row.LateHits = entry.LateHits;
+			row.DdrScore = entry.DdrScore;
+			row.DdrGrade = entry.DdrGrade;
 		}
 
 		public static int GetScoreRank(CSongListNode song, int difficulty)

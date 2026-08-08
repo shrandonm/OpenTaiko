@@ -31,6 +31,8 @@ namespace OpenTaiko.Shrandy
 		public bool UsedFadingNote { get; set; }
 		public int EarlyHits { get; set; }
 		public int LateHits { get; set; }
+		public int DdrScore { get; set; }
+		public string DdrGrade { get; set; } = "";
 		
 		[JsonIgnore]
 		public int TotalNotes => Goods + Okays + Bads;

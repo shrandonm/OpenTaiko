@@ -54,6 +54,9 @@ public abstract class Game : IDisposable {
 	public static ImGuiIOPtr ImGuiIO { get; private set; }
 	private static CTexture ImGuiFontAtlas;
 
+	/// <summary>Baked at a larger pixel size so it stays crisp instead of being blurrily upscaled via SetWindowFontScale.</summary>
+	public static ImFontPtr LargeFont { get; private set; }
+
     private List<RenderTexture> m_RenderTextures;
 	private FullscreenQuad m_FullscreenQuad;
 	private int m_RenderTextureDrawIndex = 0;	public static void InitImGuiController(IView window, IInputContext context) {
@@ -73,6 +76,9 @@ public abstract class Game : IDisposable {
 					ImGuiIO.Fonts.AddFontFromMemoryTTF((IntPtr)stream, 64, 16.0f, config, ImGuiIO.Fonts.GetGlyphRangesDefault());
 					config.MergeMode = true;
 					ImGuiIO.Fonts.AddFontFromMemoryTTF((IntPtr)stream, 64, 16.0f, config, ImGuiIO.Fonts.GetGlyphRangesJapanese());
+
+					ImFontConfigPtr largeConfig = new ImFontConfigPtr(ImGuiNative.ImFontConfig_ImFontConfig());
+					LargeFont = ImGuiIO.Fonts.AddFontFromMemoryTTF((IntPtr)stream, 64, 48.0f, largeConfig, ImGuiIO.Fonts.GetGlyphRangesDefault());
 
 					ImGuiIO.Fonts.GetTexDataAsRGBA32(out byte* out_pixels, out int width, out int height);
 
