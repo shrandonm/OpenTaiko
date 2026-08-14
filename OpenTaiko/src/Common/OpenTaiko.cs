@@ -1791,6 +1791,34 @@ internal class OpenTaiko : Game {
 					soundDeviceType = ESoundDeviceType.Unknown;
 					break;
 			}
+
+			
+			// [Divergence] Command-line argument overrides Config.ini for the sound device to use.
+			string strSoundDeviceOverride = GetParameterValue("-a", "--audio");
+			if (!string.IsNullOrEmpty(strSoundDeviceOverride))
+			{
+				switch (strSoundDeviceOverride.ToLowerInvariant())
+				{
+					case "bass":
+						soundDeviceType = ESoundDeviceType.Bass;
+						break;
+					case "asio":
+						soundDeviceType = ESoundDeviceType.ASIO;
+						break;
+					case "wasapi-exclusive":
+						soundDeviceType = ESoundDeviceType.ExclusiveWASAPI;
+						break;
+					case "wasapi-shared":
+					case "wasapi":
+						soundDeviceType = ESoundDeviceType.SharedWASAPI;
+						break;
+					default:
+						Trace.TraceWarning($"Unrecognized -a/--audio value '{strSoundDeviceOverride}'. Expected one of: bass, asio, wasapi-shared, wasapi-exclusive.");
+						break;
+				}
+			}
+			// [End Divergence]
+
 			SoundManager = new SoundManager(Window_,
 				soundDeviceType,
 				OpenTaiko.ConfigIni.nBassBufferSizeMs,
