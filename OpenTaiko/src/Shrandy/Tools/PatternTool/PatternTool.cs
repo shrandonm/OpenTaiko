@@ -9,7 +9,15 @@ namespace OpenTaiko.Shrandy.Tools
 		private PatternDatabase m_Database;
 		private Random m_Rng = new();
 
+		private DrillData? m_CurrentlyPlayedDrill;
+		private float m_CurrentlyPlayedBpm;
+		private bool m_ComboRecordDirty = false;
+		private MicroStopwatch m_IdleStopwatch = new();
+
+		private const long IdleSaveDelayMs = 3000;
+
 		internal PatternDatabase Database => m_Database;
+		internal DrillData? CurrentlyPlayedDrill => m_CurrentlyPlayedDrill;
 
 		public PatternTool(string toolName, Key enableHotkey) : base(toolName, enableHotkey)
 		{
@@ -27,6 +35,9 @@ namespace OpenTaiko.Shrandy.Tools
 			string? tja = BuildDrillTja(drill, count, mode);
 			if (tja != null)
 			{
+				FlushComboRecordIfDirty();
+				m_CurrentlyPlayedDrill = drill;
+				m_CurrentlyPlayedBpm = bpm;
 				PlayPattern(new PatternData { Title = drill.Title, TJA = tja }, bpm);
 			}
 		}
@@ -200,6 +211,59 @@ namespace OpenTaiko.Shrandy.Tools
 		internal bool IsActive()
 		{
 			return OpenTaiko.rCurrentStage is CStage演奏ドラム画面 && OpenTaiko.ConfigIni.bTokkunMode;
+		}
+
+		public override void OnNoteHit(HitParams hitParams)
+		{
+			base.OnNoteHit(hitParams);
+			CheckComboRecord();
+		}
+
+		public override void OnNoteMiss(CChip? chip)
+		{
+			base.OnNoteMiss(chip);
+			CheckComboRecord();
+		}
+
+		public override void OnStageChanged(CStage stage)
+		{
+			base.OnStageChanged(stage);
+			FlushComboRecordIfDirty();
+		}
+
+		private void CheckComboRecord()
+		{
+			if (m_CurrentlyPlayedDrill == null || !IsActive())
+			{
+				return;
+			}
+
+			m_IdleStopwatch.Restart();
+
+			int currentCombo = OpenTaiko.stageGameScreen.actCombo.nCurrentCombo.最高値[0];
+			if (m_CurrentlyPlayedDrill.TryRecordCombo(m_CurrentlyPlayedBpm, currentCombo))
+			{
+				m_ComboRecordDirty = true;
+			}
+		}
+
+		private void FlushComboRecordIfDirty()
+		{
+			if (m_ComboRecordDirty)
+			{
+				SaveDatabase();
+				m_ComboRecordDirty = false;
+			}
+		}
+
+		protected override void Update()
+		{
+			base.Update();
+
+			if (m_ComboRecordDirty && m_IdleStopwatch.ElapsedMilliseconds >= IdleSaveDelayMs)
+			{
+				FlushComboRecordIfDirty();
+			}
 		}
 
 		protected override void Draw()

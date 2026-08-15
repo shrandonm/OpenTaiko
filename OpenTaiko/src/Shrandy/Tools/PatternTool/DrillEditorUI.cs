@@ -105,6 +105,12 @@ namespace OpenTaiko.Shrandy.Tools
 				m_RandomMode = (DrillRandomMode)modeIdx;
 			}
 
+			DrillData? playedDrill = m_Tool.CurrentlyPlayedDrill;
+			if (playedDrill != null)
+			{
+				ImGui.Text($"Best Max Combo: {playedDrill.GetBestCombo(m_Bpm)}");
+			}
+
 			DrawEditPopup();
 			DrawDeletePopup();
 		}
