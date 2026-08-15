@@ -42,6 +42,12 @@ internal class CEnumSongs                           // #27060 2011.2.7 yyagi 曲
 		this.state = DTXEnumState.CompletelyDone;
 		this.Songs管理 = null;                        // GCはOSに任せる
 	}
+	// Skips the disk scan, leaving Songs管理 empty; behaves as if enumeration just finished so the caller's usual "reflect into song list" flow still runs.
+	public void SkipEnumeration() {
+		lock (this) {
+			this.state = DTXEnumState.Enumeratad;
+		}
+	}
 	public bool IsSlowdown                          // #PREMOVIE再生中は検索負荷を落とす
 	{
 		get {

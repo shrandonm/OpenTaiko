@@ -49,6 +49,9 @@ public abstract class Game : IDisposable {
 		: -1;
 		return index > -1 && parameters.Length > index ? parameters[index + 1] : "";
 	}
+	protected static bool HasParameter(string parameter = "", string parameter_full = "") {
+		return parameters.Contains(parameter) || parameters.Contains(parameter_full);
+	}
 
 	public static ImGuiController ImGuiController { get; private set; }
 	public static ImGuiIOPtr ImGuiIO { get; private set; }

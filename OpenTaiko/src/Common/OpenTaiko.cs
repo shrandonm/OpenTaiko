@@ -302,6 +302,25 @@ internal class OpenTaiko : Game {
 
 	public OpenTaiko(params string[] args) : base("OpenTaiko.ico", args) {
 		OpenTaiko.app = this;
+		bSkipSongEnumeration = HasParameter("-n", "--skip-songs");
+	}
+
+	// Set via -n/--skip-songs; lets the game start with an empty song list instead of scanning the songs folder.
+	public static bool bSkipSongEnumeration { get; private set; }
+
+	private void tStartOrSkipSongEnumeration() {
+		actEnumSongs.Activate();
+		if (!ConfigIni.PreAssetsLoading) {
+			actEnumSongs.CreateManagedResource();
+			actEnumSongs.CreateUnmanagedResource();
+		}
+		stageSongSelect.bIsEnumeratingSongs = true;
+		EnumSongs.Init();
+		if (bSkipSongEnumeration) {
+			EnumSongs.SkipEnumeration();
+		} else {
+			EnumSongs.StartEnumFromDisk();
+		}
 	}
 
 	protected override int GetFrameRenderDelay()
@@ -555,14 +574,7 @@ internal class OpenTaiko : Game {
 								rPreviousStage.eStageID == CStage.EStage.StartUp &&
 								this.nDrawLoopReturnValue == (int)CStageTitle.EReturnValue.継続 &&
 								!EnumSongs.IsSongListEnumStarted) {
-								actEnumSongs.Activate();
-								if (!ConfigIni.PreAssetsLoading) {
-									actEnumSongs.CreateManagedResource();
-									actEnumSongs.CreateUnmanagedResource();
-								}
-								OpenTaiko.stageSongSelect.bIsEnumeratingSongs = true;
-								EnumSongs.Init();   // 取得した曲数を、新インスタンスにも与える
-								EnumSongs.StartEnumFromDisk();      // 曲検索スレッドの起動_開始
+								tStartOrSkipSongEnumeration();
 							}
 							#endregion
 
@@ -635,14 +647,7 @@ internal class OpenTaiko : Game {
 
 							// Start full song enumeration (normally triggered by the title screen).
 							if (EnumSongs != null && !EnumSongs.IsSongListEnumStarted) {
-								actEnumSongs.Activate();
-								if (!ConfigIni.PreAssetsLoading) {
-									actEnumSongs.CreateManagedResource();
-									actEnumSongs.CreateUnmanagedResource();
-								}
-								stageSongSelect.bIsEnumeratingSongs = true;
-								EnumSongs.Init();
-								EnumSongs.StartEnumFromDisk();
+								tStartOrSkipSongEnumeration();
 							}
 
 							ChangeStage(stageSongSelect);
