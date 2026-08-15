@@ -18,6 +18,7 @@ namespace OpenTaiko.Shrandy.Tools
 		public class BestComboRecord
 		{
 			public float Bpm { get; set; }
+			public DrillRandomMode Mode { get; set; }
 			public int Combo { get; set; }
 		}
 
@@ -30,23 +31,23 @@ namespace OpenTaiko.Shrandy.Tools
 		public int MaxFillerPatternFrequency { get; set; } = 8;
 		public List<BestComboRecord> BestCombos { get; set; } = new();
 
-		public int GetBestCombo(float bpm)
+		public int GetBestCombo(float bpm, DrillRandomMode mode)
 		{
-			BestComboRecord? record = BestCombos.FirstOrDefault(r => Math.Abs(r.Bpm - bpm) < BpmMatchTolerance);
+			BestComboRecord? record = BestCombos.FirstOrDefault(r => r.Mode == mode && Math.Abs(r.Bpm - bpm) < BpmMatchTolerance);
 			return record?.Combo ?? 0;
 		}
 
-		/// <returns>True if the combo was a new record for this BPM.</returns>
-		public bool TryRecordCombo(float bpm, int combo)
+		/// <returns>True if the combo was a new record for this BPM and mode.</returns>
+		public bool TryRecordCombo(float bpm, DrillRandomMode mode, int combo)
 		{
-			BestComboRecord? record = BestCombos.FirstOrDefault(r => Math.Abs(r.Bpm - bpm) < BpmMatchTolerance);
+			BestComboRecord? record = BestCombos.FirstOrDefault(r => r.Mode == mode && Math.Abs(r.Bpm - bpm) < BpmMatchTolerance);
 			if (record == null)
 			{
 				if (combo <= 0)
 				{
 					return false;
 				}
-				BestCombos.Add(new BestComboRecord { Bpm = bpm, Combo = combo });
+				BestCombos.Add(new BestComboRecord { Bpm = bpm, Mode = mode, Combo = combo });
 				return true;
 			}
 

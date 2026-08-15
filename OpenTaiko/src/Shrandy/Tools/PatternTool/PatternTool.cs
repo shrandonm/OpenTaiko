@@ -11,6 +11,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private DrillData? m_CurrentlyPlayedDrill;
 		private float m_CurrentlyPlayedBpm;
+		private DrillRandomMode m_CurrentlyPlayedMode;
 		private bool m_ComboRecordDirty = false;
 		private MicroStopwatch m_IdleStopwatch = new();
 
@@ -38,6 +39,7 @@ namespace OpenTaiko.Shrandy.Tools
 				FlushComboRecordIfDirty();
 				m_CurrentlyPlayedDrill = drill;
 				m_CurrentlyPlayedBpm = bpm;
+				m_CurrentlyPlayedMode = mode;
 				PlayPattern(new PatternData { Title = drill.Title, TJA = tja }, bpm);
 			}
 		}
@@ -241,7 +243,7 @@ namespace OpenTaiko.Shrandy.Tools
 			m_IdleStopwatch.Restart();
 
 			int currentCombo = OpenTaiko.stageGameScreen.actCombo.nCurrentCombo.最高値[0];
-			if (m_CurrentlyPlayedDrill.TryRecordCombo(m_CurrentlyPlayedBpm, currentCombo))
+			if (m_CurrentlyPlayedDrill.TryRecordCombo(m_CurrentlyPlayedBpm, m_CurrentlyPlayedMode, currentCombo))
 			{
 				m_ComboRecordDirty = true;
 			}
