@@ -228,7 +228,6 @@ public enum EFunMods {
 	None,
 	Avalanche,
 	Minesweeper,
-	ForceAllDon,
 	Total,
 }
 

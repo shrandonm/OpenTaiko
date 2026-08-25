@@ -968,6 +968,8 @@ namespace OpenTaiko.Shrandy.Tools
 			if (random != "None") parts.Add(random);
 			string fun = GetFunModLabel(funMod);
 			if (fun != "None") parts.Add(fun);
+			string noteColor = ModMenuTool.NoteColorModLabel;
+			if (noteColor != "None") parts.Add(noteColor);
 			return parts.Count > 0 ? string.Join(",", parts) : "None";
 		}
 
@@ -989,7 +991,6 @@ namespace OpenTaiko.Shrandy.Tools
 			return funMod switch
 			{
 				EFunMods.None => "None",
-				EFunMods.ForceAllDon => "AllDon",
 				EFunMods.Avalanche => "Avalanche",
 				EFunMods.Minesweeper => "Minesweeper",
 				_ => funMod.ToString()

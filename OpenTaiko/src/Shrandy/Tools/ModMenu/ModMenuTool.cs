@@ -1,11 +1,47 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using ImGuiNET;
 
 namespace OpenTaiko.Shrandy.Tools
 {
+	internal enum NoteColorMode
+	{
+		Off,
+		Don,
+		Ka,
+	}
+
 	internal class ModMenuTool : Tool
 	{
+		private static readonly Dictionary<NotesManager.ENoteType, NotesManager.ENoteType> ToDonMap = new()
+		{
+			[NotesManager.ENoteType.Ka] = NotesManager.ENoteType.Don,
+			[NotesManager.ENoteType.KaBig] = NotesManager.ENoteType.DonBig,
+			[NotesManager.ENoteType.KaHand] = NotesManager.ENoteType.DonHand,
+			[NotesManager.ENoteType.Kadon] = NotesManager.ENoteType.Don,
+		};
+
+		private static readonly Dictionary<NotesManager.ENoteType, NotesManager.ENoteType> ToKaMap = new()
+		{
+			[NotesManager.ENoteType.Don] = NotesManager.ENoteType.Ka,
+			[NotesManager.ENoteType.DonBig] = NotesManager.ENoteType.KaBig,
+			[NotesManager.ENoteType.DonHand] = NotesManager.ENoteType.KaHand,
+			[NotesManager.ENoteType.Kadon] = NotesManager.ENoteType.Ka,
+		};
+
+		private static NoteColorMode s_NoteColorMode = NoteColorMode.Off;
+		private readonly Dictionary<CChip, int> m_OriginalNoteChannels = new();
+
+		internal static NoteColorMode CurrentNoteColorMode => s_NoteColorMode;
+
+		internal static string NoteColorModLabel => s_NoteColorMode switch
+		{
+			NoteColorMode.Don => "AllDon",
+			NoteColorMode.Ka  => "AllKa",
+			_                 => "None",
+		};
+
 		private bool m_RemoveEvenNotes = false;
 		private bool m_RemoveOddNotes = false;
 
@@ -39,6 +75,7 @@ namespace OpenTaiko.Shrandy.Tools
 			DrawConstantScrollSpeed();
 			DrawFadingNoteTime();
 			DrawAllowAnyHitColour();
+			DrawNoteColorMod();
 			DrawNoteRemoval();
 			ImGui.Separator();
 			if (ImGui.Button("Reset to Defaults"))
@@ -59,6 +96,47 @@ namespace OpenTaiko.Shrandy.Tools
 			m_RemoveEvenNotes = false;
 			m_RemoveOddNotes = false;
 			ApplyNoteMods();
+			s_NoteColorMode = NoteColorMode.Off;
+			ApplyNoteColorMod();
+			m_OriginalNoteChannels.Clear();
+		}
+
+		private void DrawNoteColorMod()
+		{
+			ImGui.SeparatorText("Note Color");
+
+			string[] names = { "Off", "Force All Don", "Force All Ka" };
+			int mode = (int)s_NoteColorMode;
+			if (ImGui.Combo("Force Note Color", ref mode, names, names.Length))
+			{
+				s_NoteColorMode = (NoteColorMode)mode;
+				ApplyNoteColorMod();
+			}
+		}
+
+		private void ApplyNoteColorMod()
+		{
+			List<CChip>? listChip = OpenTaiko.TJA?.listChip;
+			if (listChip == null) return;
+
+			foreach (CChip chip in listChip)
+			{
+				if (!m_OriginalNoteChannels.TryGetValue(chip, out int originalChannel))
+				{
+					if (!NotesManager.IsMissableNote(chip)) continue;
+					originalChannel = chip.nChannelNo;
+					m_OriginalNoteChannels[chip] = originalChannel;
+				}
+
+				NotesManager.ENoteType originalType = NotesManager.GetNoteType(originalChannel);
+				NotesManager.ENoteType targetType = s_NoteColorMode switch
+				{
+					NoteColorMode.Don => ToDonMap.GetValueOrDefault(originalType, originalType),
+					NoteColorMode.Ka  => ToKaMap.GetValueOrDefault(originalType, originalType),
+					_                 => originalType,
+				};
+				chip.nChannelNo = NotesManager.ToChannelNo(targetType);
+			}
 		}
 
 		public static void DrawScrollSpeed()

@@ -64,7 +64,6 @@ internal class CActPlayOption : CActivity {
 		txFunMods[0] = OptionTypeTx(CLangManager.LangInstance.GetString("MOD_SWITCH_OFF"), Color.White, Color.Black);
 		txFunMods[1] = OptionTypeTx(CLangManager.LangInstance.GetString("MOD_FUN_AVALANCHE"), Color.White, Color.Black);
 		txFunMods[2] = OptionTypeTx(CLangManager.LangInstance.GetString("MOD_FUN_MINESWEEPER"), Color.White, Color.Black);
-		txFunMods[3] = OptionTypeTx(CLangManager.LangInstance.GetString("MOD_FUN_FORCE_DON"), Color.White, Color.Black);
 
 		txNone = OptionTypeTx(CLangManager.LangInstance.GetString("MOD_BLANK"), Color.White, Color.Black);
 

@@ -304,7 +304,7 @@ class CSongReplay {
 		if (OpenTaiko.ConfigIni.eSTEALTH[actualPlayer] == EStealthMode.Stealth) ModFlags |= (int)EModFlag.PerfectMemory;
 		if (OpenTaiko.ConfigIni.nFunMods[actualPlayer] == EFunMods.Avalanche) ModFlags |= (int)EModFlag.Avalanche;
 		if (OpenTaiko.ConfigIni.nFunMods[actualPlayer] == EFunMods.Minesweeper) ModFlags |= (int)EModFlag.Minesweeper;
-		if (OpenTaiko.ConfigIni.nFunMods[actualPlayer] == EFunMods.ForceAllDon) ModFlags |= (int)EModFlag.ForceAllDon;
+		if (Shrandy.Tools.ModMenuTool.CurrentNoteColorMode == Shrandy.Tools.NoteColorMode.Don) ModFlags |= (int)EModFlag.ForceAllDon;
 		if (OpenTaiko.ConfigIni.bJust[actualPlayer] == 1) ModFlags |= (int)EModFlag.Just;
 		if (OpenTaiko.ConfigIni.bJust[actualPlayer] == 2) ModFlags |= (int)EModFlag.Safe;
 		/* Gauge type
