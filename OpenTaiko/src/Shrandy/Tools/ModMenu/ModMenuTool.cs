@@ -38,6 +38,7 @@ namespace OpenTaiko.Shrandy.Tools
 			DrawTiming();
 			DrawConstantScrollSpeed();
 			DrawFadingNoteTime();
+			DrawAllowAnyHitColour();
 			DrawNoteRemoval();
 			ImGui.Separator();
 			if (ImGui.Button("Reset to Defaults"))
@@ -54,6 +55,7 @@ namespace OpenTaiko.Shrandy.Tools
 			OpenTaiko.ConfigIni.nTimingZones[OpenTaiko.SaveFile] = 2;
 			OpenTaiko.ConfigIni.bTokkunConstantScrollSpeed = false;
 			OpenTaiko.ConfigIni.nFadingNoteTime = 0;
+			OpenTaiko.ConfigIni.bAllowAnyHitColour = false;
 			m_RemoveEvenNotes = false;
 			m_RemoveOddNotes = false;
 			ApplyNoteMods();
@@ -97,6 +99,11 @@ namespace OpenTaiko.Shrandy.Tools
 		private static void DrawConstantScrollSpeed()
 		{
 			ImGui.Checkbox("Constant Scroll Speed", ref OpenTaiko.ConfigIni.bTokkunConstantScrollSpeed);
+		}
+
+		private static void DrawAllowAnyHitColour()
+		{
+			ImGui.Checkbox("Allow Any Hit Colour", ref OpenTaiko.ConfigIni.bAllowAnyHitColour);
 		}
 
 		private static void DrawFadingNoteTime()

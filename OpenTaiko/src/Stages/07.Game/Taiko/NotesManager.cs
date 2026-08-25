@@ -150,7 +150,14 @@ class NotesManager {
 
 	public static int PadToHand(EPad pad) => (PadTo1P(pad) is EPad.RRed or EPad.RBlue) ? 1 : 0;
 
-	public static bool IsExpectedPadAnyHit(EPad hit, CChip chip, EGameType gt) => IsAcceptLane(chip, gt, PadToLane(hit, gt));
+	public static bool IsExpectedPadAnyHit(EPad hit, CChip chip, EGameType gt) {
+		PlayerLane.FlashType lane = PadToLane(hit, gt);
+		if (OpenTaiko.ConfigIni.bAllowAnyHitColour && lane is PlayerLane.FlashType.Red or PlayerLane.FlashType.Blue)
+		{
+			return IsAcceptRed(chip, gt) || IsAcceptBlue(chip, gt);
+		}
+		return IsAcceptLane(chip, gt, lane);
+	}
 
 	public static bool IsExpectedPadMultiHit(EPad stored, EPad hit, CChip chip, EGameType gt) {
 		if (chip == null) return false;
