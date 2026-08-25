@@ -86,9 +86,26 @@ namespace OpenTaiko.Shrandy.Tools
 					return ApplyMessy(tja);
 				case DrillRandomMode.RandomInvert:
 					return m_Rng.Next(2) == 0 ? ApplyRandomInvert(tja) : tja;
+				case DrillRandomMode.MonoDon:
+					return ApplyMono(tja, '1');
+				case DrillRandomMode.MonoKa:
+					return ApplyMono(tja, '2');
 				default:
 					return tja;
 			}
+		}
+
+		private static string ApplyMono(string tja, char note)
+		{
+			char[] chars = tja.ToCharArray();
+			for (int i = 0; i < chars.Length; i++)
+			{
+				if (chars[i] == '1' || chars[i] == '2')
+				{
+					chars[i] = note;
+				}
+			}
+			return new string(chars);
 		}
 
 		private static string ApplyRandomInvert(string tja)

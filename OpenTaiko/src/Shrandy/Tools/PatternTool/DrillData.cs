@@ -5,6 +5,8 @@ namespace OpenTaiko.Shrandy.Tools
 		Normal,
 		Messy,
 		RandomInvert,
+		MonoDon,
+		MonoKa,
 	}
 
 	internal class DrillData
