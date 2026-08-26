@@ -66,6 +66,25 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 		}
 
+		public override void OnStageChanged(CStage stage)
+		{
+			base.OnStageChanged(stage);
+			ReapplyNoteMods();
+		}
+
+		public override void OnSongRestart()
+		{
+			base.OnSongRestart();
+			ReapplyNoteMods();
+		}
+
+		private void ReapplyNoteMods()
+		{
+			m_OriginalNoteChannels.Clear();
+			ApplyNoteColorMod();
+			ApplyNoteMods();
+		}
+
 		protected override void Draw()
 		{
 			DrawScrollSpeed();
