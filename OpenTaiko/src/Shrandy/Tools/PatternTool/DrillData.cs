@@ -32,6 +32,8 @@ namespace OpenTaiko.Shrandy.Tools
 		public int MinFillerPatternFrequency { get; set; } = 4;
 		public int MaxFillerPatternFrequency { get; set; } = 8;
 		public List<BestComboRecord> BestCombos { get; set; } = new();
+		public int RandomBpmRange { get; set; } = 0;
+		public int RandomBpmChangeFrequency { get; set; } = 0;
 
 		public int GetBestCombo(float bpm, DrillRandomMode mode)
 		{

@@ -31,9 +31,9 @@ namespace OpenTaiko.Shrandy.Tools
 			m_Database.Save();
 		}
 
-		internal void PlayDrill(DrillData drill, int count, DrillRandomMode mode = DrillRandomMode.Normal, float bpm = 120f)
+		internal void PlayDrill(DrillData drill, int count, DrillRandomMode mode, float bpm)
 		{
-			string? tja = BuildDrillTja(drill, count, mode);
+			string? tja = BuildDrillTja(drill, count, mode, bpm);
 			if (tja != null)
 			{
 				FlushComboRecordIfDirty();
@@ -44,7 +44,7 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 		}
 
-		internal string? BuildDrillTja(DrillData drill, int count, DrillRandomMode mode = DrillRandomMode.Normal)
+		internal string? BuildDrillTja(DrillData drill, int count, DrillRandomMode mode, float bpm)
 		{
 			List<DrillData.PatternWeight> availablePatterns = drill.Patterns.Where(pw => pw.Weight > 0).ToList();
 			int totalWeight = availablePatterns.Sum(pw => pw.Weight);
@@ -58,24 +58,45 @@ namespace OpenTaiko.Shrandy.Tools
 				&& drill.MinFillerPatternFrequency > 0
 				&& drill.MaxFillerPatternFrequency >= drill.MinFillerPatternFrequency;
 
-			List<PatternData> selected = new();
+			List<PatternData> selectedPatterns = new();
 			int regularSinceLastFiller = 0;
 			int nextFillerAfter = hasFillers ? RollFillerFrequency(drill) : int.MaxValue;
+			int lastBpmChangeMeasure = 0;
 
 			for (int i = 0; i < count; i++)
 			{
 				if (hasFillers && regularSinceLastFiller >= nextFillerAfter)
 				{
-					selected.Add(PickWeightedRandom(availableFillers, totalFillerWeight));
+					selectedPatterns.Add(PickWeightedRandom(availableFillers, totalFillerWeight));
 					regularSinceLastFiller = 0;
 					nextFillerAfter = RollFillerFrequency(drill);
 				}
-
-				selected.Add(PickWeightedRandom(availablePatterns, totalWeight));
-				regularSinceLastFiller++;
+				else
+				{
+					selectedPatterns.Add(PickWeightedRandom(availablePatterns, totalWeight));
+					regularSinceLastFiller++;					
+				}
+			}
+			
+			List<string> tjaMeasures = new(selectedPatterns.Count);
+			for (int i = 0; i < selectedPatterns.Count; i++)
+			{
+				PatternData pattern = selectedPatterns[i];
+				string notes = ApplyRandomMode(pattern.TJA, mode);
+				
+				if (drill.RandomBpmRange > 0 && (i - lastBpmChangeMeasure) >= drill.RandomBpmChangeFrequency)
+				{
+					float newBpm = bpm + m_Rng.Next(-drill.RandomBpmRange, drill.RandomBpmRange + 1);
+					tjaMeasures.Add($"#BPMCHANGE {newBpm}\n{notes}");
+					lastBpmChangeMeasure = i;
+				}
+				else
+				{
+					tjaMeasures.Add(notes);
+				}
 			}
 
-			return string.Join(",\n", selected.Select(p => ApplyRandomMode(p.TJA, mode)));
+			return string.Join(",\n", tjaMeasures);
 		}
 
 		private string ApplyRandomMode(string tja, DrillRandomMode mode)

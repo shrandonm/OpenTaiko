@@ -149,6 +149,8 @@ namespace OpenTaiko.Shrandy.Tools
 				FillerPatterns = drill.FillerPatterns.ToList(),
 				MinFillerPatternFrequency = drill.MinFillerPatternFrequency,
 				MaxFillerPatternFrequency = drill.MaxFillerPatternFrequency,
+				RandomBpmRange = drill.RandomBpmRange,
+				RandomBpmChangeFrequency = drill.RandomBpmChangeFrequency,
 			};
 			m_EditIsNew = false;
 			m_PendingEditOpen = true;
@@ -166,6 +168,14 @@ namespace OpenTaiko.Shrandy.Tools
 				DrawPatternWeightTablePair("##DrillEditOuter", "d", m_StagedDrill.Patterns, allPatterns, 200);
 
 				ImGui.Spacing();
+				int bpmRange = m_StagedDrill.RandomBpmRange;
+				ImGui.InputInt("Random BPM Range", ref bpmRange, 1, 5);
+				m_StagedDrill.RandomBpmRange = bpmRange;
+				
+				int bpmChangeFrequency = m_StagedDrill.RandomBpmChangeFrequency;
+				ImGui.InputInt("Random BPM Change Frequency", ref bpmChangeFrequency, 1, 5);
+				m_StagedDrill.RandomBpmChangeFrequency = bpmChangeFrequency;
+				
 				ImGui.SetNextItemOpen(false, ImGuiCond.Once);
 				if (ImGui.CollapsingHeader("Filler Patterns##filler_header"))
 				{
@@ -383,6 +393,8 @@ namespace OpenTaiko.Shrandy.Tools
 				drill.FillerPatterns = m_StagedDrill.FillerPatterns;
 				drill.MinFillerPatternFrequency = m_StagedDrill.MinFillerPatternFrequency;
 				drill.MaxFillerPatternFrequency = m_StagedDrill.MaxFillerPatternFrequency;
+				drill.RandomBpmRange = m_StagedDrill.RandomBpmRange;
+				drill.RandomBpmChangeFrequency = m_StagedDrill.RandomBpmChangeFrequency;
 			}
 			m_Tool.SaveDatabase();
 		}
