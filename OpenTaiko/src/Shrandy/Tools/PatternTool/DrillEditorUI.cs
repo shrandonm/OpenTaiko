@@ -29,6 +29,8 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			List<DrillData> drills = m_Tool.Database.Drills;
 
+			bool haveSettingsChanged = false;
+
 			ImGui.SeparatorText("Drills");
 
 			ImGuiTableFlags tableFlags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg
@@ -96,13 +98,22 @@ namespace OpenTaiko.Shrandy.Tools
 
 			ImGui.SeparatorText("Play Controls");
 
-			ImGui.InputFloat("BPM##dbpm", ref m_Bpm, 5.0f, 20.0f);
-			ImGui.InputInt("Pattern Count##dcount", ref m_DrillCount, 1, 10);
+			if (ImGui.InputFloat("BPM##dbpm", ref m_Bpm, 5.0f, 20.0f))
+			{
+				haveSettingsChanged = true;
+			}
+			
+			if (ImGui.InputInt("Pattern Count##dcount", ref m_DrillCount, 1, 10))
+			{
+				haveSettingsChanged = true;
+			}
+			
 			int modeIdx = (int)m_RandomMode;
 			string[] modeNames = Enum.GetNames<DrillRandomMode>();
 			if (ImGui.Combo("Mode##dmode", ref modeIdx, modeNames, modeNames.Length))
 			{
 				m_RandomMode = (DrillRandomMode)modeIdx;
+				haveSettingsChanged = true;
 			}
 
 			DrillData? playedDrill = m_Tool.CurrentlyPlayedDrill;
@@ -110,9 +121,23 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				ImGui.Text($"Best Max Combo: {playedDrill.GetBestCombo(m_Bpm, m_RandomMode)}");
 			}
-
+			
 			DrawEditPopup();
 			DrawDeletePopup();
+			
+			if (haveSettingsChanged)
+			{
+				RestartCurrentDrillIfPlaying();
+			}
+		}
+
+		private void RestartCurrentDrillIfPlaying()
+		{
+			DrillData? playedDrill = m_Tool.CurrentlyPlayedDrill;
+			if (playedDrill != null)
+			{
+				m_Tool.PlayDrill(playedDrill, m_DrillCount, m_RandomMode, m_Bpm);
+			}
 		}
 
 		private void OpenEditPopup(DrillData drill)
