@@ -137,6 +137,11 @@ namespace OpenTaiko.Shrandy.Tools
 			["aa-"] = 12, ["aa"] = 13, ["aa+"] = 14, ["aaa"] = 15,
 		};
 
+		private static readonly Dictionary<string, int> DdrComboTypeRanks = new(StringComparer.OrdinalIgnoreCase)
+		{
+			[""] = 0, ["fc"] = 1, ["gfc"] = 2, ["pfc"] = 3, ["mfc"] = 4,
+		};
+
 		private static readonly Regex FilterTokenRegex = new(@"([\w%]+)\s*(!=|>=|<=|>|<|=)\s*(\S+)", RegexOptions.Compiled);
 
 		// Public accessors
@@ -546,9 +551,13 @@ namespace OpenTaiko.Shrandy.Tools
 				28 => best?.LateHits ?? 0,
 				29 => best?.DdrScore ?? 0,
 				30 => GetDdrGradeRank(best?.DdrGrade) ?? 0,
-				32 => agg.PlayCount,
-				33 => agg.FCCount,
-				34 => agg.DFCCount,
+				31 => GetDdrComboTypeRank(best?.DdrComboType) ?? 0,
+				32 => best?.DdrMarvelousCount ?? 0,
+				33 => best?.DdrPerfectCount ?? 0,
+				34 => best?.DdrGreatPlusCount ?? 0,
+				36 => agg.PlayCount,
+				37 => agg.FCCount,
+				38 => agg.DFCCount,
 				_  => 0,
 			};
 		}
@@ -683,6 +692,10 @@ namespace OpenTaiko.Shrandy.Tools
 				"totalnotes" or "notes" => bestPlay?.TotalNotes,
 				"ddrscore" => bestPlay?.DdrScore,
 				"ddrgrade" => GetDdrGradeRank(bestPlay?.DdrGrade),
+				"ddrcombotype" or "combotype" => GetDdrComboTypeRank(bestPlay?.DdrComboType),
+				"marvelous" => bestPlay?.DdrMarvelousCount,
+				"ddrperfect" => bestPlay?.DdrPerfectCount,
+				"greatplus" => bestPlay?.DdrGreatPlusCount,
 				_ => null,
 			};
 		}
@@ -690,6 +703,15 @@ namespace OpenTaiko.Shrandy.Tools
 		private static double? GetDdrGradeRank(string? grade)
 		{
 			if (grade == null || !DdrGradeNames.TryGetValue(grade, out int rank))
+			{
+				return null;
+			}
+			return rank;
+		}
+
+		private static double? GetDdrComboTypeRank(string? comboType)
+		{
+			if (comboType == null || !DdrComboTypeRanks.TryGetValue(comboType, out int rank))
 			{
 				return null;
 			}
@@ -935,6 +957,10 @@ namespace OpenTaiko.Shrandy.Tools
 			DdrJudgementCounts ddrJudgements = DdrScoreCalculator.ClassifyHitDistribution(CurrentNoteStats.HitDistribution, entry.TotalNotes);
 			entry.DdrScore = DdrScoreCalculator.CalculateScore(ddrJudgements, ddrStepScore);
 			entry.DdrGrade = DdrScoreCalculator.CalculateGrade(entry.DdrScore, !HGaugeMethods.UNSAFE_FastNormaCheck(player));
+			entry.DdrComboType = DdrScoreCalculator.CalculateComboType(ddrJudgements);
+			entry.DdrMarvelousCount = ddrJudgements.Marvelous;
+			entry.DdrPerfectCount = ddrJudgements.Perfect;
+			entry.DdrGreatPlusCount = ddrJudgements.Great + ddrJudgements.Good;
 
 			SongEntry? previousBest = GetBestPlayMatchingMods(entry.SongTitle, difficulty, entry.RandomMod, entry.Judgement);
 			bool hasMods = entry.RandomMod != "None" || entry.Judgement != 2 || entry.SongSpeed != CConfigIni.DefaultSongSpeed || entry.UsedFadingNote;

@@ -38,15 +38,19 @@ namespace OpenTaiko.Shrandy.Utilities
 		public int LateHits;
 		public int DdrScore;
 		public string DdrGrade;
+		public string DdrComboType;
+		public int DdrMarvelousCount;
+		public int DdrPerfectCount;
+		public int DdrGreatPlusCount;
 
 		public int TotalNotes => Goods + Okays + Bads;
 	}
 
 	internal static class SongTable
 	{
-		private const int BaseColumnCount = 32;
+		private const int BaseColumnCount = 36;
 		private const int AggregateColumnCount = 3;
-		public const int TagsColumnIndex = 31;
+		public const int TagsColumnIndex = 35;
 
 		private struct ColumnDef
 		{
@@ -115,6 +119,10 @@ namespace OpenTaiko.Shrandy.Utilities
 				new ColumnDef("Late",			hidden:true),
 				new ColumnDef("DDR Score",		hidden:false),
 				new ColumnDef("DDR Grade",		hidden:false),
+				new ColumnDef("Combo Type",	hidden:true),
+				new ColumnDef("Marvelous",		hidden:true),
+				new ColumnDef("Perfect",		hidden:true),
+				new ColumnDef("Great+",			hidden:true),
 				new ColumnDef("Tags",			hidden:false, useLargeSize:true),
 			};
 			ColumnDef[] aggregateColumns =
@@ -296,6 +304,18 @@ namespace OpenTaiko.Shrandy.Utilities
 
 			ImGui.TableSetColumnIndex(col++);
 			ImGui.TextUnformatted(row.DdrGrade);
+
+			ImGui.TableSetColumnIndex(col++);
+			ImGui.TextUnformatted(row.DdrComboType);
+
+			ImGui.TableSetColumnIndex(col++);
+			ImGui.Text($"{row.DdrMarvelousCount}");
+
+			ImGui.TableSetColumnIndex(col++);
+			ImGui.Text($"{row.DdrPerfectCount}");
+
+			ImGui.TableSetColumnIndex(col++);
+			ImGui.Text($"{row.DdrGreatPlusCount}");
 		}
 
 		private static void DrawBpm(double baseBpm, double minBpm, double maxBpm)
@@ -349,6 +369,10 @@ namespace OpenTaiko.Shrandy.Utilities
 				LateHits = entry.LateHits,
 				DdrScore = entry.DdrScore,
 				DdrGrade = entry.DdrGrade,
+				DdrComboType = entry.DdrComboType,
+				DdrMarvelousCount = entry.DdrMarvelousCount,
+				DdrPerfectCount = entry.DdrPerfectCount,
+				DdrGreatPlusCount = entry.DdrGreatPlusCount,
 			};
 		}
 
@@ -405,6 +429,10 @@ namespace OpenTaiko.Shrandy.Utilities
 			row.LateHits = entry.LateHits;
 			row.DdrScore = entry.DdrScore;
 			row.DdrGrade = entry.DdrGrade;
+			row.DdrComboType = entry.DdrComboType;
+			row.DdrMarvelousCount = entry.DdrMarvelousCount;
+			row.DdrPerfectCount = entry.DdrPerfectCount;
+			row.DdrGreatPlusCount = entry.DdrGreatPlusCount;
 		}
 
 		public static int GetScoreRank(CSongListNode song, int difficulty)

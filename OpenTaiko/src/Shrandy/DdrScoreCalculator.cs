@@ -125,5 +125,31 @@ namespace OpenTaiko.Shrandy
 				_ => "D",
 			};
 		}
+
+		/// <summary>Returns the DDR-style combo type (MFC/PFC/GFC/FC), or "" if the play was not a full combo.</summary>
+		public static string CalculateComboType(DdrJudgementCounts judgements)
+		{
+			if (judgements.Miss > 0)
+			{
+				return "";
+			}
+
+			if (judgements.Perfect == 0 && judgements.Great == 0 && judgements.Good == 0)
+			{
+				return "MFC";
+			}
+
+			if (judgements.Great == 0 && judgements.Good == 0)
+			{
+				return "PFC";
+			}
+
+			if (judgements.Good == 0)
+			{
+				return "GFC";
+			}
+
+			return "FC";
+		}
 	}
 }

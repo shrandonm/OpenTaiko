@@ -397,22 +397,17 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private static void DrawDdrFullComboBanner(DdrJudgementCounts judgements)
 		{
-			if (judgements.Miss > 0)
+			switch (DdrScoreCalculator.CalculateComboType(judgements))
 			{
-				return;
-			}
-
-			if (judgements.Perfect == 0 && judgements.Great == 0 && judgements.Good == 0)
-			{
-				DrawCenteredText("Marvelous Fullcombo!!", DdrMarvelousColor);
-			}
-			else if (judgements.Great == 0 && judgements.Good == 0)
-			{
-				DrawCenteredText("Perfect Fullcombo!!", DdrPerfectColor);
-			}
-			else if (judgements.Good == 0)
-			{
-				DrawCenteredText("Great Fullcombo!!", DdrGreatColor);
+				case "MFC":
+					DrawCenteredText("Marvelous Fullcombo!!", DdrMarvelousColor);
+					break;
+				case "PFC":
+					DrawCenteredText("Perfect Fullcombo!!", DdrPerfectColor);
+					break;
+				case "GFC":
+					DrawCenteredText("Great Fullcombo!!", DdrGreatColor);
+					break;
 			}
 		}
 

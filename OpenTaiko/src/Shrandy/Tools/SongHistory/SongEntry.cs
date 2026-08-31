@@ -33,6 +33,10 @@ namespace OpenTaiko.Shrandy
 		public int LateHits { get; set; }
 		public int DdrScore { get; set; }
 		public string DdrGrade { get; set; } = "";
+		public string DdrComboType { get; set; } = "";
+		public int DdrMarvelousCount { get; set; }
+		public int DdrPerfectCount { get; set; }
+		public int DdrGreatPlusCount { get; set; }
 		
 		[JsonIgnore]
 		public int TotalNotes => Goods + Okays + Bads;
