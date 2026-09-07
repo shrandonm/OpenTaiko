@@ -257,11 +257,12 @@ namespace OpenTaiko.Shrandy.Tools
 
 			string currentMods = data.GetCurrentModsLabel();
 			int currentJudgement = data.GetCurrentJudgement();
+			int currentSongSpeed = data.GetCurrentSongSpeed();
 
 			m_CurrentModsLabel = currentMods;
 			m_CurrentJudgementLabel = CLangManager.LangInstance.GetString($"MOD_TIMING{currentJudgement + 1}");
 
-			m_ModsAreDefault = currentMods == "None" && currentJudgement == 2;
+			m_ModsAreDefault = currentMods == "None" && currentJudgement == 2 && currentSongSpeed == CConfigIni.DefaultSongSpeed;
 			m_BestPlayNoMods = data.GetBestPlayNoMods(m_Title, m_Difficulty);
 			m_AggStatsNoMods = data.GetAggregateStatsNoMods(m_Title, m_Difficulty);
 
@@ -272,8 +273,8 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 			else
 			{
-				m_BestPlayMatchingMods = data.GetBestPlayMatchingMods(m_Title, m_Difficulty, currentMods, currentJudgement);
-				m_AggStatsMatchingMods = data.GetAggregateStatsMatchingMods(m_Title, m_Difficulty, currentMods, currentJudgement);
+				m_BestPlayMatchingMods = data.GetBestPlayMatchingMods(m_Title, m_Difficulty, currentMods, currentJudgement, currentSongSpeed);
+				m_AggStatsMatchingMods = data.GetAggregateStatsMatchingMods(m_Title, m_Difficulty, currentMods, currentJudgement, currentSongSpeed);
 			}
 
 			SongEntry? lastPlayedNoMods = data.GetLastPlayNoMods(m_Title, m_Difficulty);
@@ -287,7 +288,7 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 			else
 			{
-				SongEntry? lastPlayedMatchingMods = data.GetLastPlayMatchingMods(m_Title, m_Difficulty, currentMods, currentJudgement);
+				SongEntry? lastPlayedMatchingMods = data.GetLastPlayMatchingMods(m_Title, m_Difficulty, currentMods, currentJudgement, currentSongSpeed);
 				m_DaysSinceLastPlayedMatchingMods = lastPlayedMatchingMods == null ? double.MaxValue : (DateTime.Now - lastPlayedMatchingMods.Timestamp).TotalDays;
 				m_DaysSinceLastPBMatchingMods = m_BestPlayMatchingMods == null ? double.MaxValue : (DateTime.Now - m_BestPlayMatchingMods.Timestamp).TotalDays;
 			}

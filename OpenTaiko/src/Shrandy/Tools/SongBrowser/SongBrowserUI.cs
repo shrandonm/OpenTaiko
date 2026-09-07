@@ -13,6 +13,7 @@ namespace OpenTaiko.Shrandy.Tools
 		private SongTagsUI m_TagsUI;
 		private TagFilterBar m_TagFilterBar;
 		private LevelFilterBar m_LevelFilterBar;
+		private GenreFilterBar m_GenreFilterBar;
 		private SongBrowserOverview m_OverviewWidget;
 		private SongsPerDayGraph m_SongsPerDayGraph;
 		public RetryPopup RetryPopup { get; private set; }
@@ -23,6 +24,7 @@ namespace OpenTaiko.Shrandy.Tools
 			m_TagsUI = new SongTagsUI(data.Tags, data.SaveTags);
 			m_TagFilterBar = new TagFilterBar(data.Tags, () => data.FilterText, value => data.FilterText = value);
 			m_LevelFilterBar = new LevelFilterBar(() => data.FilterText, value => data.FilterText = value);
+			m_GenreFilterBar = new GenreFilterBar(() => data.AllSongs, () => data.FilterText, value => data.FilterText = value);
 			RetryPopup = new RetryPopup(data);
 			m_OverviewWidget = new SongBrowserOverview(data);
 			m_SongsPerDayGraph = new SongsPerDayGraph(data);
@@ -125,13 +127,14 @@ namespace OpenTaiko.Shrandy.Tools
 				m_FocusFilterInput = false;
 			}
 			
-			if (ImGui.InputTextWithHint("##filter", "e.g. bpm>100 level=8 duration>120 combo>500 badge<purple lastplayed>7 lastpb>30 tag=rock tag!=rock song title words", ref filterText, 512))
+			if (ImGui.InputTextWithHint("##filter", "e.g. bpm>100 level=8 genre=Pop tag=rock song title words", ref filterText, 512))
 			{
 				m_Data.FilterText = filterText;
 			}
 
 			m_TagFilterBar.Draw();
 			m_LevelFilterBar.Draw();
+			m_GenreFilterBar.Draw();
 
 			if (m_Data.ApplyFiltersIfNeeded())
 			{

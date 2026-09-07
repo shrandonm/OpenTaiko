@@ -610,6 +610,16 @@ namespace OpenTaiko.Shrandy.Tools
 					continue;
 				}
 
+				if (field == "genre")
+				{
+					bool matchesGenre = song.songGenre.Equals(value, StringComparison.OrdinalIgnoreCase);
+					if ((op == "!=" && matchesGenre) || (op != "!=" && !matchesGenre))
+					{
+						return false;
+					}
+					continue;
+				}
+
 				var key = (field, op);
 				if (!numericGroups.TryGetValue(key, out List<string>? group))
 				{
@@ -738,13 +748,13 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				if (!e.SongTitle.Equals(title, StringComparison.OrdinalIgnoreCase)) continue;
 				if (e.Difficulty != diffLabel) continue;
-				if (e.RandomMod != "None" || e.Judgement != 2) continue;
+				if (e.RandomMod != "None" || e.Judgement != 2 || e.SongSpeed != CConfigIni.DefaultSongSpeed) continue;
 				if (best == null || e.Score > best.Score) best = e;
 			}
 			return best;
 		}
 
-		public SongEntry? GetBestPlayMatchingMods(string title, int difficulty, string randomMod, int judgement)
+		public SongEntry? GetBestPlayMatchingMods(string title, int difficulty, string randomMod, int judgement, int songSpeed)
 		{
 			string diffLabel = Utilities.SongHelper.GetDifficultyLabel(difficulty);
 			SongEntry? best = null;
@@ -752,7 +762,7 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				if (!e.SongTitle.Equals(title, StringComparison.OrdinalIgnoreCase)) continue;
 				if (e.Difficulty != diffLabel) continue;
-				if (e.RandomMod != randomMod || e.Judgement != judgement) continue;
+				if (e.RandomMod != randomMod || e.Judgement != judgement || e.SongSpeed != songSpeed) continue;
 				if (best == null || e.Score > best.Score) best = e;
 			}
 			return best;
@@ -766,7 +776,7 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				if (!e.SongTitle.Equals(title, StringComparison.OrdinalIgnoreCase)) continue;
 				if (e.Difficulty != diffLabel) continue;
-				if (e.RandomMod != "None" || e.Judgement != 2) continue;
+				if (e.RandomMod != "None" || e.Judgement != 2 || e.SongSpeed != CConfigIni.DefaultSongSpeed) continue;
 				agg.PlayCount++;
 				int cn = e.EffectiveCrown;
 				if (cn >= 1) agg.ClearCount++;
@@ -776,7 +786,7 @@ namespace OpenTaiko.Shrandy.Tools
 			return agg;
 		}
 
-		public SongAggregateStats GetAggregateStatsMatchingMods(string title, int difficulty, string randomMod, int judgement)
+		public SongAggregateStats GetAggregateStatsMatchingMods(string title, int difficulty, string randomMod, int judgement, int songSpeed)
 		{
 			string diffLabel = Utilities.SongHelper.GetDifficultyLabel(difficulty);
 			SongAggregateStats agg = default;
@@ -784,7 +794,7 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				if (!e.SongTitle.Equals(title, StringComparison.OrdinalIgnoreCase)) continue;
 				if (e.Difficulty != diffLabel) continue;
-				if (e.RandomMod != randomMod || e.Judgement != judgement) continue;
+				if (e.RandomMod != randomMod || e.Judgement != judgement || e.SongSpeed != songSpeed) continue;
 				agg.PlayCount++;
 				int cn = e.EffectiveCrown;
 				if (cn >= 1) agg.ClearCount++;
@@ -802,13 +812,13 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				if (!e.SongTitle.Equals(title, StringComparison.OrdinalIgnoreCase)) continue;
 				if (e.Difficulty != diffLabel) continue;
-				if (e.RandomMod != "None" || e.Judgement != 2) continue;
+				if (e.RandomMod != "None" || e.Judgement != 2 || e.SongSpeed != CConfigIni.DefaultSongSpeed) continue;
 				if (last == null || e.Timestamp > last.Timestamp) last = e;
 			}
 			return last;
 		}
 
-		public SongEntry? GetLastPlayMatchingMods(string title, int difficulty, string randomMod, int judgement)
+		public SongEntry? GetLastPlayMatchingMods(string title, int difficulty, string randomMod, int judgement, int songSpeed)
 		{
 			string diffLabel = Utilities.SongHelper.GetDifficultyLabel(difficulty);
 			SongEntry? last = null;
@@ -816,7 +826,7 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				if (!e.SongTitle.Equals(title, StringComparison.OrdinalIgnoreCase)) continue;
 				if (e.Difficulty != diffLabel) continue;
-				if (e.RandomMod != randomMod || e.Judgement != judgement) continue;
+				if (e.RandomMod != randomMod || e.Judgement != judgement || e.SongSpeed != songSpeed) continue;
 				if (last == null || e.Timestamp > last.Timestamp) last = e;
 			}
 			return last;
@@ -831,6 +841,11 @@ namespace OpenTaiko.Shrandy.Tools
 		public int GetCurrentJudgement()
 		{
 			return OpenTaiko.ConfigIni.nTimingZones[OpenTaiko.SaveFile];
+		}
+
+		public int GetCurrentSongSpeed()
+		{
+			return OpenTaiko.ConfigIni.nSongSpeed;
 		}
 
 		private static double? ResolveValue(string field, string value)
@@ -962,9 +977,9 @@ namespace OpenTaiko.Shrandy.Tools
 			entry.DdrPerfectCount = ddrJudgements.Perfect;
 			entry.DdrGreatPlusCount = ddrJudgements.Great + ddrJudgements.Good;
 
-			SongEntry? previousBest = GetBestPlayMatchingMods(entry.SongTitle, difficulty, entry.RandomMod, entry.Judgement);
+			SongEntry? previousBest = GetBestPlayMatchingMods(entry.SongTitle, difficulty, entry.RandomMod, entry.Judgement, entry.SongSpeed);
 			bool hasMods = entry.RandomMod != "None" || entry.Judgement != 2 || entry.SongSpeed != CConfigIni.DefaultSongSpeed || entry.UsedFadingNote;
-			SongEntry? noModBest = hasMods ? GetBestPlayMatchingMods(entry.SongTitle, difficulty, "None", 2) : null;
+			SongEntry? noModBest = hasMods ? GetBestPlayNoMods(entry.SongTitle, difficulty) : null;
 
 			m_SaveData.SongEntries.Add(entry);
 
