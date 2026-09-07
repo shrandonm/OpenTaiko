@@ -45,7 +45,19 @@ namespace OpenTaiko.Shrandy.Tools
 				? SongBrowserData.DifficultyNames[difficulty]
 				: difficulty.ToString();
 
-			m_BestPlay = GetTool<SongBrowserTool>()?.Data.GetBestPlay(m_SongTitle, difficulty);
+			SongBrowserData? songBrowserData = GetTool<SongBrowserTool>()?.Data;
+			if (songBrowserData == null)
+			{
+				m_BestPlay = null;
+				return;
+			}
+
+			m_BestPlay = songBrowserData.GetBestPlayMatchingMods(
+				m_SongTitle,
+				difficulty,
+				songBrowserData.GetCurrentModsLabel(),
+				songBrowserData.GetCurrentJudgement(),
+				songBrowserData.GetCurrentSongSpeed());
 		}
 
 		private T? GetTool<T>() where T : Tool
