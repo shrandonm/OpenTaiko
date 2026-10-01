@@ -8,6 +8,11 @@ namespace OpenTaiko.Shrandy.Tools
 
 		public SongBrowserData Data => m_Data;
 
+		internal void DrawChartPickerPopup(string popupId, Func<Chart, bool> canSelectChart, Action<Chart?> onChartSelected)
+		{
+			m_UI.DrawChartPickerPopup(popupId, canSelectChart, onChartSelected);
+		}
+
 		public SongBrowserTool(string toolName, SlimDXKeys.Key enableHotkey)
 			: base(toolName, enableHotkey)
 		{

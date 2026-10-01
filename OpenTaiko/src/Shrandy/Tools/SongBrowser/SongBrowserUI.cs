@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 using ImGuiNET;
 
 namespace OpenTaiko.Shrandy.Tools
@@ -114,7 +115,7 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 		}
 
-		private void DrawFilters()
+		private void DrawFilters(bool showSongActions = true)
 		{
 			ImGui.SeparatorText("Filter");
 
@@ -142,6 +143,11 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 
 			ImGui.Text($"{m_Data.FilteredSongs.Count} / {m_Data.AllSongs.Count} songs");
+			if (!showSongActions)
+			{
+				return;
+			}
+
 			ImGui.SameLine();
 			if (ImGui.Button("Random"))
 			{
@@ -167,18 +173,35 @@ namespace OpenTaiko.Shrandy.Tools
 
 		}
 
-		private void DrawAllSongsTable()
+		private void DrawAllSongsTable(Func<Chart, bool>? chartFilter = null, Action<Chart>? onChartSelected = null, string tableId = "SongList")
 		{
 			ImGui.SeparatorText("Songs");
 
-			if (m_Data.FilteredSongs.Count == 0)
+			List<int>? visibleSongIndices = null;
+			int visibleSongCount = m_Data.FilteredSongs.Count;
+			if (chartFilter != null)
 			{
-				ImGui.Text("No songs match the current filters.");
+				visibleSongIndices = new List<int>();
+				for (int songIndex = 0; songIndex < m_Data.FilteredSongs.Count; songIndex++)
+				{
+					(CSongListNode song, int difficulty) = m_Data.FilteredSongs[songIndex];
+					if (chartFilter(new Chart(song, difficulty)))
+					{
+						visibleSongIndices.Add(songIndex);
+					}
+				}
+
+				visibleSongCount = visibleSongIndices.Count;
+			}
+
+			if (visibleSongCount == 0)
+			{
+				ImGui.Text(chartFilter == null ? "No songs match the current filters." : "No eligible backing tracks match the current filters.");
 				return;
 			}
 
 			float availableHeight = ImGui.GetContentRegionAvail().Y - 30;
-			if (Utilities.SongTable.BeginTable("SongList", ImGuiTableFlags.ScrollY, availableHeight, showAggregates: true,
+			if (Utilities.SongTable.BeginTable(tableId, ImGuiTableFlags.ScrollY, availableHeight, showAggregates: true,
 				onSortChanged: (columnIndex, ascending) =>
 				{
 					m_Data.SortColumnIndex = columnIndex;
@@ -188,12 +211,13 @@ namespace OpenTaiko.Shrandy.Tools
 				unsafe
 				{
 					ImGuiListClipperPtr clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
-					clipper.Begin(m_Data.FilteredSongs.Count);
+					clipper.Begin(visibleSongCount);
 					while (clipper.Step())
 					{
 						for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
 						{
-							(CSongListNode song, int difficulty) = m_Data.FilteredSongs[i];
+							int songIndex = visibleSongIndices == null ? i : visibleSongIndices[i];
+							(CSongListNode song, int difficulty) = m_Data.FilteredSongs[songIndex];
 							Utilities.SongTableRow row = Utilities.SongTable.FromSongNode(song, difficulty);
 							string creator = song.strNotesDesigner?[difficulty] ?? "";
 
@@ -214,10 +238,19 @@ namespace OpenTaiko.Shrandy.Tools
 
 							ImGui.TableNextRow();
 							ImGui.TableSetColumnIndex(0);
-							ImGui.PushID(i);
+							ImGui.PushID(songIndex);
 							if (ImGui.Selectable(row.Title))
 							{
-								Utilities.SongHelper.PlaySong(new Chart { Song = song, Difficulty = difficulty });
+								Chart chart = new Chart(song, difficulty);
+								if (onChartSelected == null)
+								{
+									Utilities.SongHelper.PlaySong(chart);
+								}
+								else
+								{
+									onChartSelected(chart);
+									ImGui.CloseCurrentPopup();
+								}
 							}
 							ImGui.PopID();
 
@@ -235,6 +268,39 @@ namespace OpenTaiko.Shrandy.Tools
 				Utilities.SongTable.EndTable();
 				m_TagsUI.DrawPopup();
 			}
+		}
+
+		internal void DrawChartPickerPopup(string popupId, Func<Chart, bool> canSelectChart, Action<Chart?> onChartSelected)
+		{
+			ImGui.SetNextWindowSize(new Vector2(1000, 700), ImGuiCond.FirstUseEver);
+			bool isOpen = true;
+			if (!ImGui.BeginPopupModal(popupId, ref isOpen, ImGuiWindowFlags.None))
+			{
+				return;
+			}
+
+			ImGui.Text("Select Backing Track");
+			if (ImGui.Button("None"))
+			{
+				onChartSelected(null);
+				ImGui.CloseCurrentPopup();
+			}
+
+			ImGui.SameLine();
+			if (ImGui.Button("Cancel"))
+			{
+				ImGui.CloseCurrentPopup();
+			}
+
+			if (m_Data.AllSongs.Count == 0)
+			{
+				m_Data.RefreshSongList();
+			}
+
+			DrawFilters(showSongActions: false);
+			DrawDifficultySelector();
+			DrawAllSongsTable(canSelectChart, chart => onChartSelected(chart), "BackingTrackSongList");
+			ImGui.EndPopup();
 		}
 
 		// --- History Tab ---

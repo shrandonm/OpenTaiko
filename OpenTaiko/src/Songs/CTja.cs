@@ -244,6 +244,7 @@ internal class CTja : CActivity {
 		get;
 		private set;
 	}
+	public double BgmPlaySpeedMultiplier { get; set; } = 1.0;
 
 	public int nPlayerSide; //2017.08.14 kairera0467 引数で指定する
 	public bool bSession譜面を読み込む;
@@ -844,7 +845,12 @@ internal class CTja : CActivity {
 				}
 				CSound sound = wc.rSound[index];
 				if (sound != null) {
-					sound.PlaySpeed = OpenTaiko.ConfigIni.SongPlaybackSpeed;
+					double playSpeed = OpenTaiko.ConfigIni.SongPlaybackSpeed;
+					if (pChip.nChannelNo == 0x01)
+					{
+						playSpeed *= BgmPlaySpeedMultiplier;
+					}
+					sound.PlaySpeed = playSpeed;
 					// 再生速度によって、WASAPI/ASIOで使う使用mixerが決まるため、付随情報の設定(音量/PAN)は、再生速度の設定後に行う
 
 					// 2018-08-27 twopointzero - DON'T attempt to load (or queue scanning) loudness metadata here.

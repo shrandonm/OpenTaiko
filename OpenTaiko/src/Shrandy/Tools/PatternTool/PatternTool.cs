@@ -1,3 +1,4 @@
+using System.Globalization;
 using OpenTaiko.Shrandy.Utilities;
 using SlimDXKeys;
 
@@ -7,10 +8,13 @@ namespace OpenTaiko.Shrandy.Tools
 	{
 		private PatternToolUI m_UI;
 		private PatternDatabase m_Database;
+		private BackingTrackSelector m_BackingTrackSelector = new();
 		private Random m_Rng = new();
 
 		private DrillData? m_CurrentlyPlayedDrill;
+		private PatternData? m_CurrentlyPlayedPattern;
 		private float m_CurrentlyPlayedBpm;
+		private float m_CurrentlyPlayedPatternBpm = 120f;
 		private DrillRandomMode m_CurrentlyPlayedMode;
 		private bool m_ComboRecordDirty = false;
 		private MicroStopwatch m_IdleStopwatch = new();
@@ -19,6 +23,15 @@ namespace OpenTaiko.Shrandy.Tools
 
 		internal PatternDatabase Database => m_Database;
 		internal DrillData? CurrentlyPlayedDrill => m_CurrentlyPlayedDrill;
+		internal BackingTrackSelector BackingTrackSelector => m_BackingTrackSelector;
+
+		internal void SelectBackingTrack(Chart? chart)
+		{
+			if (m_BackingTrackSelector.Select(chart) && IsActive() && m_CurrentlyPlayedPattern != null)
+			{
+				PlayPattern(m_CurrentlyPlayedPattern, m_CurrentlyPlayedPatternBpm);
+			}
+		}
 
 		public PatternTool(string toolName, Key enableHotkey) : base(toolName, enableHotkey)
 		{
@@ -217,12 +230,14 @@ namespace OpenTaiko.Shrandy.Tools
 			return Path.Combine(OpenTaiko.strEXEのあるフォルダ, "Songs", "PatternTool", "PatternTool.tja");
 		}
 
-		private static string BuildTjaContent(string title, string body, float bpm = 120f)
+		private static string BuildTjaContent(string title, string body, float bpm = 120f, BackingTrack? backingTrack = null)
 		{
+			string audioPath = backingTrack?.AudioPath ?? "";
+			double offset = backingTrack?.Offset ?? 0.0;
 			return $"TITLE:{title}\n" +
 				$"BPM:{bpm:0.##}\n" +
-				"WAVE:\n" +
-				"OFFSET:0.000\n" +
+				$"WAVE:{audioPath}\n" +
+				$"OFFSET:{offset.ToString("0.###", CultureInfo.InvariantCulture)}\n" +
 				"COURSE:Oni\n" +
 				"LEVEL:1\n" +
 				"#START\n" +
@@ -234,12 +249,33 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			string tjaPath = GetTjaFilePath();
 			string folderPath = Path.GetDirectoryName(tjaPath) + Path.DirectorySeparatorChar;
-			string tjaContent = BuildTjaContent(pattern.Title, pattern.TJA, bpm);
+			BackingTrack? backingTrack = m_BackingTrackSelector.Selected;
+			string tjaContent = BuildTjaContent(pattern.Title, pattern.TJA, bpm, backingTrack);
 
 			CTja newTja = new CTja();
+			if (backingTrack != null && backingTrack.Bpm > 0.0 && bpm > 0.0f)
+			{
+				newTja.BgmPlaySpeedMultiplier = bpm / backingTrack.Bpm;
+			}
+
 			newTja.Activate();
 			newTja.t入力FromString(tjaContent, tjaPath, folderPath, 0, 0, true, (int)Difficulty.Oni);
+			foreach (CTja.CWAV wave in newTja.listWAV.Values)
+			{
+				if (wave.listこのWAVを使用するチャンネル番号の集合.Count > 0)
+				{
+					newTja.tWAVの読み込み(wave);
+				}
+			}
+
+			if (OpenTaiko.ConfigIni.bDynamicBassMixerManagement)
+			{
+				newTja.PlanToAddMixerChannel();
+			}
+
 			newTja.tInitLocalStores(0);
+			m_CurrentlyPlayedPattern = pattern;
+			m_CurrentlyPlayedPatternBpm = bpm;
 
 			OpenTaiko.TJA!.t全チップの再生停止とミキサーからの削除();
 			OpenTaiko.SetTJA(0, newTja);
@@ -336,6 +372,8 @@ namespace OpenTaiko.Shrandy.Tools
 			OpenTaiko.stageSongSelect.nChoosenSongDifficulty[0] = (int)Difficulty.Oni;
 			OpenTaiko.ConfigIni.bTokkunMode = true;
 			OpenTaiko.ConfigIni.nPlayerCount = 1;
+			m_CurrentlyPlayedPattern = new PatternData { Title = "PatternTool", TJA = "" };
+			m_CurrentlyPlayedPatternBpm = 120f;
 
 			OpenTaiko.app.ChangeStage(OpenTaiko.stageSongLoading);
 		}
