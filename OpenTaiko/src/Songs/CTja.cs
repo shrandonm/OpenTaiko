@@ -596,7 +596,7 @@ internal class CTja : CActivity {
 	}
 	public void tWAVの読み込み(CWAV cwav) {
 		string str = string.IsNullOrEmpty(this.PATH_WAV) ? this.strFolderPath : this.PATH_WAV;
-		str = str + cwav.strファイル名;
+		str = Path.Combine(str, cwav.strファイル名); // cwav.strファイル名 may be an absolute path (e.g. PatternTool backing track)
 
 		try {
 			#region [ 同時発音数を、チャンネルによって変える ]
