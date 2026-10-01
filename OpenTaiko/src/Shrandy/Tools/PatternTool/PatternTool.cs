@@ -234,6 +234,11 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			string audioPath = backingTrack?.AudioPath ?? "";
 			double offset = backingTrack?.Offset ?? 0.0;
+			if (backingTrack != null && backingTrack.Bpm > 0.0 && bpm > 0.0f)
+			{
+				offset *= backingTrack.Bpm / bpm;
+			}
+
 			return $"TITLE:{title}\n" +
 				$"BPM:{bpm:0.##}\n" +
 				$"WAVE:{audioPath}\n" +
