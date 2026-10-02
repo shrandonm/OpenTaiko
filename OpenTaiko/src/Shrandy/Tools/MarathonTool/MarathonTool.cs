@@ -8,6 +8,13 @@ namespace OpenTaiko.Shrandy.Tools
 		private Queue<Chart> m_ChartQueue = new();
 		private int m_TargetDurationMinutes = 25;
 		private int m_ConsecutiveRepeats = 1;
+		private int m_MinimumBadge = 0;
+		private int m_AutoTimingZoneIndex = StrictTimingZoneIndex;
+
+		private const int DefaultTimingZoneIndex = 2;
+		private const int StrictTimingZoneIndex = 3;
+
+		private static readonly string[] BadgeNames = { "None", "White", "Bronze", "Silver", "Gold", "Pink", "Purple", "Rainbow" };
 
 		public MarathonTool(SlimDXKeys.Key enableHotkey)
 			: base("Marathon Tool", enableHotkey)
@@ -27,12 +34,14 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			base.Draw();
 			
-			if (!ImGui.IsWindowFocused())
+			bool isPopupOpen = ImGui.IsPopupOpen("", ImGuiPopupFlags.AnyPopupId | ImGuiPopupFlags.AnyPopupLevel);
+			if (!ImGui.IsWindowFocused() && !isPopupOpen)
 			{
 				SetEnabled(false);
 			}
 			
 			DrawTimeControls();
+			DrawTimingZoneControls();
 			DrawGeneratePlaylistButton();
 
 			if (m_ChartQueue.Count == 0)
@@ -107,6 +116,35 @@ namespace OpenTaiko.Shrandy.Tools
 					m_ConsecutiveRepeats = 1;
 				}
 			}
+		}
+
+		private void DrawTimingZoneControls()
+		{
+			ImGui.Combo("Min Score Badge", ref m_MinimumBadge, BadgeNames, BadgeNames.Length);
+
+			string[] timingNames = Enumerable.Range(1, OpenTaiko.ConfigIni.tzLevels.Length)
+				.Select(index => CLangManager.LangInstance.GetString($"MOD_TIMING{index}"))
+				.ToArray();
+
+			ImGui.BeginDisabled(m_MinimumBadge <= 0);
+			ImGui.Combo("Timing When Badge Met", ref m_AutoTimingZoneIndex, timingNames, timingNames.Length);
+			ImGui.EndDisabled();
+		}
+
+		private int GetTimingZoneIndexForChart(Chart chart)
+		{
+			if (m_MinimumBadge <= 0 || chart.Song == null)
+			{
+				return DefaultTimingZoneIndex;
+			}
+
+			string title = chart.Song.score[chart.Difficulty].譜面情報.タイトル;
+			SongEntry? bestPlay = OpenTaiko.ShrandyExtension.GetTool<SongBrowserTool>()?.Data.GetBestPlayNoMods(title, chart.Difficulty);
+			if (bestPlay != null && bestPlay.ScoreRank >= m_MinimumBadge)
+			{
+				return m_AutoTimingZoneIndex;
+			}
+			return DefaultTimingZoneIndex;
 		}
 
 		private void DrawGeneratePlaylistButton()
@@ -201,6 +239,7 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 			
 			Chart nextChart = m_ChartQueue.Dequeue();
+			OpenTaiko.ConfigIni.nTimingZones[OpenTaiko.SaveFile] = GetTimingZoneIndexForChart(nextChart);
 			
 			OpenTaiko.stageSongSelect.rNowSelectedSong = nextChart.Song;
 			OpenTaiko.stageSongSelect.rChoosenSong = nextChart.Song;
