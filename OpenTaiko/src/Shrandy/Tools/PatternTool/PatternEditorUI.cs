@@ -161,13 +161,14 @@ namespace OpenTaiko.Shrandy.Tools
 				ImGui.SeparatorText("Preview");
 				PatternBarVisualizer.DrawInline(m_TJAInput, PatternBarVisualizer.PreviewWidth, PatternBarVisualizer.DefaultHeight);
 				ImGui.InputTextMultiline("TJA##ptja", ref m_TJAInput, 8192, new Vector2(400, 200));
+				bool isTjaInputActive = ImGui.IsItemActive();
 				bool canApply = m_TitleInput.Length > 0;
 				if (!canApply)
 				{
 					ImGui.BeginDisabled();
 				}
 
-				if (ImGui.Button("OK##pok") || (canApply && ImGui.IsKeyPressed(ImGuiKey.Enter)))
+				if (ImGui.Button("OK##pok") || (canApply && !isTjaInputActive && ImGui.IsKeyPressed(ImGuiKey.Enter)))
 				{
 					ApplyChanges();
 					ImGui.CloseCurrentPopup();
