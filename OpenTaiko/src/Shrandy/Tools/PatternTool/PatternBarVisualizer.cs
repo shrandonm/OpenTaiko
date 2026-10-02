@@ -1,14 +1,9 @@
+using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
 
 namespace OpenTaiko.Shrandy.Tools
 {
-	/// <summary>
-	/// Renders a single-bar TJA pattern as a row of colored circles over a beat grid.
-	/// Don notes (1, 3) are drawn in red; Ka notes (2, 4) are drawn in blue.
-	/// The bar is subdivided evenly by the number of digits in the TJA string.
-	/// Note centers align exactly with quarter/eighth beat grid lines.
-	/// </summary>
 	internal static class PatternBarVisualizer
 	{
 		// Note geometry — outer outline then white ring then fill, drawn back-to-front.
@@ -34,26 +29,58 @@ namespace OpenTaiko.Shrandy.Tools
 		private static readonly uint QuarterLineColor = ImGui.ColorConvertFloat4ToU32(new Vector4(0.55f,  0.55f,  0.55f,  1.0f));
 		private static readonly uint EighthLineColor  = ImGui.ColorConvertFloat4ToU32(new Vector4(0.78f,  0.78f,  0.78f,  1.0f));
 
-		/// <summary>
-		/// Draws the pattern visualization inline at the current ImGui cursor position,
-		/// then advances the cursor by reserving space with Dummy.
-		/// </summary>
-		public static void DrawInline(string tja, float width, float height)
+		private static List<string> SplitMeasures(string tja)
 		{
-			Vector2 position = ImGui.GetCursorScreenPos();
-			Draw(ImGui.GetWindowDrawList(), position, new Vector2(width, height), tja);
-			ImGui.Dummy(new Vector2(width, height));
+			List<string> measures = new();
+			foreach (string rawMeasure in tja.Split(','))
+			{
+				string measure = rawMeasure.Trim();
+				if (measure.Length > 0)
+				{
+					measures.Add(measure);
+				}
+			}
+
+			if (measures.Count == 0)
+			{
+				measures.Add(string.Empty);
+			}
+
+			return measures;
 		}
 
-		/// <summary>
-		/// Draws the pattern visualization onto the given draw list inside the specified bounds.
-		/// </summary>
-		public static void Draw(ImDrawListPtr drawList, Vector2 position, Vector2 size, string tja)
+		public static void DrawInline(string tja, float width, float rowHeight)
+		{
+			List<string> measures = SplitMeasures(tja);
+			Vector2 position = ImGui.GetCursorScreenPos();
+			Vector2 totalSize = new Vector2(width, rowHeight * measures.Count);
+
+			ImDrawListPtr drawList = ImGui.GetWindowDrawList();
+			for (int measureIndex = 0; measureIndex < measures.Count; measureIndex++)
+			{
+				Vector2 rowPosition = new Vector2(position.X, position.Y + rowHeight * measureIndex);
+				DrawMeasure(drawList, rowPosition, new Vector2(width, rowHeight), measures[measureIndex]);
+			}
+
+			ImGui.Dummy(totalSize);
+		}
+
+		public static void Draw(ImDrawListPtr drawList, Vector2 position, float width, float rowHeight, string tja)
+		{
+			List<string> measures = SplitMeasures(tja);
+			for (int measureIndex = 0; measureIndex < measures.Count; measureIndex++)
+			{
+				Vector2 rowPosition = new Vector2(position.X, position.Y + rowHeight * measureIndex);
+				DrawMeasure(drawList, rowPosition, new Vector2(width, rowHeight), measures[measureIndex]);
+			}
+		}
+
+		private static void DrawMeasure(ImDrawListPtr drawList, Vector2 position, Vector2 size, string measure)
 		{
 			drawList.AddRectFilled(position, new Vector2(position.X + size.X, position.Y + size.Y), BackgroundColor);
 
 			int digitCount = 0;
-			foreach (char c in tja)
+			foreach (char c in measure)
 			{
 				if (c >= '0' && c <= '9')
 				{
@@ -81,13 +108,9 @@ namespace OpenTaiko.Shrandy.Tools
 			float bottomY = position.Y + size.Y;
 
 			DrawGridLines(drawList, barLeft, barRight, barWidth, topY, bottomY);
-			DrawNotes(drawList, tja, digitCount, barLeft, barWidth, centerY);
+			DrawNotes(drawList, measure, digitCount, barLeft, barWidth, centerY);
 		}
 
-		/// <summary>
-		/// Draws the beat grid: 8th note lines, then 4th note lines on top, then bar start/end on top.
-		/// Each layer overdraws the previous so colours read correctly.
-		/// </summary>
 		private static void DrawGridLines(
 			ImDrawListPtr drawList,
 			float barLeft, float barRight, float barWidth,
@@ -109,10 +132,7 @@ namespace OpenTaiko.Shrandy.Tools
 			drawList.AddLine(new Vector2(barRight, topY), new Vector2(barRight, bottomY), BarLineColor, 1.5f);
 		}
 
-		/// <summary>
-		/// Draws each non-zero note as a filled circle with a black outer ring and white inner ring.
-		/// Note positions align with beat grid lines: note i is at i/digitCount of the bar width.
-		/// </summary>
+
 		private static void DrawNotes(
 			ImDrawListPtr drawList,
 			string tja, int digitCount,
