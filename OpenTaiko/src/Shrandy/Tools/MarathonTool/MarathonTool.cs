@@ -133,7 +133,7 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private int GetTimingZoneIndexForChart(Chart chart)
 		{
-			if (m_MinimumBadge <= 0 || chart.Song == null)
+			if (chart.Song == null)
 			{
 				return DefaultTimingZoneIndex;
 			}
@@ -239,7 +239,10 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 			
 			Chart nextChart = m_ChartQueue.Dequeue();
-			OpenTaiko.ConfigIni.nTimingZones[OpenTaiko.SaveFile] = GetTimingZoneIndexForChart(nextChart);
+			if (m_MinimumBadge > 0)
+			{
+				OpenTaiko.ConfigIni.nTimingZones[OpenTaiko.SaveFile] = GetTimingZoneIndexForChart(nextChart);
+			}
 			
 			OpenTaiko.stageSongSelect.rNowSelectedSong = nextChart.Song;
 			OpenTaiko.stageSongSelect.rChoosenSong = nextChart.Song;
