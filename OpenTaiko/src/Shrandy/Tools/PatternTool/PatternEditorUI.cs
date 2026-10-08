@@ -8,6 +8,7 @@ namespace OpenTaiko.Shrandy.Tools
 		private PatternTool m_Tool;
 
 		private int m_SelectedIndex = -1;
+		private PatternFilter m_Filter = new();
 		private string m_TitleInput = "";
 		private string m_TJAInput = "";
 		private bool m_EditIsNew = false;
@@ -50,21 +51,30 @@ namespace OpenTaiko.Shrandy.Tools
 			List<PatternData> patterns = m_Tool.Database.Patterns;
 
 			ImGui.SeparatorText("Patterns");
+			m_Filter.Draw("patternfilter");
 
 			ImGuiTableFlags tableFlags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg
 				| ImGuiTableFlags.ScrollY | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Resizable;
 			float buttonRowHeight = ImGui.GetFrameHeightWithSpacing();
 			float tableHeight = ImGui.GetContentRegionAvail().Y - buttonRowHeight;
-			if (ImGui.BeginTable("##PatternTable", 3, tableFlags, new Vector2(0, tableHeight)))
+			int moveFromIndex = -1;
+			int moveToIndex = -1;
+			if (ImGui.BeginTable("##PatternTable", 4, tableFlags, new Vector2(0, tableHeight)))
 			{
 				ImGui.TableSetupScrollFreeze(0, 1);
 				ImGui.TableSetupColumn("Title", ImGuiTableColumnFlags.WidthFixed, 200);
 				ImGui.TableSetupColumn("Pattern", ImGuiTableColumnFlags.WidthFixed, PatternBarVisualizer.PreviewWidth);
+				ImGui.TableSetupColumn("##order_col", ImGuiTableColumnFlags.WidthFixed, 60);
 				ImGui.TableSetupColumn("##edit_col", ImGuiTableColumnFlags.WidthFixed, 40);
 				ImGui.TableHeadersRow();
 
 				for (int i = 0; i < patterns.Count; i++)
 				{
+					if (!m_Filter.Matches(patterns[i]))
+					{
+						continue;
+					}
+
 					ImGui.TableNextRow();
 
 					ImGui.TableSetColumnIndex(0);
@@ -80,6 +90,19 @@ namespace OpenTaiko.Shrandy.Tools
 					PatternBarVisualizer.DrawInline(patterns[i].TJA, PatternBarVisualizer.PreviewWidth, PatternBarVisualizer.DefaultHeight);
 
 					ImGui.TableSetColumnIndex(2);
+					if (ImGui.ArrowButton($"##pup{i}", ImGuiDir.Up))
+					{
+						moveFromIndex = i;
+						moveToIndex = FindVisibleNeighbor(patterns, i, -1);
+					}
+					ImGui.SameLine();
+					if (ImGui.ArrowButton($"##pdown{i}", ImGuiDir.Down))
+					{
+						moveFromIndex = i;
+						moveToIndex = FindVisibleNeighbor(patterns, i, 1);
+					}
+
+					ImGui.TableSetColumnIndex(3);
 					if (ImGui.SmallButton($"Edit##pe{i}"))
 					{
 						m_SelectedIndex = i;
@@ -93,6 +116,8 @@ namespace OpenTaiko.Shrandy.Tools
 
 				ImGui.EndTable();
 			}
+
+			MovePattern(patterns, moveFromIndex, moveToIndex);
 
 			if (m_PendingEditOpen)
 			{
@@ -137,6 +162,39 @@ namespace OpenTaiko.Shrandy.Tools
 
 			DrawEditPopup();
 			DrawDeletePopup();
+		}
+
+		private int FindVisibleNeighbor(List<PatternData> patterns, int index, int direction)
+		{
+			for (int i = index + direction; i >= 0 && i < patterns.Count; i += direction)
+			{
+				if (m_Filter.Matches(patterns[i]))
+				{
+					return i;
+				}
+			}
+			return -1;
+		}
+
+		private void MovePattern(List<PatternData> patterns, int fromIndex, int toIndex)
+		{
+			if (fromIndex < 0 || toIndex < 0)
+			{
+				return;
+			}
+
+			PatternData movedPattern = patterns[fromIndex];
+			patterns[fromIndex] = patterns[toIndex];
+			patterns[toIndex] = movedPattern;
+			if (m_SelectedIndex == fromIndex)
+			{
+				m_SelectedIndex = toIndex;
+			}
+			else if (m_SelectedIndex == toIndex)
+			{
+				m_SelectedIndex = fromIndex;
+			}
+			m_Tool.SaveDatabase();
 		}
 
 		private void DrawEditPopup()

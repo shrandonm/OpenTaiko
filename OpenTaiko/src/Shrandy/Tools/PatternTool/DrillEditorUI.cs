@@ -16,6 +16,8 @@ namespace OpenTaiko.Shrandy.Tools
 		private float m_Bpm = 120.0f;
 		private int m_DrillCount = 100;
 		private DrillRandomMode m_RandomMode = DrillRandomMode.Normal;
+		private PatternFilter m_DrillPatternFilter = new();
+		private PatternFilter m_FillerPatternFilter = new();
 
 		private const string EditPopupId = "Edit Drill";
 		private const string DeletePopupId = "Delete Drill?";
@@ -165,7 +167,7 @@ namespace OpenTaiko.Shrandy.Tools
 				ImGui.Spacing();
 
 				List<PatternData> allPatterns = m_Tool.Database.Patterns;
-				DrawPatternWeightTablePair("##DrillEditOuter", "d", m_StagedDrill.Patterns, allPatterns, 200);
+				DrawPatternWeightTablePair("##DrillEditOuter", "d", m_StagedDrill.Patterns, allPatterns, 200, m_DrillPatternFilter);
 
 				ImGui.Spacing();
 				int bpmRange = m_StagedDrill.RandomBpmRange;
@@ -196,7 +198,7 @@ namespace OpenTaiko.Shrandy.Tools
 						m_StagedDrill.MaxFillerPatternFrequency = Math.Max(m_StagedDrill.MinFillerPatternFrequency, Math.Max(0, fMax));
 					}
 
-					DrawPatternWeightTablePair("##FillerEditOuter", "f", m_StagedDrill.FillerPatterns, allPatterns, 150);
+					DrawPatternWeightTablePair("##FillerEditOuter", "f", m_StagedDrill.FillerPatterns, allPatterns, 150, m_FillerPatternFilter);
 				}
 
 				ImGui.Spacing();
@@ -242,7 +244,8 @@ namespace OpenTaiko.Shrandy.Tools
 			string keyPrefix,
 			List<DrillData.PatternWeight> included,
 			List<PatternData> allPatterns,
-			float height)
+			float height,
+			PatternFilter filter)
 		{
 			ImGuiTableFlags innerFlags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg
 				| ImGuiTableFlags.ScrollY | ImGuiTableFlags.SizingFixedFit;
@@ -254,10 +257,14 @@ namespace OpenTaiko.Shrandy.Tools
 				ImGui.TableNextRow();
 
 				HashSet<PatternData> includedSet = included.Select(s => s.Pattern).ToHashSet();
-				List<PatternData> excluded = allPatterns.Where(p => !includedSet.Contains(p)).ToList();
+				List<PatternData> excluded = allPatterns
+					.Where(p => !includedSet.Contains(p) && filter.Matches(p))
+					.ToList();
 
 				ImGui.TableSetColumnIndex(0);
 				ImGui.TextUnformatted("Available");
+				ImGui.SameLine();
+				filter.Draw($"{keyPrefix}filter");
 				DrawAvailablePatternTable(excluded, included, keyPrefix, height, innerFlags);
 
 				ImGui.TableSetColumnIndex(1);
