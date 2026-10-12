@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
 
@@ -20,15 +21,11 @@ namespace OpenTaiko.Shrandy.Tools
 		private double m_MinBpm;
 		private double m_MaxBpm;
 
-		private SongEntry? m_BestPlayNoMods;
 		private SongEntry? m_BestPlayMatchingMods;
-		private SongAggregateStats m_AggStatsNoMods;
+		private List<SongEntry> m_TopPlaysMatchingMods = new();
 		private SongAggregateStats m_AggStatsMatchingMods;
-		private bool m_ModsAreDefault;
 		private string m_CurrentModsLabel = "";
 		private string m_CurrentJudgementLabel = "";
-		private double m_DaysSinceLastPlayedNoMods;
-		private double m_DaysSinceLastPBNoMods;
 		private double m_DaysSinceLastPlayedMatchingMods;
 		private double m_DaysSinceLastPBMatchingMods;
 
@@ -124,107 +121,27 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 			ImGui.Separator();
 
-			if (!m_ModsAreDefault)
+			string modsDesc = m_CurrentModsLabel == "None"
+				? m_CurrentJudgementLabel
+				: $"{m_CurrentModsLabel}, {m_CurrentJudgementLabel}";
+
+			ImGui.TextColored(new Vector4(0.4f, 0.85f, 1f, 1f), $"Current Mods ({modsDesc})");
+			ImGui.Separator();
+			if (ImGui.BeginTable("##previewstats_mods", 2, ImGuiTableFlags.None))
 			{
-				// No Mods section (inactive — dimmed)
-				ImGui.TextDisabled("No Mods");
-				ImGui.Separator();
-				if (ImGui.BeginTable("##previewstats_nomods", 2, ImGuiTableFlags.None))
-				{
-					ImGui.TableSetupColumn("##label", ImGuiTableColumnFlags.WidthFixed, 180);
-					ImGui.TableSetupColumn("##value", ImGuiTableColumnFlags.WidthStretch);
+				ImGui.TableSetupColumn("##label", ImGuiTableColumnFlags.WidthFixed, 180);
+				ImGui.TableSetupColumn("##value", ImGuiTableColumnFlags.WidthStretch);
 
-					ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.55f, 0.55f, 0.55f, 1f));
+				DrawTopScores(m_TopPlaysMatchingMods);
 
-					BeginStatRow("Best Score (No Mods)");
-					if (m_BestPlayNoMods != null)
-					{
-						Utilities.SongHelper.DrawScoreRank(m_BestPlayNoMods.ScoreRank, 14f);
-						ImGui.SameLine();
-						ImGui.TextUnformatted($"{m_BestPlayNoMods.Score:N0}");
-					}
-					else
-					{
-						ImGui.TextUnformatted("-");
-					}
+				DrawStatRow("Good / Okay / Bad", m_BestPlayMatchingMods != null
+					? $"{m_BestPlayMatchingMods.Goods} / {m_BestPlayMatchingMods.Okays} / {m_BestPlayMatchingMods.Bads}"
+					: "-");
+				DrawStatRow("Plays / FC / DFC", $"{m_AggStatsMatchingMods.PlayCount} / {m_AggStatsMatchingMods.FCCount} / {m_AggStatsMatchingMods.DFCCount}");
+				DrawStatRow("Last Played", FormatDays(m_DaysSinceLastPlayedMatchingMods));
+				DrawStatRow("Last PB", FormatDays(m_DaysSinceLastPBMatchingMods));
 
-					DrawStatRow("Good / Okay / Bad", m_BestPlayNoMods != null
-						? $"{m_BestPlayNoMods.Goods} / {m_BestPlayNoMods.Okays} / {m_BestPlayNoMods.Bads}"
-						: "-");
-					DrawStatRow("Plays / FC / DFC", $"{m_AggStatsNoMods.PlayCount} / {m_AggStatsNoMods.FCCount} / {m_AggStatsNoMods.DFCCount}");
-					DrawStatRow("Last Played", FormatDays(m_DaysSinceLastPlayedNoMods));
-					DrawStatRow("Last PB", FormatDays(m_DaysSinceLastPBNoMods));
-
-					ImGui.PopStyleColor();
-					ImGui.EndTable();
-				}
-
-				ImGui.Spacing();
-				ImGui.Separator();
-
-				// Current Mods section (active — bright)
-				string modsDesc = m_CurrentModsLabel == "None"
-					? m_CurrentJudgementLabel
-					: $"{m_CurrentModsLabel}, {m_CurrentJudgementLabel}";
-
-				ImGui.TextColored(new Vector4(0.4f, 0.85f, 1f, 1f), $"Current Mods ({modsDesc})");
-				ImGui.Separator();
-				if (ImGui.BeginTable("##previewstats_mods", 2, ImGuiTableFlags.None))
-				{
-					ImGui.TableSetupColumn("##label", ImGuiTableColumnFlags.WidthFixed, 180);
-					ImGui.TableSetupColumn("##value", ImGuiTableColumnFlags.WidthStretch);
-
-					BeginStatRow("Best Score");
-					if (m_BestPlayMatchingMods != null)
-					{
-						Utilities.SongHelper.DrawScoreRank(m_BestPlayMatchingMods.ScoreRank, 14f);
-						ImGui.SameLine();
-						ImGui.TextUnformatted($"{m_BestPlayMatchingMods.Score:N0}");
-					}
-					else
-					{
-						ImGui.TextUnformatted("-");
-					}
-
-					DrawStatRow("Good / Okay / Bad", m_BestPlayMatchingMods != null
-						? $"{m_BestPlayMatchingMods.Goods} / {m_BestPlayMatchingMods.Okays} / {m_BestPlayMatchingMods.Bads}"
-						: "-");
-					DrawStatRow("Plays / FC / DFC", $"{m_AggStatsMatchingMods.PlayCount} / {m_AggStatsMatchingMods.FCCount} / {m_AggStatsMatchingMods.DFCCount}");
-					DrawStatRow("Last Played", FormatDays(m_DaysSinceLastPlayedMatchingMods));
-					DrawStatRow("Last PB", FormatDays(m_DaysSinceLastPBMatchingMods));
-
-					ImGui.EndTable();
-				}
-			}
-			else
-			{
-				// No mods — single section, no header needed
-				if (ImGui.BeginTable("##previewstats", 2, ImGuiTableFlags.None))
-				{
-					ImGui.TableSetupColumn("##label", ImGuiTableColumnFlags.WidthFixed, 180);
-					ImGui.TableSetupColumn("##value", ImGuiTableColumnFlags.WidthStretch);
-
-					BeginStatRow("Best Score");
-					if (m_BestPlayNoMods != null)
-					{
-						Utilities.SongHelper.DrawScoreRank(m_BestPlayNoMods.ScoreRank, 14f);
-						ImGui.SameLine();
-						ImGui.TextUnformatted($"{m_BestPlayNoMods.Score:N0}");
-					}
-					else
-					{
-						ImGui.TextUnformatted("-");
-					}
-
-					DrawStatRow("Good / Okay / Bad", m_BestPlayNoMods != null
-						? $"{m_BestPlayNoMods.Goods} / {m_BestPlayNoMods.Okays} / {m_BestPlayNoMods.Bads}"
-						: "-");
-					DrawStatRow("Plays / FC / DFC", $"{m_AggStatsNoMods.PlayCount} / {m_AggStatsNoMods.FCCount} / {m_AggStatsNoMods.DFCCount}");
-					DrawStatRow("Last Played", FormatDays(m_DaysSinceLastPlayedNoMods));
-					DrawStatRow("Last PB", FormatDays(m_DaysSinceLastPBNoMods));
-
-					ImGui.EndTable();
-				}
+				ImGui.EndTable();
 			}
 
 			ImGui.Spacing();
@@ -262,36 +179,13 @@ namespace OpenTaiko.Shrandy.Tools
 			m_CurrentModsLabel = currentMods;
 			m_CurrentJudgementLabel = CLangManager.LangInstance.GetString($"MOD_TIMING{currentJudgement + 1}");
 
-			m_ModsAreDefault = currentMods == "None" && currentJudgement == 2 && currentSongSpeed == CConfigIni.DefaultSongSpeed;
-			m_BestPlayNoMods = data.GetBestPlayNoMods(m_Title, m_Difficulty);
-			m_AggStatsNoMods = data.GetAggregateStatsNoMods(m_Title, m_Difficulty);
+			m_BestPlayMatchingMods = data.GetBestPlayMatchingMods(m_Title, m_Difficulty, currentMods, currentJudgement, currentSongSpeed);
+			m_TopPlaysMatchingMods = data.GetTopPlaysMatchingMods(m_Title, m_Difficulty, currentMods, currentJudgement, currentSongSpeed);
+			m_AggStatsMatchingMods = data.GetAggregateStatsMatchingMods(m_Title, m_Difficulty, currentMods, currentJudgement, currentSongSpeed);
 
-			if (m_ModsAreDefault)
-			{
-				m_BestPlayMatchingMods = null;
-				m_AggStatsMatchingMods = default;
-			}
-			else
-			{
-				m_BestPlayMatchingMods = data.GetBestPlayMatchingMods(m_Title, m_Difficulty, currentMods, currentJudgement, currentSongSpeed);
-				m_AggStatsMatchingMods = data.GetAggregateStatsMatchingMods(m_Title, m_Difficulty, currentMods, currentJudgement, currentSongSpeed);
-			}
-
-			SongEntry? lastPlayedNoMods = data.GetLastPlayNoMods(m_Title, m_Difficulty);
-			m_DaysSinceLastPlayedNoMods = lastPlayedNoMods == null ? double.MaxValue : (DateTime.Now - lastPlayedNoMods.Timestamp).TotalDays;
-			m_DaysSinceLastPBNoMods = m_BestPlayNoMods == null ? double.MaxValue : (DateTime.Now - m_BestPlayNoMods.Timestamp).TotalDays;
-
-			if (m_ModsAreDefault)
-			{
-				m_DaysSinceLastPlayedMatchingMods = double.MaxValue;
-				m_DaysSinceLastPBMatchingMods = double.MaxValue;
-			}
-			else
-			{
-				SongEntry? lastPlayedMatchingMods = data.GetLastPlayMatchingMods(m_Title, m_Difficulty, currentMods, currentJudgement, currentSongSpeed);
-				m_DaysSinceLastPlayedMatchingMods = lastPlayedMatchingMods == null ? double.MaxValue : (DateTime.Now - lastPlayedMatchingMods.Timestamp).TotalDays;
-				m_DaysSinceLastPBMatchingMods = m_BestPlayMatchingMods == null ? double.MaxValue : (DateTime.Now - m_BestPlayMatchingMods.Timestamp).TotalDays;
-			}
+			SongEntry? lastPlayedMatchingMods = data.GetLastPlayMatchingMods(m_Title, m_Difficulty, currentMods, currentJudgement, currentSongSpeed);
+			m_DaysSinceLastPlayedMatchingMods = lastPlayedMatchingMods == null ? double.MaxValue : (DateTime.Now - lastPlayedMatchingMods.Timestamp).TotalDays;
+			m_DaysSinceLastPBMatchingMods = m_BestPlayMatchingMods == null ? double.MaxValue : (DateTime.Now - m_BestPlayMatchingMods.Timestamp).TotalDays;
 		}
 
 		private void DrawBpmInline()
@@ -319,6 +213,27 @@ namespace OpenTaiko.Shrandy.Tools
 		{
 			BeginStatRow(label);
 			ImGui.TextUnformatted(value);
+		}
+
+		private static void DrawTopScores(List<SongEntry> topPlays)
+		{
+			for (int index = 0; index < 3; index++)
+			{
+				BeginStatRow($"Top Score #{index + 1}");
+				if (index < topPlays.Count)
+				{
+					SongEntry entry = topPlays[index];
+					Utilities.SongHelper.DrawScoreRank(entry.ScoreRank, 14f);
+					ImGui.SameLine();
+					ImGui.TextUnformatted($"{entry.Score:N0}");
+					ImGui.SameLine();
+					Utilities.SongHelper.DrawCrown(entry.EffectiveCrown);
+				}
+				else
+				{
+					ImGui.TextUnformatted("-");
+				}
+			}
 		}
 
 		private static string FormatDays(double days)

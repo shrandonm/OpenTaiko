@@ -1,16 +1,17 @@
+using System.Collections.Generic;
 using System.Numerics;
 using ImGuiNET;
 
 namespace OpenTaiko.Shrandy.Tools
 {
-	internal class SongLoadingOverlayTool : Tool
+	internal class LiveScoreHudTool : Tool
 	{
 		private string m_SongTitle = "";
 		private string m_DifficultyLabel = "";
-		private SongEntry? m_BestPlay = null;
+		private List<SongEntry> m_TopPlays = new();
 
-		public SongLoadingOverlayTool()
-			: base("Song Loading Overlay", SlimDXKeys.Key.Unknown)
+		public LiveScoreHudTool()
+			: base("Live Score HUD", SlimDXKeys.Key.Unknown)
 		{
 		}
 
@@ -34,7 +35,7 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				m_SongTitle = "";
 				m_DifficultyLabel = "";
-				m_BestPlay = null;
+				m_TopPlays.Clear();
 				return;
 			}
 
@@ -48,11 +49,11 @@ namespace OpenTaiko.Shrandy.Tools
 			SongBrowserData? songBrowserData = GetTool<SongBrowserTool>()?.Data;
 			if (songBrowserData == null)
 			{
-				m_BestPlay = null;
+				m_TopPlays.Clear();
 				return;
 			}
 
-			m_BestPlay = songBrowserData.GetBestPlayMatchingMods(
+			m_TopPlays = songBrowserData.GetTopPlaysMatchingMods(
 				m_SongTitle,
 				difficulty,
 				songBrowserData.GetCurrentModsLabel(),
@@ -85,7 +86,7 @@ namespace OpenTaiko.Shrandy.Tools
 				ImGuiWindowFlags.NoNav |
 				ImGuiWindowFlags.AlwaysAutoResize;
 
-			if (ImGui.Begin("##song_loading_overlay", flags))
+			if (ImGui.Begin("##live_score_hud", flags))
 			{
 				Draw();
 			}
@@ -104,16 +105,21 @@ namespace OpenTaiko.Shrandy.Tools
 			ImGui.SameLine();
 			ImGui.TextDisabled($"({m_DifficultyLabel})");
 
-			if (m_BestPlay != null)
+			if (m_TopPlays.Count > 0)
 			{
-				ImGui.SameLine();
-				Utilities.SongHelper.DrawScoreRank(m_BestPlay.ScoreRank, 14f);
-				ImGui.SameLine();
-				ImGui.TextUnformatted($"{m_BestPlay.Score:N0}");
-				ImGui.SameLine();
-				Utilities.SongHelper.DrawCrown(m_BestPlay.EffectiveCrown);
-				ImGui.SameLine();
-				ImGui.TextDisabled($"  Good: {m_BestPlay.GoodPercentString}%");
+				for (int index = 0; index < m_TopPlays.Count; index++)
+				{
+					SongEntry entry = m_TopPlays[index];
+					ImGui.TextDisabled($"#{index + 1}");
+					ImGui.SameLine();
+					Utilities.SongHelper.DrawScoreRank(entry.ScoreRank, 14f);
+					ImGui.SameLine();
+					ImGui.TextUnformatted($"{entry.Score:N0}");
+					ImGui.SameLine();
+					Utilities.SongHelper.DrawCrown(entry.EffectiveCrown);
+					ImGui.SameLine();
+					ImGui.TextDisabled($"  Good: {entry.GoodPercentString}%");
+				}
 			}
 			else
 			{

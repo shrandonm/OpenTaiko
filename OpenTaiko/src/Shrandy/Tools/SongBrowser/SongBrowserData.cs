@@ -768,6 +768,22 @@ namespace OpenTaiko.Shrandy.Tools
 			return best;
 		}
 
+		public List<SongEntry> GetTopPlaysMatchingMods(string title, int difficulty, string randomMod, int judgement, int songSpeed)
+		{
+			string diffLabel = Utilities.SongHelper.GetDifficultyLabel(difficulty);
+			return m_SaveData.SongEntries
+				.Where(entry =>
+					entry.SongTitle.Equals(title, StringComparison.OrdinalIgnoreCase) &&
+					entry.Difficulty == diffLabel &&
+					entry.RandomMod == randomMod &&
+					entry.Judgement == judgement &&
+					entry.SongSpeed == songSpeed)
+				.OrderByDescending(entry => entry.Score)
+				.ThenByDescending(entry => entry.Timestamp)
+				.Take(3)
+				.ToList();
+		}
+
 		public SongAggregateStats GetAggregateStatsNoMods(string title, int difficulty)
 		{
 			string diffLabel = Utilities.SongHelper.GetDifficultyLabel(difficulty);

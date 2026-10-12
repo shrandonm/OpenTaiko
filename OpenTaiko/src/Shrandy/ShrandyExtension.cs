@@ -51,7 +51,7 @@ namespace OpenTaiko.Shrandy
 			
 			m_Tools.Add(new Tools.ResultsTool("Results Tool"));
 			m_Tools.Add(new Tools.PreviewTool("Preview Tool"));
-			m_Tools.Add(new Tools.SongLoadingOverlayTool());
+			m_Tools.Add(new Tools.LiveScoreHudTool());
 		}
 
 		public T? GetTool<T>() where T : Tool
@@ -227,5 +227,4 @@ namespace OpenTaiko.Shrandy
 		}
 	}
 }
-
 
