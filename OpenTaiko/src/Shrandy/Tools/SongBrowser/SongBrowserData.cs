@@ -17,7 +17,8 @@ namespace OpenTaiko.Shrandy.Tools
 	{
 		public SongEntry CurrentEntry;
 		public SongEntry? PreviousBest;
-		public SongEntry? NoModBest;
+		/// <summary>Best previous result at default timing (converted or natural), for comparing against <see cref="SongEntry.NormalResult"/>.</summary>
+		public ScoreResult? PreviousBestNormal;
 		public Dictionary<int, int>? HitDistribution;
 	}
 
@@ -36,6 +37,13 @@ namespace OpenTaiko.Shrandy.Tools
 		private SongHistorySaveData m_SaveData = new();
 		private SongTagsSaveData m_TagsSaveData = new();
 		private Dictionary<(string title, int difficulty), SongEntry> m_BestPlays = new();
+		private Dictionary<(string title, int difficulty), SongEntry> m_BestNoModPlays = new();
+		private Dictionary<(string title, int difficulty), SongEntry> m_BestMatchingModPlays = new();
+		private Dictionary<(string title, int difficulty), SongEntry> m_LastMatchingModPlays = new();
+		private Dictionary<(string title, int difficulty), SongAggregateStats> m_AggregateMatchingModStats = new();
+		private string? m_MatchingModsSignature;
+		private bool m_UseMatchingModData = false;
+		private Dictionary<(string title, int difficulty), ScoreResult> m_BestNormalResults = new();
 		private Dictionary<(string title, int difficulty), SongEntry> m_LastPlays = new();
 		private Dictionary<(string title, int difficulty), SongAggregateStats> m_AggregateStats = new();
 
@@ -57,10 +65,12 @@ namespace OpenTaiko.Shrandy.Tools
 
 		// Note stats for current song
 		public NoteStats CurrentNoteStats { get; private set; } = CreateFreshNoteStats();
+		public NormalTimingScoreTracker CurrentNormalTimingTracker { get; } = new();
 
 		public void ResetCurrentNoteStats()
 		{
 			CurrentNoteStats = CreateFreshNoteStats();
+			CurrentNormalTimingTracker.Reset();
 		}
 
 		private static NoteStats CreateFreshNoteStats()
@@ -77,17 +87,17 @@ namespace OpenTaiko.Shrandy.Tools
 		private List<(CSongListNode song, int difficulty)> m_FilteredSongs = new();
 		private HashSet<int> m_SelectedDifficulties = new() { (int)Difficulty.Oni, (int)Difficulty.Edit };
 		private string m_FilterText = "";
-		private bool m_NoModOnly = false;
 		private int m_SortColumnIndex = -1;
 		private bool m_SortAscending = true;
 		private bool m_NeedsRefresh = true;
 
-		public bool NoModOnly
+		/// <summary>When set, the table columns (except the regular score and badge) only use plays matching the current mods.</summary>
+		public bool UseMatchingModData
 		{
-			get => m_NoModOnly;
+			get => m_UseMatchingModData;
 			set
 			{
-				m_NoModOnly = value;
+				m_UseMatchingModData = value;
 				m_NeedsRefresh = true;
 			}
 		}
@@ -362,6 +372,12 @@ namespace OpenTaiko.Shrandy.Tools
 		public void RebuildBestPlaysCache()
 		{
 			m_BestPlays.Clear();
+			m_BestNoModPlays.Clear();
+			m_BestMatchingModPlays.Clear();
+			m_LastMatchingModPlays.Clear();
+			m_AggregateMatchingModStats.Clear();
+			m_MatchingModsSignature = null;
+			m_BestNormalResults.Clear();
 			m_LastPlays.Clear();
 			m_AggregateStats.Clear();
 
@@ -373,6 +389,17 @@ namespace OpenTaiko.Shrandy.Tools
 				if (!m_BestPlays.TryGetValue(key, out SongEntry? existing) || entry.Score > existing.Score)
 				{
 					m_BestPlays[key] = entry;
+				}
+
+				if (IsNoModEntry(entry) && (!m_BestNoModPlays.TryGetValue(key, out SongEntry? existingNoMod) || entry.Score > existingNoMod.Score))
+				{
+					m_BestNoModPlays[key] = entry;
+				}
+
+				ScoreResult? normalResult = entry.EffectiveNormalResult;
+				if (normalResult != null && (!m_BestNormalResults.TryGetValue(key, out ScoreResult? existingNormal) || normalResult.Score > existingNormal.Score))
+				{
+					m_BestNormalResults[key] = normalResult;
 				}
 
 				// SongEntries is in chronological order, so later entries overwrite earlier ones
@@ -423,6 +450,12 @@ namespace OpenTaiko.Shrandy.Tools
 
 		public bool ApplyFiltersIfNeeded()
 		{
+			if (GetCurrentModsSignature() != m_MatchingModsSignature)
+			{
+				RebuildMatchingModsCache(GetCurrentModsSignature());
+				m_NeedsRefresh = true;
+			}
+
 			if (!m_NeedsRefresh)
 			{
 				return false;
@@ -501,7 +534,7 @@ namespace OpenTaiko.Shrandy.Tools
 					b.song.ldTitle.GetString(""));
 			}
 
-			if (column == 19)
+			if (column == 21)
 			{
 				string creatorA = a.song.strNotesDesigner?[a.difficulty] ?? "";
 				string creatorB = b.song.strNotesDesigner?[b.difficulty] ?? "";
@@ -516,48 +549,52 @@ namespace OpenTaiko.Shrandy.Tools
 		private double GetColumnSortKey(CSongListNode song, int difficulty, int column)
 		{
 			string title = song.ldTitle.GetString("");
-			SongEntry? best = GetBestPlay(title, difficulty);
-			SongEntry? last = GetLastPlay(title, difficulty);
-			SongAggregateStats agg = GetAggregateStats(title, difficulty);
+			SongEntry? best = GetColumnBestPlay(title, difficulty);
+			SongEntry? bestWithMods = GetBestPlayMatchingCurrentMods(title, difficulty);
+			ScoreResult? normal = GetBestNormalResult(title, difficulty);
+			SongEntry? last = GetColumnLastPlay(title, difficulty);
+			SongAggregateStats agg = GetColumnAggregateStats(title, difficulty);
 
 			return column switch
 			{
 				1  => (double)(last?.Timestamp ?? DateTime.MinValue).Ticks,
 				2  => (double)(best?.Timestamp ?? DateTime.MinValue).Ticks,
-				3  => best?.ScoreRank ?? 0,
-				4  => song.nLevel[difficulty],
-				5  => GetBaseBpm(song, difficulty),
-				6  => best?.Score ?? 0,
-				7  => best == null || best.TotalNotes == 0
+				3  => normal?.ScoreRank ?? 0,
+				4  => bestWithMods?.ScoreRank ?? 0,
+				5  => song.nLevel[difficulty],
+				6  => GetBaseBpm(song, difficulty),
+				7  => normal?.Score ?? 0,
+				8  => bestWithMods?.Score ?? 0,
+				9  => best == null || best.TotalNotes == 0
 					? 0.0
 					: (double)best.Goods / best.TotalNotes,
-				8  => best?.Goods ?? 0,
-				9  => best?.Okays ?? 0,
-				10 => best?.Bads ?? 0,
-				11 => best?.Rolls ?? 0,
-				12 => best?.MaxCombo ?? 0,
-				13 => GetDurationMs(song, difficulty),
-				14 => best?.TotalNotes ?? 0,
-				15 => difficulty,
-				18 => best?.Judgement ?? 0,
-				20 => best?.AvgHitError ?? 0,
-				21 => best?.AvgSync ?? 0,
-				22 => best?.AvgLeftHandError ?? 0,
-				23 => best?.AvgRightHandError ?? 0,
-				24 => best?.LeftHandOkays ?? 0,
-				25 => best?.RightHandOkays ?? 0,
-				26 => best?.UsedFadingNote == true ? 1.0 : 0.0,
-				27 => best?.EarlyHits ?? 0,
-				28 => best?.LateHits ?? 0,
-				29 => best?.DdrScore ?? 0,
-				30 => GetDdrGradeRank(best?.DdrGrade) ?? 0,
-				31 => GetDdrComboTypeRank(best?.DdrComboType) ?? 0,
-				32 => best?.DdrMarvelousCount ?? 0,
-				33 => best?.DdrPerfectCount ?? 0,
-				34 => best?.DdrGreatPlusCount ?? 0,
-				36 => agg.PlayCount,
-				37 => agg.FCCount,
-				38 => agg.DFCCount,
+				10 => best?.Goods ?? 0,
+				11 => best?.Okays ?? 0,
+				12 => best?.Bads ?? 0,
+				13 => best?.Rolls ?? 0,
+				14 => best?.MaxCombo ?? 0,
+				15 => GetDurationMs(song, difficulty),
+				16 => best?.TotalNotes ?? 0,
+				17 => difficulty,
+				20 => best?.Judgement ?? 0,
+				22 => best?.AvgHitError ?? 0,
+				23 => best?.AvgSync ?? 0,
+				24 => best?.AvgLeftHandError ?? 0,
+				25 => best?.AvgRightHandError ?? 0,
+				26 => best?.LeftHandOkays ?? 0,
+				27 => best?.RightHandOkays ?? 0,
+				28 => best?.UsedFadingNote == true ? 1.0 : 0.0,
+				29 => best?.EarlyHits ?? 0,
+				30 => best?.LateHits ?? 0,
+				31 => best?.DdrScore ?? 0,
+				32 => GetDdrGradeRank(best?.DdrGrade) ?? 0,
+				33 => GetDdrComboTypeRank(best?.DdrComboType) ?? 0,
+				34 => best?.DdrMarvelousCount ?? 0,
+				35 => best?.DdrPerfectCount ?? 0,
+				36 => best?.DdrGreatPlusCount ?? 0,
+				38 => agg.PlayCount,
+				39 => agg.FCCount,
+				40 => agg.DFCCount,
 				_  => 0,
 			};
 		}
@@ -588,11 +625,6 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private bool PassesAllFilters(CSongListNode song, CScore score, int level, int difficulty, List<(string field, string op, string value)> filters)
 		{
-			if (m_NoModOnly && GetBestPlayNoMods(song.ldTitle.GetString(""), difficulty) == null)
-			{
-				return false;
-			}
-
 			// Tag filters are evaluated with AND semantics (each tag token must independently pass).
 			// Numeric filters with the same (field, op) pair are grouped and evaluated with OR semantics
 			// so that e.g. "level=7 level=8" shows songs at level 7 OR 8.
@@ -674,17 +706,21 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private double? GetFieldValue(CSongListNode song, CScore score, int level, string field, int difficulty)
 		{
-			SongEntry? bestPlay = GetBestPlay(song.ldTitle.GetString(""), difficulty);
-			int scoreRank = bestPlay?.ScoreRank ?? 0;
+			SongEntry? regularBestPlay = GetBestPlay(song.ldTitle.GetString(""), difficulty);
+			SongEntry? bestPlay = GetColumnBestPlay(song.ldTitle.GetString(""), difficulty);
+			ScoreResult? normalResult = GetBestNormalResult(song.ldTitle.GetString(""), difficulty);
+			int scoreRank = regularBestPlay?.ScoreRank ?? 0;
 
-			SongAggregateStats agg = GetAggregateStats(song.ldTitle.GetString(""), difficulty);
+			SongAggregateStats agg = GetColumnAggregateStats(song.ldTitle.GetString(""), difficulty);
 
 			return field switch
 			{
 				"bpm" => score.譜面情報.BaseBpm,
 				"level" or "lv" => level,
 				"badge" or "rank" => scoreRank,
-				"score" => bestPlay?.Score,
+				"score" => regularBestPlay?.Score,
+				"normalscore" => normalResult?.Score,
+				"normalbadge" or "normalrank" => normalResult?.ScoreRank ?? 0,
 				"lastplayed" => GetDaysSinceLastPlayed(song.ldTitle.GetString(""), difficulty),
 				"lastpb" => GetDaysSinceLastPB(song.ldTitle.GetString(""), difficulty),
 				"judgement" => bestPlay?.Judgement,
@@ -730,28 +766,137 @@ namespace OpenTaiko.Shrandy.Tools
 
 		public double GetDaysSinceLastPlayed(string title, int difficulty)
 		{
-			SongEntry? last = GetLastPlay(title, difficulty);
+			SongEntry? last = GetColumnLastPlay(title, difficulty);
 			return last == null ? double.MaxValue : (DateTime.Now - last.Timestamp).TotalDays;
 		}
 
 		public double GetDaysSinceLastPB(string title, int difficulty)
 		{
-			SongEntry? best = GetBestPlay(title, difficulty);
+			SongEntry? best = GetColumnBestPlay(title, difficulty);
 			return best == null ? double.MaxValue : (DateTime.Now - best.Timestamp).TotalDays;
 		}
 
 		public SongEntry? GetBestPlayNoMods(string title, int difficulty)
 		{
-			string diffLabel = Utilities.SongHelper.GetDifficultyLabel(difficulty);
-			SongEntry? best = null;
-			foreach (SongEntry e in m_SaveData.SongEntries)
+			if (m_BestNoModPlays.TryGetValue((title.ToLowerInvariant(), difficulty), out SongEntry? entry))
 			{
-				if (!e.SongTitle.Equals(title, StringComparison.OrdinalIgnoreCase)) continue;
-				if (e.Difficulty != diffLabel) continue;
-				if (e.RandomMod != "None" || e.Judgement != 2 || e.SongSpeed != CConfigIni.DefaultSongSpeed) continue;
-				if (best == null || e.Score > best.Score) best = e;
+				return entry;
 			}
-			return best;
+			return null;
+		}
+
+		/// <summary>The best play whose mods, timing and song speed match what is currently selected. Null when no mods are active, since that is just the regular score.</summary>
+		public SongEntry? GetBestPlayMatchingCurrentMods(string title, int difficulty)
+		{
+			if (!HasActiveMods())
+			{
+				return null;
+			}
+
+			return GetBestPlayWithCurrentModSettings(title, difficulty);
+		}
+
+		/// <summary>The best play for the table columns: all plays, or only plays matching the current mods when <see cref="UseMatchingModData"/> is set.</summary>
+		public SongEntry? GetColumnBestPlay(string title, int difficulty)
+		{
+			return UseMatchingModData ? GetBestPlayWithCurrentModSettings(title, difficulty) : GetBestPlay(title, difficulty);
+		}
+
+		public SongEntry? GetColumnLastPlay(string title, int difficulty)
+		{
+			if (!UseMatchingModData)
+			{
+				return GetLastPlay(title, difficulty);
+			}
+
+			EnsureMatchingModsCache();
+			m_LastMatchingModPlays.TryGetValue((title.ToLowerInvariant(), difficulty), out SongEntry? entry);
+			return entry;
+		}
+
+		public SongAggregateStats GetColumnAggregateStats(string title, int difficulty)
+		{
+			if (!UseMatchingModData)
+			{
+				return GetAggregateStats(title, difficulty);
+			}
+
+			EnsureMatchingModsCache();
+			m_AggregateMatchingModStats.TryGetValue((title.ToLowerInvariant(), difficulty), out SongAggregateStats stats);
+			return stats;
+		}
+
+		private SongEntry? GetBestPlayWithCurrentModSettings(string title, int difficulty)
+		{
+			EnsureMatchingModsCache();
+			m_BestMatchingModPlays.TryGetValue((title.ToLowerInvariant(), difficulty), out SongEntry? entry);
+			return entry;
+		}
+
+		private bool HasActiveMods()
+		{
+			return GetCurrentModsLabel() != "None" || GetCurrentJudgement() != CConfigIni.DefaultTimingZoneIndex || GetCurrentSongSpeed() != CConfigIni.DefaultSongSpeed;
+		}
+
+		private void EnsureMatchingModsCache()
+		{
+			string signature = GetCurrentModsSignature();
+			if (signature != m_MatchingModsSignature)
+			{
+				RebuildMatchingModsCache(signature);
+			}
+		}
+
+		private string GetCurrentModsSignature()
+		{
+			return $"{GetCurrentModsLabel()}|{GetCurrentJudgement()}|{GetCurrentSongSpeed()}";
+		}
+
+		private void RebuildMatchingModsCache(string signature)
+		{
+			m_BestMatchingModPlays.Clear();
+			m_LastMatchingModPlays.Clear();
+			m_AggregateMatchingModStats.Clear();
+			string mods = GetCurrentModsLabel();
+			int judgement = GetCurrentJudgement();
+			int songSpeed = GetCurrentSongSpeed();
+
+			foreach (SongEntry entry in m_SaveData.SongEntries)
+			{
+				if (entry.RandomMod != mods || entry.Judgement != judgement || entry.SongSpeed != songSpeed)
+				{
+					continue;
+				}
+
+				(string title, int difficulty) key = (entry.SongTitle.ToLowerInvariant(), Utilities.SongTable.GetDifficultyFromLabel(entry.Difficulty));
+				if (!m_BestMatchingModPlays.TryGetValue(key, out SongEntry? existing) || entry.Score > existing.Score)
+				{
+					m_BestMatchingModPlays[key] = entry;
+				}
+
+				m_LastMatchingModPlays[key] = entry;
+
+				m_AggregateMatchingModStats.TryGetValue(key, out SongAggregateStats agg);
+				agg.PlayCount++;
+				int crown = entry.EffectiveCrown;
+				if (crown >= 1) agg.ClearCount++;
+				if (crown >= 2) agg.FCCount++;
+				if (crown >= 3) agg.DFCCount++;
+				m_AggregateMatchingModStats[key] = agg;
+			}
+
+			m_MatchingModsSignature = signature;
+		}
+
+		private static bool IsNoModEntry(SongEntry entry)
+		{
+			return entry.RandomMod == "None" && entry.Judgement == CConfigIni.DefaultTimingZoneIndex && entry.SongSpeed == CConfigIni.DefaultSongSpeed;
+		}
+
+		public ScoreResult? GetBestNormalResult(string title, int difficulty)
+		{
+			m_BestNormalResults.TryGetValue((title.ToLowerInvariant(), difficulty), out ScoreResult? bestNormal);
+			return bestNormal;
 		}
 
 		public SongEntry? GetBestPlayMatchingMods(string title, int difficulty, string randomMod, int judgement, int songSpeed)
@@ -871,7 +1016,7 @@ namespace OpenTaiko.Shrandy.Tools
 				return numeric;
 			}
 
-			if ((field == "badge" || field == "rank") && BadgeNames.TryGetValue(value, out int badgeVal))
+			if ((field == "badge" || field == "rank" || field == "normalbadge" || field == "normalrank") && BadgeNames.TryGetValue(value, out int badgeVal))
 			{
 				return badgeVal;
 			}
@@ -919,14 +1064,42 @@ namespace OpenTaiko.Shrandy.Tools
 
 		private static int ComputeCrown(int player, CStage演奏画面共通.CBRANCHSCORE score)
 		{
+			return ComputeCrown(player, score.nMiss, score.nMine, score.nGood);
+		}
+
+		private static int ComputeCrown(int player, int misses, int mines, int okays)
+		{
 			if (!HGaugeMethods.UNSAFE_FastNormaCheck(player))
 				return 0;
 			bool assistedClear = OpenTaiko.stageSongSelect.actPlayOption.tGetModMultiplier(CActPlayOption.EBalancingType.SCORE, false, player) < 1f;
 			if (assistedClear)
 				return 0;
-			if (score.nMiss == 0 && score.nMine == 0)
-				return score.nGood == 0 ? 3 : 2;
+			if (misses == 0 && mines == 0)
+				return okays == 0 ? 3 : 2;
 			return 1;
+		}
+
+		private ScoreResult? BuildNormalResult(int player, CStage演奏画面共通.CBRANCHSCORE score, int judgement)
+		{
+			if (judgement == CConfigIni.DefaultTimingZoneIndex || !ModScoreFilter.IsValidScore(judgement))
+			{
+				return null;
+			}
+
+			NormalTimingScoreTracker tracker = CurrentNormalTimingTracker;
+			int normalScore = tracker.ConvertScore(score.nScore);
+			return new ScoreResult
+			{
+				Score = normalScore,
+				ScoreRank = Utilities.SongHelper.GetScoreRank(player, normalScore),
+				Goods = tracker.Goods,
+				Okays = tracker.Okays,
+				Bads = tracker.Bads,
+				MaxCombo = tracker.MaxCombo,
+				Rolls = score.nRoll,
+				AvgHitError = CurrentNoteStats.AverageHitError,
+				Crown = ComputeCrown(player, tracker.Bads, score.nMine, tracker.Okays),
+			};
 		}
 
 		// --- Song recording ---
@@ -992,10 +1165,10 @@ namespace OpenTaiko.Shrandy.Tools
 			entry.DdrMarvelousCount = ddrJudgements.Marvelous;
 			entry.DdrPerfectCount = ddrJudgements.Perfect;
 			entry.DdrGreatPlusCount = ddrJudgements.Great + ddrJudgements.Good;
+			entry.NormalResult = BuildNormalResult(player, score, entry.Judgement);
 
 			SongEntry? previousBest = GetBestPlayMatchingMods(entry.SongTitle, difficulty, entry.RandomMod, entry.Judgement, entry.SongSpeed);
-			bool hasMods = entry.RandomMod != "None" || entry.Judgement != 2 || entry.SongSpeed != CConfigIni.DefaultSongSpeed || entry.UsedFadingNote;
-			SongEntry? noModBest = hasMods ? GetBestPlayNoMods(entry.SongTitle, difficulty) : null;
+			ScoreResult? previousBestNormal = entry.NormalResult != null ? GetBestNormalResult(entry.SongTitle, difficulty) : null;
 
 			m_SaveData.SongEntries.Add(entry);
 
@@ -1003,7 +1176,7 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				CurrentEntry = entry,
 				PreviousBest = previousBest,
-				NoModBest = noModBest,
+				PreviousBestNormal = previousBestNormal,
 				HitDistribution = new Dictionary<int, int>(CurrentNoteStats.HitDistribution),
 			};
 		}

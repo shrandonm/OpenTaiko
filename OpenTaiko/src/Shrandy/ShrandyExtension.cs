@@ -129,6 +129,22 @@ namespace OpenTaiko.Shrandy
 			}
 		}
 
+		public void OnNoteJudged(CChip chip, int player, ENoteJudge judgeResult)
+		{
+			foreach (Tool tool in m_Tools)
+			{
+				tool.OnNoteJudged(chip, player, judgeResult);
+			}
+		}
+
+		public void OnNoteScoreAwarded(int player, long noteScore)
+		{
+			foreach (Tool tool in m_Tools)
+			{
+				tool.OnNoteScoreAwarded(player, noteScore);
+			}
+		}
+
 		public void OnNoteHit(CChip? chip, ENoteJudge judgeResult, EPad pad, double hitTjaTimeMs)
 		{
 			HitParams hitParams = new()

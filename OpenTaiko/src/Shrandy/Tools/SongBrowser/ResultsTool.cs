@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 
@@ -50,7 +49,8 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 
 			DrawHeader(snapshot.Value);
-			DrawDeltaTable(snapshot.Value);
+			ResultsComparisonTable.Draw("ResultsDelta", snapshot.Value.CurrentEntry.ModdedResult, snapshot.Value.PreviousBest?.ModdedResult);
+			ResultsNormalTimingSection.Draw(snapshot.Value);
 			DrawDdrScoreSection(snapshot.Value);
 			HitDistributionGraph.Draw(snapshot.Value.HitDistribution);
 		}
@@ -69,170 +69,6 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				ImGui.TextDisabled("vs. Previous Best (matching mods)");
 			}
-		}
-
-		private void DrawDeltaTable(ResultsSnapshot snapshot)
-		{
-			SongEntry current = snapshot.CurrentEntry;
-			SongEntry? previous = snapshot.PreviousBest;
-			SongEntry? noMod = snapshot.NoModBest;
-			bool showNoMod = noMod != null;
-			int columnCount = showNoMod ? 5 : 4;
-
-			ImGuiTableFlags tableFlags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg;
-			if (!ImGui.BeginTable("ResultsDelta", columnCount, tableFlags))
-			{
-				return;
-			}
-
-			ImGui.TableSetupColumn("Stat",         ImGuiTableColumnFlags.WidthFixed, 140);
-			if (showNoMod) ImGui.TableSetupColumn("No-Mod Best", ImGuiTableColumnFlags.WidthFixed, 110);
-			ImGui.TableSetupColumn("Best",         ImGuiTableColumnFlags.WidthFixed, 110);
-			ImGui.TableSetupColumn("Current",      ImGuiTableColumnFlags.WidthFixed, 110);
-			ImGui.TableSetupColumn("Difference",   ImGuiTableColumnFlags.WidthFixed, 100);
-			ImGui.TableHeadersRow();
-
-			DrawScoreRow("Score",     current.Score, current.ScoreRank, previous?.Score, previous?.ScoreRank, noMod?.Score, noMod?.ScoreRank, showNoMod);
-			DrawGoodPercentRow(
-				StringHelpers.GetPercent(current.Goods, current.TotalNotes),
-				previous != null ? StringHelpers.GetPercent(previous.Goods, previous.TotalNotes) : null,
-				noMod    != null ? StringHelpers.GetPercent(noMod.Goods, noMod.TotalNotes): null,
-				showNoMod);
-			DrawIntRow("Goods",       current.Goods,       previous?.Goods,       noMod?.Goods,       showNoMod, invertColors: false);
-			DrawIntRow("Okays",       current.Okays,       previous?.Okays,       noMod?.Okays,       showNoMod, invertColors: true);
-			DrawIntRow("Bads",        current.Bads,        previous?.Bads,        noMod?.Bads,        showNoMod, invertColors: true);
-			DrawIntRow("Drum Roll",   current.Rolls,       previous?.Rolls,       noMod?.Rolls,       showNoMod, invertColors: false);
-			DrawHitErrorRow(current.AvgHitError, previous?.AvgHitError, noMod?.AvgHitError, showNoMod, invertColors: true);
-
-			ImGui.EndTable();
-		}
-
-		private static void DrawScoreRow(string label, int currentValue, int currentBadge, int? previousValue, int? previousBadge, int? noModValue, int? noModBadge, bool showNoMod)
-		{
-			ImGui.TableNextRow();
-
-			ImGui.TableSetColumnIndex(0);
-			ImGui.TextUnformatted(label);
-
-			int col = 1;
-			if (showNoMod)
-			{
-				ImGui.TableSetColumnIndex(col++);
-				if (noModValue.HasValue)
-				{
-					ImGui.TextUnformatted(noModValue.Value.ToString());
-					DrawBadge(noModBadge ?? 0);
-				}
-				else
-				{
-					ImGui.TextUnformatted("\u2014");
-				}
-			}
-
-			ImGui.TableSetColumnIndex(col++);
-			if (previousValue.HasValue)
-			{
-				ImGui.TextUnformatted(previousValue.Value.ToString());
-				DrawBadge(previousBadge ?? 0);
-			}
-			else
-			{
-				ImGui.TextUnformatted("\u2014");
-			}
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.TextUnformatted(currentValue.ToString());
-			DrawBadge(currentBadge);
-
-			ImGui.TableSetColumnIndex(col);
-			DrawIntDelta(currentValue, previousValue, invertColors: false);
-		}
-
-		private static void DrawIntRow(string label, int currentValue, int? previousValue, int? noModValue, bool showNoMod, bool invertColors)
-		{
-			ImGui.TableNextRow();
-
-			ImGui.TableSetColumnIndex(0);
-			ImGui.TextUnformatted(label);
-
-			int col = 1;
-			if (showNoMod)
-			{
-				ImGui.TableSetColumnIndex(col++);
-				ImGui.TextUnformatted(noModValue.HasValue ? noModValue.Value.ToString() : "\u2014");
-			}
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.TextUnformatted(previousValue.HasValue ? previousValue.Value.ToString() : "\u2014");
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.TextUnformatted(currentValue.ToString());
-
-			ImGui.TableSetColumnIndex(col);
-			DrawIntDelta(currentValue, previousValue, invertColors);
-		}
-
-		private static void DrawGoodPercentRow(float currentValue, float? previousValue, float? noModValue, bool showNoMod)
-		{
-			ImGui.TableNextRow();
-
-			ImGui.TableSetColumnIndex(0);
-			ImGui.TextUnformatted("Good %");
-
-			int col = 1;
-			if (showNoMod)
-			{
-				ImGui.TableSetColumnIndex(col++);
-				ImGui.TextUnformatted(noModValue.HasValue ? StringHelpers.GetPercentString(noModValue.Value) : "\u2014");
-			}
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.TextUnformatted(previousValue.HasValue ? StringHelpers.GetPercentString(previousValue.Value) : "\u2014");
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.TextUnformatted(StringHelpers.GetPercentString(currentValue));
-
-			ImGui.TableSetColumnIndex(col);
-			if (previousValue.HasValue)
-			{
-				float delta = currentValue - previousValue.Value;
-				DrawDeltaText(delta, StringHelpers.GetPercentString(delta), invertColors: false);
-			}
-			else
-			{
-				ImGui.TextUnformatted("\u2014");
-			}
-		}
-
-		private static void DrawHitErrorRow(float currentValue, float? previousValue, float? noModValue, bool showNoMod, bool invertColors)
-		{
-			ImGui.TableNextRow();
-
-			ImGui.TableSetColumnIndex(0);
-			ImGui.TextUnformatted("Avg Hit Error");
-
-			int col = 1;
-			if (showNoMod)
-			{
-				ImGui.TableSetColumnIndex(col++);
-				ImGui.TextUnformatted(noModValue.HasValue ? $"{noModValue.Value:F1}ms" : "\u2014");
-			}
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.TextUnformatted(previousValue.HasValue ? $"{previousValue.Value:F1}ms" : "\u2014");
-
-			ImGui.TableSetColumnIndex(col++);
-			ImGui.TextUnformatted($"{currentValue:F1}ms");
-
-			ImGui.TableSetColumnIndex(col);
-			DrawFloatDelta(currentValue, previousValue, invertColors);
-		}
-
-		private static void DrawBadge(int rank)
-		{
-			if (rank <= 0) return;
-			ImGui.SameLine();
-			Utilities.SongHelper.DrawScoreRank(rank);
 		}
 
 		private static readonly Vector4 DdrMarvelousColor = new Vector4(1.0f, 0.75f, 0.25f, 1.0f);
@@ -256,14 +92,6 @@ namespace OpenTaiko.Shrandy.Tools
 			ImGui.Separator();
 			ImGui.TextDisabled("DDR Score");
 
-			DrawBigCenteredText(current.DdrGrade, DdrMarvelousColor, 1.0f);
-			DrawDdrFullComboBanner(judgements);
-
-			if (previous == null)
-			{
-				DrawCenteredText("First DDR score for this song!");
-			}
-
 			ImGui.Spacing();
 
 			if (ImGui.BeginTable("DdrScorePanel", 3, ImGuiTableFlags.BordersInnerV))
@@ -281,7 +109,7 @@ namespace OpenTaiko.Shrandy.Tools
 				DrawDdrSpeedBadges(judgements);
 
 				ImGui.TableSetColumnIndex(2);
-				DrawDdrStatsList(current, previous);
+				DrawDdrStatsList(current, previous, judgements);
 
 				ImGui.EndTable();
 			}
@@ -305,7 +133,7 @@ namespace OpenTaiko.Shrandy.Tools
 			DrawDdrBadge("SLOW", judgements.Late, DdrLateColor);
 		}
 
-		private static void DrawDdrStatsList(SongEntry current, SongEntry? previous)
+		private static void DrawDdrStatsList(SongEntry current, SongEntry? previous, DdrJudgementCounts judgements)
 		{
 			DrawDdrStatRow("SCORE", current.DdrScore.ToString("N0"), Vector4.One);
 
@@ -321,6 +149,14 @@ namespace OpenTaiko.Shrandy.Tools
 
 			ImGui.Spacing();
 			DrawDdrStatRow("MAX COMBO", $"{current.MaxCombo} / {current.TotalNotes}", Vector4.One);
+
+			ImGui.Spacing();
+			DrawBigCenteredText(current.DdrGrade, DdrMarvelousColor, 1.0f);
+			DrawDdrFullComboBanner(judgements);
+			if (previous == null)
+			{
+				DrawCenteredText("First DDR score for this song!");
+			}
 		}
 
 		/// <summary>Draws a label on the left and a value right-aligned to the cell's width, e.g. "Marvelous   250".</summary>
@@ -447,46 +283,6 @@ namespace OpenTaiko.Shrandy.Tools
 			float availableWidth = ImGui.GetContentRegionAvail().X;
 			ImGui.SetCursorPosX(ImGui.GetCursorPosX() + System.Math.Max(0.0f, (availableWidth - size.X) / 2.0f));
 			ImGui.TextColored(color, text);
-		}
-
-		private static void DrawIntDelta(int currentValue, int? previousValue, bool invertColors)
-		{
-			if (!previousValue.HasValue)
-			{
-				ImGui.TextUnformatted("\u2014");
-				return;
-			}
-
-			int delta = currentValue - previousValue.Value;
-			DrawDeltaText(delta, delta.ToString("+0;-0;0"), invertColors);
-		}
-
-		private static void DrawFloatDelta(float currentValue, float? previousValue, bool invertColors)
-		{
-			if (!previousValue.HasValue)
-			{
-				ImGui.TextUnformatted("\u2014");
-				return;
-			}
-
-			float delta = currentValue - previousValue.Value;
-			DrawDeltaText(delta, $"{delta:+0.0;-0.0;0.0}ms", invertColors);
-		}
-
-		private static void DrawDeltaText(float delta, string text, bool invertColors)
-		{
-			if (delta > 0)
-			{
-				ImGui.TextColored(invertColors ? DeltaNegativeColor : DeltaPositiveColor, text);
-			}
-			else if (delta < 0)
-			{
-				ImGui.TextColored(invertColors ? DeltaPositiveColor : DeltaNegativeColor, text);
-			}
-			else
-			{
-				ImGui.TextUnformatted(text);
-			}
 		}
 	}
 }

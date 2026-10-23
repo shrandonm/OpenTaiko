@@ -113,6 +113,13 @@ namespace OpenTaiko.Shrandy.Tools
 					ImGui.PopStyleColor();
 				}
 			}
+
+			ImGui.SameLine();
+			bool useMatchingModData = m_Data.UseMatchingModData;
+			if (ImGui.Checkbox("Use matching mod data", ref useMatchingModData))
+			{
+				m_Data.UseMatchingModData = useMatchingModData;
+			}
 		}
 
 		private void DrawFilters(bool showSongActions = true)
@@ -163,14 +170,6 @@ namespace OpenTaiko.Shrandy.Tools
 			{
 				OpenTaiko.ShrandyExtension.SetToolEnabled<MarathonTool>(true);
 			}
-
-			ImGui.SameLine();
-			bool noModOnly = m_Data.NoModOnly;
-			if (ImGui.Checkbox("No-mod only", ref noModOnly))
-			{
-				m_Data.NoModOnly = noModOnly;
-			}
-
 		}
 
 		private void DrawAllSongsTable(Func<Chart, bool>? chartFilter = null, Action<Chart>? onChartSelected = null, string tableId = "SongList")
@@ -221,20 +220,24 @@ namespace OpenTaiko.Shrandy.Tools
 							Utilities.SongTableRow row = Utilities.SongTable.FromSongNode(song, difficulty);
 							string creator = song.strNotesDesigner?[difficulty] ?? "";
 
-							SongEntry? bestPlay = m_Data.GetBestPlay(row.Title, difficulty);
+							SongEntry? bestPlay = m_Data.GetColumnBestPlay(row.Title, difficulty);
 							if (bestPlay != null)
 							{
 								Utilities.SongTable.MergeHistoryEntry(ref row, bestPlay);
 								row.TimeSinceLastPB = StringHelpers.GetTimeSinceString(bestPlay.Timestamp);
 							}
+							row.Normal = m_Data.GetBestNormalResult(row.Title, difficulty);
+							SongEntry? bestWithMods = m_Data.GetBestPlayMatchingCurrentMods(row.Title, difficulty);
+							row.Score = bestWithMods?.Score ?? 0;
+							row.ScoreRank = bestWithMods?.ScoreRank ?? 0;
 
-							SongEntry? lastPlay = m_Data.GetLastPlay(row.Title, difficulty);
+							SongEntry? lastPlay = m_Data.GetColumnLastPlay(row.Title, difficulty);
 							if (lastPlay != null)
 							{
 								row.TimeSince = StringHelpers.GetTimeSinceString(lastPlay.Timestamp);
 							}
 
-							SongAggregateStats aggStats = m_Data.GetAggregateStats(row.Title, difficulty);
+							SongAggregateStats aggStats = m_Data.GetColumnAggregateStats(row.Title, difficulty);
 
 							ImGui.TableNextRow();
 							ImGui.TableSetColumnIndex(0);

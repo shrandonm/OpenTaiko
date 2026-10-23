@@ -70,6 +70,16 @@ namespace OpenTaiko.Shrandy.Tools
 			m_Data.CurrentNoteStats.OnNoteMissed();
 		}
 
+		public override void OnNoteJudged(CChip chip, int player, ENoteJudge judgeResult)
+		{
+			m_Data.CurrentNormalTimingTracker.OnNoteJudged(chip, player, judgeResult);
+		}
+
+		public override void OnNoteScoreAwarded(int player, long noteScore)
+		{
+			m_Data.CurrentNormalTimingTracker.OnNoteScoreAwarded(player, noteScore);
+		}
+
 		public override void OnSongRestart()
 		{
 			base.OnSongRestart();

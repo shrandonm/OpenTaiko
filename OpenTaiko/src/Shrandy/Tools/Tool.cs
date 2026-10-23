@@ -57,6 +57,14 @@ namespace OpenTaiko.Shrandy
 		{
 		}
 
+		public virtual void OnNoteJudged(CChip chip, int player, ENoteJudge judgeResult)
+		{
+		}
+
+		public virtual void OnNoteScoreAwarded(int player, long noteScore)
+		{
+		}
+
 		public virtual void OnStageChanged(CStage stage)
 		{
 		}

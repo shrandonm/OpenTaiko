@@ -37,6 +37,36 @@ namespace OpenTaiko.Shrandy
 		public int DdrMarvelousCount { get; set; }
 		public int DdrPerfectCount { get; set; }
 		public int DdrGreatPlusCount { get; set; }
+		/// <summary>The play re-scored with default timing. Only stored when a timing mod was active and the mods passed <see cref="ModScoreFilter"/>.</summary>
+		public ScoreResult? NormalResult { get; set; }
+
+		[JsonIgnore]
+		public ScoreResult ModdedResult => new()
+		{
+			Score = Score,
+			ScoreRank = ScoreRank,
+			Goods = Goods,
+			Okays = Okays,
+			Bads = Bads,
+			MaxCombo = MaxCombo,
+			Rolls = Rolls,
+			AvgHitError = AvgHitError,
+			Crown = EffectiveCrown,
+		};
+
+		/// <summary>The default-timing result of this play: stored for converted plays, the play itself when no timing mod was used, otherwise null.</summary>
+		[JsonIgnore]
+		public ScoreResult? EffectiveNormalResult
+		{
+			get
+			{
+				if (NormalResult != null)
+				{
+					return NormalResult;
+				}
+				return Judgement == CConfigIni.DefaultTimingZoneIndex ? ModdedResult : null;
+			}
+		}
 		
 		[JsonIgnore]
 		public int TotalNotes => Goods + Okays + Bads;

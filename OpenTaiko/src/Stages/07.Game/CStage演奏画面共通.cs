@@ -874,26 +874,38 @@ internal abstract class CStage演奏画面共通 : CStage {
 				}
 
 			int actual = OpenTaiko.GetActualPlayer(player);
-			CConfigIni.CTimingZones tz = GetTimingZones(actual);
-
-			if (nDeltaTime <= CTja.GameDurationToTjaDuration(tz.nGoodZone)) {
-				return ENoteJudge.Perfect;
-			}
-			if (nDeltaTime <= CTja.GameDurationToTjaDuration(tz.nOkZone)) {
-				if (OpenTaiko.ConfigIni.bJust[actual] == 1 && NotesManager.IsMissableNote(pChip)) // Just
-					return ENoteJudge.Poor;
-				return ENoteJudge.Good;
-			}
-
-
-			if (nDeltaTime <= CTja.GameDurationToTjaDuration(tz.nBadZone)) {
-				if (OpenTaiko.ConfigIni.bJust[actual] == 2 || !NotesManager.IsMissableNote(pChip)) // Safe
-					return ENoteJudge.Good;
-				return ENoteJudge.Poor;
-			}
-
+			return JudgeDeltaTimeWithZones(pChip, nDeltaTime, GetTimingZones(actual), actual);
 		}
 		return ENoteJudge.Miss;
+	}
+
+	private ENoteJudge JudgeDeltaTimeWithZones(CChip pChip, int nDeltaTime, CConfigIni.CTimingZones tz, int actual) {
+		if (nDeltaTime <= CTja.GameDurationToTjaDuration(tz.nGoodZone)) {
+			return ENoteJudge.Perfect;
+		}
+		if (nDeltaTime <= CTja.GameDurationToTjaDuration(tz.nOkZone)) {
+			if (OpenTaiko.ConfigIni.bJust[actual] == 1 && NotesManager.IsMissableNote(pChip)) // Just
+				return ENoteJudge.Poor;
+			return ENoteJudge.Good;
+		}
+
+		if (nDeltaTime <= CTja.GameDurationToTjaDuration(tz.nBadZone)) {
+			if (OpenTaiko.ConfigIni.bJust[actual] == 2 || !NotesManager.IsMissableNote(pChip)) // Safe
+				return ENoteJudge.Good;
+			return ENoteJudge.Poor;
+		}
+
+		return ENoteJudge.Miss;
+	}
+
+	/// <summary>Re-judges an already-hit chip as if the player had the default timing zones.</summary>
+	public ENoteJudge JudgeChipWithDefaultTiming(CChip pChip, int player) {
+		int actual = OpenTaiko.GetActualPlayer(player);
+		int defaultTimingShift = CConfigIni.DefaultTimingZoneIndex;
+		CConfigIni.CTimingZones tz = tEasyTimeZones(actual)
+			? OpenTaiko.ConfigIni.tzLevels[defaultTimingShift]
+			: OpenTaiko.ConfigIni.tzLevels[2 + defaultTimingShift];
+		return JudgeDeltaTimeWithZones(pChip, Math.Abs(pChip.nLag), tz, actual);
 	}
 
 	protected abstract void ProcessPadInput(int nUsePlayer, EPad nPad, long msHitTjaTime);
@@ -1372,6 +1384,7 @@ internal abstract class CStage演奏画面共通 : CStage {
 		}
 
 		this.UpdateGauge(pChip, screenmode, nPlayer, eJudgeResult);
+		OpenTaiko.ShrandyExtension.OnNoteJudged(pChip, nPlayer, eJudgeResult);
 		this.UpdateJudgeCount(pChip, nPlayer, bAutoPlay, bBombHit, eJudgeResult);
 		this.UpdateComboMilestone(pChip, nPlayer);
 		this.AddScore(pChip, nPlayer, eJudgeResult);
@@ -1649,11 +1662,39 @@ internal abstract class CStage演奏画面共通 : CStage {
 		}
 	}
 
+	public static bool IsScoredJudgement(ENoteJudge eJudgeResult, CChip pChip) {
+		return (eJudgeResult != ENoteJudge.Miss) && (eJudgeResult != ENoteJudge.Bad) && (eJudgeResult != ENoteJudge.Poor) && (NotesManager.IsMissableNote(pChip));
+	}
+
 	private void AddScore(CChip pChip, int nPlayer, ENoteJudge eJudgeResult) {
-		if ((eJudgeResult != ENoteJudge.Miss) && (eJudgeResult != ENoteJudge.Bad) && (eJudgeResult != ENoteJudge.Poor) && (NotesManager.IsMissableNote(pChip))) {
+		if (IsScoredJudgement(eJudgeResult, pChip)) {
 			int nCombos = this.actCombo.nCurrentCombo[nPlayer];
-			long nInit = OpenTaiko.TJA.nScoreInit[0, OpenTaiko.stageSongSelect.nChoosenSongDifficulty[nPlayer]];
-			long nDiff = OpenTaiko.TJA.nScoreDiff[OpenTaiko.stageSongSelect.nChoosenSongDifficulty[nPlayer]];
+			long nAddScore = this.CalculateNoteScore(pChip, nPlayer, eJudgeResult, nCombos);
+
+			//100コンボ毎のボーナス
+			if (!OpenTaiko.ConfigIni.ShinuchiMode && this.scoreMode[nPlayer] == 2 && nCombos % 100 == 0 && nCombos > 99) {
+				if (this.actScore.ctBonusAddTimer[nPlayer].IsTicked) {
+					this.actScore.ctBonusAddTimer[nPlayer].Stop();
+					this.actScore.BonusAdd(nPlayer);
+				}
+				this.actScore.ctBonusAddTimer[nPlayer].CurrentValue = 0;
+				this.actScore.ctBonusAddTimer[nPlayer] = new CCounter(0, 2, 1000, OpenTaiko.Timer);
+			}
+
+			this.actScore.Add(nAddScore, nPlayer);
+			OpenTaiko.ShrandyExtension.OnNoteScoreAwarded(nPlayer, nAddScore);
+
+			//キーを押したときにスコア情報 + nAddScoreを置き換える様に
+			int __score = (int)(this.actScore.GetScore(nPlayer) + nAddScore);
+			this.CBranchScore[nPlayer].nScore = __score;
+			this.CChartScore[nPlayer].nScore = __score;
+			this.CSectionScore[nPlayer].nScore = __score;
+		}
+	}
+
+	/// <summary>Calculates the points a scored note is worth for the given judgement and combo (combo includes this note).</summary>
+	public long CalculateNoteScore(CChip pChip, int nPlayer, ENoteJudge eJudgeResult, int nCombos) {
+		{
 			long nAddScore = 0;
 
 			if (OpenTaiko.ConfigIni.ShinuchiMode)  //2016.07.04 kairera0467 真打モード。
@@ -1664,8 +1705,6 @@ internal abstract class CStage演奏画面共通 : CStage {
 					nAddScore = (long)nAddScoreGen4ShinUchi[nPlayer] / 20;
 					nAddScore = (long)nAddScore * 10;
 				}
-
-				this.actScore.Add((long)nAddScore, nPlayer);
 			} else if (this.scoreMode[nPlayer] == 2) {
 				if (nCombos < 10) {
 					nAddScore = this.nScore[nPlayer, 0];
@@ -1688,16 +1727,6 @@ internal abstract class CStage演奏画面共通 : CStage {
 					nAddScore = (int)(nAddScore * 1.2f);
 				}
 
-				//100コンボ毎のボーナス
-				if (nCombos % 100 == 0 && nCombos > 99) {
-					if (this.actScore.ctBonusAddTimer[nPlayer].IsTicked) {
-						this.actScore.ctBonusAddTimer[nPlayer].Stop();
-						this.actScore.BonusAdd(nPlayer);
-					}
-					this.actScore.ctBonusAddTimer[nPlayer].CurrentValue = 0;
-					this.actScore.ctBonusAddTimer[nPlayer] = new CCounter(0, 2, 1000, OpenTaiko.Timer);
-				}
-
 				nAddScore = (int)(nAddScore / 10);
 				nAddScore = (int)(nAddScore * 10);
 
@@ -1705,8 +1734,6 @@ internal abstract class CStage演奏画面共通 : CStage {
 				if (pChip.nChannelNo == 0x13 || pChip.nChannelNo == 0x14 || pChip.nChannelNo == 0x1A || pChip.nChannelNo == 0x1B) {
 					nAddScore = nAddScore * 2;
 				}
-
-				this.actScore.Add(nAddScore, nPlayer);
 			} else if (this.scoreMode[nPlayer] == 1) {
 				if (nCombos < 10) {
 					nAddScore = this.nScore[nPlayer, 0];
@@ -1746,8 +1773,6 @@ internal abstract class CStage演奏画面共通 : CStage {
 				if (pChip.nChannelNo == 0x13 || pChip.nChannelNo == 0x14 || pChip.nChannelNo == 0x1A || pChip.nChannelNo == 0x1B) {
 					nAddScore = nAddScore * 2;
 				}
-
-				this.actScore.Add(nAddScore, nPlayer);
 			} else {
 				if (eJudgeResult == ENoteJudge.Perfect) {
 					if (nCombos < 200) {
@@ -1771,15 +1796,9 @@ internal abstract class CStage演奏画面共通 : CStage {
 				if (pChip.nChannelNo == 0x13 || pChip.nChannelNo == 0x25) {
 					nAddScore = nAddScore * 2;
 				}
-
-				this.actScore.Add(nAddScore, nPlayer);
 			}
 
-			//キーを押したときにスコア情報 + nAddScoreを置き換える様に
-			int __score = (int)(this.actScore.GetScore(nPlayer) + nAddScore);
-			this.CBranchScore[nPlayer].nScore = __score;
-			this.CChartScore[nPlayer].nScore = __score;
-			this.CSectionScore[nPlayer].nScore = __score;
+			return nAddScore;
 		}
 	}
 

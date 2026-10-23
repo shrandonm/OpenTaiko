@@ -42,15 +42,16 @@ namespace OpenTaiko.Shrandy.Utilities
 		public int DdrMarvelousCount;
 		public int DdrPerfectCount;
 		public int DdrGreatPlusCount;
+		public ScoreResult? Normal;
 
 		public int TotalNotes => Goods + Okays + Bads;
 	}
 
 	internal static class SongTable
 	{
-		private const int BaseColumnCount = 36;
+		private const int BaseColumnCount = 38;
 		private const int AggregateColumnCount = 3;
-		public const int TagsColumnIndex = 35;
+		public const int TagsColumnIndex = 37;
 
 		private struct ColumnDef
 		{
@@ -92,9 +93,11 @@ namespace OpenTaiko.Shrandy.Utilities
 				new ColumnDef("Last Played", 	hidden:false),
 				new ColumnDef("Last PB", 		hidden:true),
 				new ColumnDef("Badge", 			hidden:false),
+				new ColumnDef("Mod Badge", 		hidden:false),
 				new ColumnDef("Level", 			hidden:false),
 				new ColumnDef("BPM",			hidden:false),
 				new ColumnDef("Score",			hidden:false, useLargeSize:true),
+				new ColumnDef("Mod Score",		hidden:false, useLargeSize:true),
 				new ColumnDef("Good%",			hidden:false),
 				new ColumnDef("Goods",			hidden:true),
 				new ColumnDef("Okays",			hidden:true),
@@ -222,6 +225,9 @@ namespace OpenTaiko.Shrandy.Utilities
 			ImGui.TextUnformatted(row.TimeSinceLastPB);
 
 			ImGui.TableSetColumnIndex(col++);
+			DrawNormalBadge(row.Normal);
+
+			ImGui.TableSetColumnIndex(col++);
 			SongHelper.DrawScoreRank(row.ScoreRank, 16.0f);
 
 			ImGui.TableSetColumnIndex(col++);
@@ -229,6 +235,12 @@ namespace OpenTaiko.Shrandy.Utilities
 
 			ImGui.TableSetColumnIndex(col++);
 			DrawBpm(row.BaseBpm, row.MinBpm, row.MaxBpm);
+
+			ImGui.TableSetColumnIndex(col++);
+			if (row.Normal != null)
+			{
+				ImGui.Text($"{row.Normal.Score}");
+			}
 
 			ImGui.TableSetColumnIndex(col++);
 			ImGui.Text($"{row.Score}");
@@ -318,6 +330,14 @@ namespace OpenTaiko.Shrandy.Utilities
 			ImGui.Text($"{row.DdrGreatPlusCount}");
 		}
 
+		private static void DrawNormalBadge(ScoreResult? normal)
+		{
+			if (normal != null)
+			{
+				SongHelper.DrawScoreRank(normal.ScoreRank, 16.0f);
+			}
+		}
+
 		private static void DrawBpm(double baseBpm, double minBpm, double maxBpm)
 		{
 			if (baseBpm <= 0)
@@ -373,6 +393,7 @@ namespace OpenTaiko.Shrandy.Utilities
 				DdrMarvelousCount = entry.DdrMarvelousCount,
 				DdrPerfectCount = entry.DdrPerfectCount,
 				DdrGreatPlusCount = entry.DdrGreatPlusCount,
+				Normal = entry.EffectiveNormalResult,
 			};
 		}
 

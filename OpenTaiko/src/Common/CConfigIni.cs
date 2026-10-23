@@ -1024,6 +1024,8 @@ internal class CConfigIni : INotifyPropertyChanged {
 	public int nMsSleepPerFrame; // #xxxxx 2011.11.27 yyagi add
 
 	public const int DefaultSongSpeed = 100;
+	/// <summary>Index into the timing mod list (Loose, Lenient, Normal, Strict, Rigorous) that represents default timing.</summary>
+	public const int DefaultTimingZoneIndex = 2;
 	public const int MinSongSpeed = DefaultSongSpeed / 2;
 	public const int MaxSongSpeed = DefaultSongSpeed * 4;
 	public int nSongSpeed;
