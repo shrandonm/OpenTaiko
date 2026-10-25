@@ -285,8 +285,18 @@ namespace OpenTaiko.Shrandy.Tools
 			OpenTaiko.TJA!.t全チップの再生停止とミキサーからの削除();
 			OpenTaiko.SetTJA(0, newTja);
 			OpenTaiko.stageGameScreen.RefreshChipListReferences();
+			RefreshPanelTitle(pattern.Title);
 			OpenTaiko.stageGameScreen.actTokkun.Activate();
 			OpenTaiko.stageGameScreen.t演奏やりなおし();
+		}
+
+		private static void RefreshPanelTitle(string title)
+		{
+			OpenTaiko.stageGameScreen.actPanel.SetPanelString(
+				title,
+				OpenTaiko.stageSongSelect.rChoosenSong.songGenrePanel,
+				OpenTaiko.Skin.Game_StageText,
+				songNode: OpenTaiko.stageSongSelect.rChoosenSong);
 		}
 
 		internal bool IsActive()

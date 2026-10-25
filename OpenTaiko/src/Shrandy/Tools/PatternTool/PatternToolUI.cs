@@ -13,8 +13,8 @@ namespace OpenTaiko.Shrandy.Tools
 		public PatternToolUI(PatternTool tool)
 		{
 			m_Tool = tool;
-			m_PatternEditor = new PatternEditorUI(tool);
 			m_DrillEditor = new DrillEditorUI(tool);
+			m_PatternEditor = new PatternEditorUI(tool, m_DrillEditor);
 		}
 
 		public void Draw()

@@ -16,13 +16,16 @@ namespace OpenTaiko.Shrandy.Tools
 		private bool m_PendingEditOpen = false;
 		private bool m_MainPendingOpen = false;
 
+		private SinglePatternDrillPopup m_DrillPopup;
+
 		private const string MainPopupId = "Pattern Editor";
 		private const string EditPopupId = "Edit Pattern";
 		private const string DeletePopupId = "Delete Pattern?";
 
-		public PatternEditorUI(PatternTool tool)
+		public PatternEditorUI(PatternTool tool, DrillEditorUI drillEditor)
 		{
 			m_Tool = tool;
+			m_DrillPopup = new SinglePatternDrillPopup(tool, drillEditor);
 		}
 
 		public void Open()
@@ -59,12 +62,13 @@ namespace OpenTaiko.Shrandy.Tools
 			float tableHeight = ImGui.GetContentRegionAvail().Y - buttonRowHeight;
 			int moveFromIndex = -1;
 			int moveToIndex = -1;
-			if (ImGui.BeginTable("##PatternTable", 4, tableFlags, new Vector2(0, tableHeight)))
+			if (ImGui.BeginTable("##PatternTable", 5, tableFlags, new Vector2(0, tableHeight)))
 			{
 				ImGui.TableSetupScrollFreeze(0, 1);
 				ImGui.TableSetupColumn("Title", ImGuiTableColumnFlags.WidthFixed, 200);
 				ImGui.TableSetupColumn("Pattern", ImGuiTableColumnFlags.WidthFixed, PatternBarVisualizer.PreviewWidth);
 				ImGui.TableSetupColumn("##order_col", ImGuiTableColumnFlags.WidthFixed, 60);
+				ImGui.TableSetupColumn("##drill_col", ImGuiTableColumnFlags.WidthFixed, 40);
 				ImGui.TableSetupColumn("##edit_col", ImGuiTableColumnFlags.WidthFixed, 40);
 				ImGui.TableHeadersRow();
 
@@ -103,6 +107,13 @@ namespace OpenTaiko.Shrandy.Tools
 					}
 
 					ImGui.TableSetColumnIndex(3);
+					if (ImGui.SmallButton($"Drill##pd{i}"))
+					{
+						m_SelectedIndex = i;
+						m_DrillPopup.Open(patterns[i]);
+					}
+
+					ImGui.TableSetColumnIndex(4);
 					if (ImGui.SmallButton($"Edit##pe{i}"))
 					{
 						m_SelectedIndex = i;
@@ -162,6 +173,10 @@ namespace OpenTaiko.Shrandy.Tools
 
 			DrawEditPopup();
 			DrawDeletePopup();
+			if (m_DrillPopup.Draw())
+			{
+				ImGui.CloseCurrentPopup();
+			}
 		}
 
 		private int FindVisibleNeighbor(List<PatternData> patterns, int index, int direction)

@@ -74,10 +74,7 @@ namespace OpenTaiko.Shrandy.Tools
 					m_TitleInput = "";
 					m_StagedDrill = new DrillData
 					{
-						FillerPatterns = m_Tool.Database.Patterns
-							.Where(p => PatternDatabase.IsBuiltIn(p))
-							.Select(p => new DrillData.PatternWeight { Pattern = p, Weight = 1 })
-							.ToList(),
+						FillerPatterns = CreateDefaultFillerPatterns(m_Tool.Database.Patterns),
 					};
 					m_EditIsNew = true;
 					m_PendingEditOpen = true;
@@ -178,28 +175,7 @@ namespace OpenTaiko.Shrandy.Tools
 				ImGui.InputInt("Random BPM Change Frequency", ref bpmChangeFrequency, 1, 5);
 				m_StagedDrill.RandomBpmChangeFrequency = bpmChangeFrequency;
 				
-				ImGui.SetNextItemOpen(false, ImGuiCond.Once);
-				if (ImGui.CollapsingHeader("Filler Patterns##filler_header"))
-				{
-					ImGui.TextDisabled("A random filler is inserted every N regular patterns (min=0 disables)");
-
-					ImGui.SetNextItemWidth(80);
-					int fMin = m_StagedDrill.MinFillerPatternFrequency;
-					if (ImGui.DragInt("Min##fmin", ref fMin, 1, 0, 100))
-					{
-						m_StagedDrill.MinFillerPatternFrequency = Math.Max(0, fMin);
-						m_StagedDrill.MaxFillerPatternFrequency = Math.Max(m_StagedDrill.MinFillerPatternFrequency, m_StagedDrill.MaxFillerPatternFrequency);
-					}
-					ImGui.SameLine();
-					ImGui.SetNextItemWidth(80);
-					int fMax = m_StagedDrill.MaxFillerPatternFrequency;
-					if (ImGui.DragInt("Max##fmax", ref fMax, 1, 0, 100))
-					{
-						m_StagedDrill.MaxFillerPatternFrequency = Math.Max(m_StagedDrill.MinFillerPatternFrequency, Math.Max(0, fMax));
-					}
-
-					DrawPatternWeightTablePair("##FillerEditOuter", "f", m_StagedDrill.FillerPatterns, allPatterns, 150, m_FillerPatternFilter);
-				}
+				DrawFillerSettings(m_StagedDrill, allPatterns, m_FillerPatternFilter);
 
 				ImGui.Spacing();
 				bool canApply = m_TitleInput.Length > 0;
@@ -239,7 +215,47 @@ namespace OpenTaiko.Shrandy.Tools
 			}
 		}
 
-		private void DrawPatternWeightTablePair(
+		internal static void DrawFillerSettings(DrillData stagedDrill, List<PatternData> allPatterns, PatternFilter filter)
+		{
+			ImGui.SetNextItemOpen(false, ImGuiCond.Once);
+			if (ImGui.CollapsingHeader("Filler Patterns##filler_header"))
+			{
+				ImGui.TextDisabled("A random filler is inserted every N regular patterns (min=0 disables)");
+
+				ImGui.SetNextItemWidth(80);
+				int fMin = stagedDrill.MinFillerPatternFrequency;
+				if (ImGui.DragInt("Min##fmin", ref fMin, 1, 0, 100))
+				{
+					stagedDrill.MinFillerPatternFrequency = Math.Max(0, fMin);
+					stagedDrill.MaxFillerPatternFrequency = Math.Max(stagedDrill.MinFillerPatternFrequency, stagedDrill.MaxFillerPatternFrequency);
+				}
+				ImGui.SameLine();
+				ImGui.SetNextItemWidth(80);
+				int fMax = stagedDrill.MaxFillerPatternFrequency;
+				if (ImGui.DragInt("Max##fmax", ref fMax, 1, 0, 100))
+				{
+					stagedDrill.MaxFillerPatternFrequency = Math.Max(stagedDrill.MinFillerPatternFrequency, Math.Max(0, fMax));
+				}
+
+				DrawPatternWeightTablePair("##FillerEditOuter", "f", stagedDrill.FillerPatterns, allPatterns, 150, filter);
+			}
+		}
+
+		internal static List<DrillData.PatternWeight> CreateDefaultFillerPatterns(List<PatternData> allPatterns)
+		{
+			return allPatterns
+				.Where(p => PatternDatabase.IsBuiltIn(p))
+				.Select(p => new DrillData.PatternWeight { Pattern = p, Weight = 1 })
+				.ToList();
+		}
+
+		/// <summary>Plays a drill that is not stored in the database, using the current play controls.</summary>
+		internal void PlayTemporaryDrill(DrillData drill)
+		{
+			m_Tool.PlayDrill(drill, m_DrillCount, m_RandomMode, m_Bpm);
+		}
+
+		private static void DrawPatternWeightTablePair(
 			string tableId,
 			string keyPrefix,
 			List<DrillData.PatternWeight> included,
