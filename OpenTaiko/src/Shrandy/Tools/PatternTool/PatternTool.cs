@@ -16,6 +16,8 @@ namespace OpenTaiko.Shrandy.Tools
 		private float m_CurrentlyPlayedBpm;
 		private float m_CurrentlyPlayedPatternBpm = 120f;
 		private DrillRandomMode m_CurrentlyPlayedMode;
+		private List<PatternData> m_DrillMeasurePatterns = new();
+		private int m_DisplayedMeasureIndex = -1;
 		private bool m_ComboRecordDirty = false;
 		private MicroStopwatch m_IdleStopwatch = new();
 
@@ -44,9 +46,9 @@ namespace OpenTaiko.Shrandy.Tools
 			m_Database.Save();
 		}
 
-		internal void PlayDrill(DrillData drill, int count, DrillRandomMode mode, float bpm)
+		internal void PlayDrill(DrillData drill, int count, DrillRandomMode mode, float bpm, int repeatCount)
 		{
-			string? tja = BuildDrillTja(drill, count, mode, bpm);
+			string? tja = BuildDrillTja(drill, count, mode, bpm, repeatCount, out List<PatternData> measurePatterns);
 			if (tja != null)
 			{
 				FlushComboRecordIfDirty();
@@ -54,11 +56,28 @@ namespace OpenTaiko.Shrandy.Tools
 				m_CurrentlyPlayedBpm = bpm;
 				m_CurrentlyPlayedMode = mode;
 				PlayPattern(new PatternData { Title = drill.Title, TJA = tja }, bpm);
+				m_DrillMeasurePatterns = measurePatterns;
 			}
 		}
 
-		internal string? BuildDrillTja(DrillData drill, int count, DrillRandomMode mode, float bpm)
+		private void UpdatePanelTitleForCurrentMeasure()
 		{
+			if (m_DrillMeasurePatterns.Count == 0 || !IsActive())
+			{
+				return;
+			}
+
+			int measureIndex = Math.Clamp(OpenTaiko.stageGameScreen.actTokkun.nCurrentMeasure, 0, m_DrillMeasurePatterns.Count - 1);
+			if (measureIndex != m_DisplayedMeasureIndex)
+			{
+				m_DisplayedMeasureIndex = measureIndex;
+				RefreshPanelTitle(m_DrillMeasurePatterns[measureIndex].Title);
+			}
+		}
+
+		internal string? BuildDrillTja(DrillData drill, int count, DrillRandomMode mode, float bpm, int repeatCount, out List<PatternData> measurePatterns)
+		{
+			measurePatterns = new();
 			List<DrillData.PatternWeight> availablePatterns = drill.Patterns.Where(pw => pw.Weight > 0).ToList();
 			int totalWeight = availablePatterns.Sum(pw => pw.Weight);
 			if (totalWeight == 0 || availablePatterns.Count == 0)
@@ -76,18 +95,25 @@ namespace OpenTaiko.Shrandy.Tools
 			int nextFillerAfter = hasFillers ? RollFillerFrequency(drill) : int.MaxValue;
 			int lastBpmChangeMeasure = 0;
 
-			for (int i = 0; i < count; i++)
+			repeatCount = Math.Max(1, repeatCount);
+			while (selectedPatterns.Count < count)
 			{
+				PatternData picked;
 				if (hasFillers && regularSinceLastFiller >= nextFillerAfter)
 				{
-					selectedPatterns.Add(PickWeightedRandom(availableFillers, totalFillerWeight));
+					picked = PickWeightedRandom(availableFillers, totalFillerWeight);
 					regularSinceLastFiller = 0;
 					nextFillerAfter = RollFillerFrequency(drill);
 				}
 				else
 				{
-					selectedPatterns.Add(PickWeightedRandom(availablePatterns, totalWeight));
-					regularSinceLastFiller++;					
+					picked = PickWeightedRandom(availablePatterns, totalWeight);
+					regularSinceLastFiller++;
+				}
+
+				for (int repeat = 0; repeat < repeatCount && selectedPatterns.Count < count; repeat++)
+				{
+					selectedPatterns.Add(picked);
 				}
 			}
 			
@@ -109,6 +135,7 @@ namespace OpenTaiko.Shrandy.Tools
 				}
 			}
 
+			measurePatterns = selectedPatterns;
 			return string.Join(",\n", tjaMeasures);
 		}
 
@@ -281,6 +308,8 @@ namespace OpenTaiko.Shrandy.Tools
 			newTja.tInitLocalStores(0);
 			m_CurrentlyPlayedPattern = pattern;
 			m_CurrentlyPlayedPatternBpm = bpm;
+			m_DrillMeasurePatterns = new();
+			m_DisplayedMeasureIndex = -1;
 
 			OpenTaiko.TJA!.t全チップの再生停止とミキサーからの削除();
 			OpenTaiko.SetTJA(0, newTja);
@@ -350,6 +379,7 @@ namespace OpenTaiko.Shrandy.Tools
 		protected override void Update()
 		{
 			base.Update();
+			UpdatePanelTitleForCurrentMeasure();
 
 			if (m_ComboRecordDirty && m_IdleStopwatch.ElapsedMilliseconds >= IdleSaveDelayMs)
 			{

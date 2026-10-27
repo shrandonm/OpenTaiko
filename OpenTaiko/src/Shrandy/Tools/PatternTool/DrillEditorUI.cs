@@ -15,6 +15,7 @@ namespace OpenTaiko.Shrandy.Tools
 		private bool m_PendingDeleteOpen = false;
 		private float m_Bpm = 120.0f;
 		private int m_DrillCount = 100;
+		private int m_RepeatCount = 1;
 		private DrillRandomMode m_RandomMode = DrillRandomMode.Normal;
 		private PatternFilter m_DrillPatternFilter = new();
 		private PatternFilter m_FillerPatternFilter = new();
@@ -56,7 +57,7 @@ namespace OpenTaiko.Shrandy.Tools
 					ImGui.TableSetColumnIndex(1);
 					if (ImGui.SmallButton($"Play##dplay{i}"))
 					{
-						m_Tool.PlayDrill(drills[i], m_DrillCount, m_RandomMode, m_Bpm);
+						m_Tool.PlayDrill(drills[i], m_DrillCount, m_RandomMode, m_Bpm, m_RepeatCount);
 					}
 
 					ImGui.TableSetColumnIndex(2);
@@ -107,6 +108,11 @@ namespace OpenTaiko.Shrandy.Tools
 				haveSettingsChanged = true;
 			}
 			
+			if (ImGui.InputInt("Repeat Count##drepeat", ref m_RepeatCount, 1, 5))
+			{
+				m_RepeatCount = Math.Max(1, m_RepeatCount);
+			}
+
 			int modeIdx = (int)m_RandomMode;
 			string[] modeNames = Enum.GetNames<DrillRandomMode>();
 			if (ImGui.Combo("Mode##dmode", ref modeIdx, modeNames, modeNames.Length))
@@ -135,7 +141,7 @@ namespace OpenTaiko.Shrandy.Tools
 			DrillData? playedDrill = m_Tool.CurrentlyPlayedDrill;
 			if (playedDrill != null)
 			{
-				m_Tool.PlayDrill(playedDrill, m_DrillCount, m_RandomMode, m_Bpm);
+				m_Tool.PlayDrill(playedDrill, m_DrillCount, m_RandomMode, m_Bpm, m_RepeatCount);
 			}
 		}
 
@@ -167,7 +173,7 @@ namespace OpenTaiko.Shrandy.Tools
 				DrawPatternWeightTablePair("##DrillEditOuter", "d", m_StagedDrill.Patterns, allPatterns, 200, m_DrillPatternFilter);
 
 				ImGui.Spacing();
-				int bpmRange = m_StagedDrill.RandomBpmRange;
+				int bpmRange =  m_StagedDrill.RandomBpmRange;
 				ImGui.InputInt("Random BPM Range", ref bpmRange, 1, 5);
 				m_StagedDrill.RandomBpmRange = bpmRange;
 				
@@ -252,7 +258,7 @@ namespace OpenTaiko.Shrandy.Tools
 		/// <summary>Plays a drill that is not stored in the database, using the current play controls.</summary>
 		internal void PlayTemporaryDrill(DrillData drill)
 		{
-			m_Tool.PlayDrill(drill, m_DrillCount, m_RandomMode, m_Bpm);
+			m_Tool.PlayDrill(drill, m_DrillCount, m_RandomMode, m_Bpm, m_RepeatCount);
 		}
 
 		private static void DrawPatternWeightTablePair(
